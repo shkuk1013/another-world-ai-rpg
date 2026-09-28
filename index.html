@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Another World AI RPG v0.2</title>
+<style>
+:root{--bg:#0d1118;--panel:#161d28;--line:#2b3748;--text:#eef2f7;--muted:#9da9ba;--accent:#8ab4f8}
+*{box-sizing:border-box}body{margin:0;background:#0d1118;color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{max-width:1200px;margin:auto;padding:18px}.grid{display:grid;grid-template-columns:280px 1fr 300px;gap:14px}.card{background:#161d28;border:1px solid var(--line);border-radius:14px;padding:15px}
+h1,h2,h3{margin:0 0 10px}.small{font-size:13px;color:var(--muted);line-height:1.6}.stat{display:flex;justify-content:space-between;margin:7px 0}
+button{border:1px solid #3b4960;background:#222c3a;color:white;padding:10px;border-radius:9px;cursor:pointer;font-weight:700}.primary{background:#315a93}.warn{background:#6a5220}.good{background:#245c43}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.log{min-height:520px;max-height:620px;overflow:auto}.entry{padding:10px 0;border-bottom:1px solid var(--line);line-height:1.65}.tag{font-size:12px;color:var(--accent)}
+.slot{padding:8px;border:1px solid #39465d;border-radius:9px;margin:6px 0}.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}.modal>div{width:min(560px,100%);background:#171e29;border:1px solid var(--line);border-radius:14px;padding:20px}.hidden{display:none}
+input,select{width:100%;padding:9px;margin:6px 0 12px;background:#0f151e;border:1px solid #3a465e;border-radius:8px;color:white}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style></head>
+<body><div id="app">
+<h1>Another World <span class="small">Prototype v0.2</span></h1>
+<p class="small">살아있는 이세계 RPG 프로토타입</p>
+<div class="grid">
+<aside class="card">
+<h3 id="pname">이름 없음</h3>
+<div class="stat"><span>레벨</span><b id="level"></b></div><div class="stat"><span>길드</span><b id="rank"></b></div>
+<div class="stat"><span>골드</span><b id="gold"></b></div><div class="stat"><span>평판</span><b id="rep"></b></div>
+<hr><div class="stat"><span>HP</span><b id="hp"></b></div><div class="stat"><span>MP</span><b id="mp"></b></div><div class="stat"><span>피로</span><b id="fatigue"></b></div>
+<hr><h3>숙련도</h3>
+<div class="stat"><span>검술</span><b id="sword"></b></div><div class="stat"><span>단검술</span><b id="dagger"></b></div><div class="stat"><span>궁술</span><b id="bow"></b></div><div class="stat"><span>지팡이술</span><b id="staff"></b></div><div class="stat"><span>마나제어</span><b id="manaControl"></b></div><div class="stat"><span>화염감응</span><b id="fire"></b></div>
+</aside>
+<main class="card"><h2 id="location"></h2><div id="time" class="small"></div><div id="log" class="log"></div><div id="actions" class="actions"></div></main>
+<aside class="card"><h3>현재 목표</h3><div id="quest" class="small"></div><hr><h3>장비</h3><div id="equip"></div><hr><h3>마법</h3><div id="spells" class="small"></div><button class="primary" onclick="researchMagic()">마법 연구</button><hr><h3>저장</h3><button onclick="save()">저장</button> <button onclick="load()">불러오기</button></aside>
+</div></div>
+<div id="start" class="modal"><div><h2>새로운 삶</h2><label>이름</label><input id="nameInput" value="쿠노모스"><label>초기 성향</label><select id="trait"><option>마력감응</option><option>검술경험</option><option>사냥경험</option><option>도적감각</option><option>붙임성</option></select><button class="primary" onclick="startGame()">이세계로 들어간다</button></div></div>
+<script>
+const $=x=>document.getElementById(x);
+let G={name:"",trait:"",level:1,xp:0,rank:"미등록",gold:38,rep:0,hp:30,maxHp:30,mp:12,maxMp:12,fatigue:8,sword:3,dagger:2,bow:2,staff:2,manaControl:11,fire:8,day:1,hour:15,location:"낯선 숲길",stage:0,equipment:{weapon:null,offhand:null,armor:"낡은 여행복",accessory:null},spells:[{name:"작은 불꽃",power:2,cost:2}],quest:null,log:[]};
+const weapons={검:{name:"낡은 철검",type:"sword",atk:6,price:28},단검:{name:"사냥용 단검",type:"dagger",atk:4,price:22},활:{name:"짧은 활",type:"bow",atk:5,price:26},지팡이:{name:"견습 지팡이",type:"staff",atk:2,magic:4,price:30}};
+function add(tag,text){G.log.push({tag,text});if(G.log.length>80)G.log.shift();render()}
+function render(){pname.textContent=G.name||"이름 없음";level.textContent=G.level;rank.textContent=G.rank;gold.textContent=G.gold+"G";rep.textContent=G.rep;hp.textContent=G.hp+"/"+G.maxHp;mp.textContent=G.mp+"/"+G.maxMp;fatigue.textContent=G.fatigue;sword.textContent=G.sword;dagger.textContent=G.dagger;bow.textContent=G.bow;staff.textContent=G.staff;manaControl.textContent=G.manaControl;fire.textContent=G.fire;location.textContent=G.location;time.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;log.innerHTML=G.log.map(x=>`<div class="entry"><div class="tag">${x.tag}</div>${x.text}</div>`).join("");log.scrollTop=log.scrollHeight;quest.innerHTML=G.quest?("<b>"+G.quest.title+"</b><br>"+G.quest.desc):"아직 목표가 없습니다.";equip.innerHTML=`<div class="slot">주무기: ${G.equipment.weapon?.name||"없음"}</div><div class="slot">보조: ${G.equipment.offhand||"없음"}</div><div class="slot">방어구: ${G.equipment.armor}</div>`;spells.innerHTML=G.spells.map(s=>`• <b>${s.name}</b> (위력 ${s.power}/MP ${s.cost})`).join("<br>");actions.innerHTML="";getActions().forEach(([t,f,c])=>{let b=document.createElement("button");b.textContent=t;b.className=c||"";b.onclick=f;actions.appendChild(b)})}
+function getActions(){let a=[];const p=(t,f,c)=>a.push([t,f,c]);if(G.stage===0){p("브렌 마을로 향한다",goVillage,"primary");p("주변 탐색",()=>add("탐색","낯선 풀과 짐승 발자국을 발견했다."))}
+else if(G.location==="브렌 마을"){p("모험가 길드",()=>move("모험가 길드"));p("대장간",()=>move("대장간"));p("마법 상점",()=>move("마법 상점"));p("여관",()=>move("여관"));p("훈련장",()=>move("훈련장"));p("서쪽 숲",()=>move("서쪽 숲"),"good")}
+else if(G.location==="모험가 길드"){if(G.rank==="미등록")p("길드 등록",()=>{G.rank="F급";G.rep++;G.quest={title:"첫 의뢰",desc:"서쪽 숲의 고블린을 정찰하라."};add("미라","“오늘부터 F급이에요. 무리하지 마세요.”")}, "primary");else p("고블린 정찰 의뢰",()=>{G.quest={title:"[F급] 고블린 정찰",desc:"서쪽 숲에서 고블린을 확인하고 생환."};add("의뢰","정찰 의뢰를 수락했다.")},"warn");p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="대장간"){Object.entries(weapons).forEach(([k,v])=>p(k+" 구매 "+v.price+"G",()=>buyWeapon(v)));p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="마법 상점"){p("화염탄 마법서 26G",()=>{if(G.gold<26)return add("상점","골드가 부족하다.");G.gold-=26;if(!G.spells.some(x=>x.name==="화염탄"))G.spells.push({name:"화염탄",power:6,cost:4});add("마법 습득","<b>화염탄</b>을 배웠다.")});p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="훈련장"){["sword","dagger","bow","staff"].forEach(k=>p(k+" 훈련 5G",()=>train(k)));p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="여관"){p("숙박 8G",sleep);p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="서쪽 숲"){p("고블린 추적",fight,"warn");p("약초 채집",()=>{G.gold+=4;G.fatigue+=3;add("채집","약초를 팔아 4G를 벌었다.")},"good");p("마을로",()=>move("브렌 마을"))}return a}
+function startGame(){G.name=nameInput.value||"이방인";G.trait=trait.value;if(G.trait==="마력감응"){G.manaControl+=6;G.fire+=5;G.maxMp+=5;G.mp=G.maxMp}if(G.trait==="검술경험")G.sword+=7;if(G.trait==="사냥경험")G.bow+=6;if(G.trait==="도적감각")G.dagger+=6;start.classList.add("hidden");add("제1장","낯선 숲에서 눈을 떴다. 멀리 사람 사는 마을의 연기가 보인다.")}
+function goVillage(){G.stage=1;G.location="브렌 마을";G.hour++;add("브렌 마을","대장간의 망치 소리와 여관의 웃음소리가 섞여 들린다.")}
+function move(x){G.location=x;add("이동",x+"에 도착했다.")}
+function buyWeapon(v){if(G.gold<v.price)return add("상점","골드가 부족하다.");G.gold-=v.price;G.equipment.weapon={...v};add("장비",v.name+"을 장착했다.")}
+function train(k){if(G.gold<5)return add("훈련","훈련비가 부족하다.");G.gold-=5;G[k]+=3;G.fatigue+=6;add("훈련",k+" 숙련도가 3 올랐다.")}
+function sleep(){if(G.gold<8)return add("여관","숙박비가 부족하다.");G.gold-=8;G.hp=G.maxHp;G.mp=G.maxMp;G.fatigue=0;G.day++;G.hour=7;add("숙박","이세계에서 또 하루가 시작됐다.")}
+function fight(){let type=G.equipment.weapon?.type||"none",skill=type==="sword"?G.sword:type==="dagger"?G.dagger:type==="bow"?G.bow:type==="staff"?G.staff:1;let atk=(G.equipment.weapon?.atk||1)+skill*.6;let magic=(G.equipment.weapon?.magic||0)+G.fire*.25;let roll=atk+magic+Math.random()*10;if(roll>13){G.gold+=8;G.rep++;if(type!=="none")G[type]++;add("전투 승리","고블린을 쓰러뜨렸다. 8G를 얻었다.");if(G.quest){G.quest={title:"정찰 완료",desc:"브렌 길드에 생환 보고를 마쳤다."};G.gold+=30;add("의뢰 완료","정찰 보상 30G를 받았다.")}}else{let d=5+Math.floor(Math.random()*6);G.hp=Math.max(1,G.hp-d);add("전투","고블린에게 밀려 후퇴했다. HP -"+d)}}
+function researchMagic(){let need=15;if(G.manaControl<need)return add("마법 연구","마나 제어 15 이상이 필요하다.");let n=prompt("새 마법의 이름을 정하세요","압축 화염탄");if(!n)return;G.spells.push({name:n,power:7+Math.floor(G.fire/5),cost:5});G.manaControl+=2;G.fire+=2;add("새로운 마법",`<b>${n}</b>을 직접 완성했다.`)}
+function save(){localStorage.setItem("anotherWorldV02",JSON.stringify(G));add("시스템","저장 완료")}
+function load(){let s=localStorage.getItem("anotherWorldV02");if(!s)return alert("저장 데이터가 없습니다.");G=JSON.parse(s);start.classList.add("hidden");render()}
+render();
+</script></body></html>
