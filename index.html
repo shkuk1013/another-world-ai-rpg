@@ -46,15 +46,46 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}@media(max-width:980p
 <div id="startModal" class="modal"><div><h2>새로운 삶을 시작합니다</h2><p class="small">이 세계는 당신이 주인공이라는 사실을 모릅니다.</p><label>이름</label><input id="nameInput" value="쿠노모스"><label>초기 성향</label><select id="traitInput"><option value="마력감응">마력감응</option><option value="검술경험">검술경험</option><option value="사냥경험">사냥경험</option><option value="도적감각">도적감각</option></select><button class="primary" onclick="startGame()">이세계로 들어간다</button></div></div>
 
 <div id="combatModal" class="modal hidden"><div>
-<h2>전투</h2><div class="combat-grid"><div><img id="enemyArt" class="enemy-art" src="assets/enemies/goblin-scout.svg"></div><div>
-<h3 id="enemyName"></h3><div class="stat"><span>적 HP</span><b id="enemyHp"></b></div><div class="bar"><i id="enemyBar"></i></div><div class="stat"><span>거리</span><b class="distance" id="distanceText"></b></div><div id="enemyIntent" class="intent"></div><div id="combatStatus"></div><div id="combatLog" class="quest small"></div>
-</div></div>
+<h2>전투</h2>
+<div class="player-panel">
+  <h3 id="combatPlayerName" style="margin-bottom:8px"></h3>
+  <div class="player-bars">
+    <div>
+      <div class="stat"><span>내 HP</span><b id="combatPlayerHp"></b></div>
+      <div class="bar"><i id="combatPlayerHpBar"></i></div>
+    </div>
+    <div>
+      <div class="stat"><span>내 MP</span><b id="combatPlayerMp"></b></div>
+      <div class="bar"><i id="combatPlayerMpBar"></i></div>
+    </div>
+  </div>
+</div>
+<div class="combat-grid">
+  <div><img id="enemyArt" class="enemy-art" src="assets/enemies/goblin-scout.svg"></div>
+  <div>
+    <h3 id="enemyName"></h3>
+    <div class="stat"><span>적 HP</span><b id="enemyHp"></b></div>
+    <div class="bar"><i id="enemyBar"></i></div>
+    <div id="enemyIntent" class="intent"></div>
+    <div id="combatStatus"></div>
+    <div id="combatLog" class="quest small"></div>
+  </div>
+</div>
 <div class="combat-actions">
-<button class="primary" onclick="weaponAttack()">무기 공격</button><button class="magic" onclick="castSpell()">마법</button>
-<button onclick="changeDistance(-1)">거리 벌리기</button><button onclick="changeDistance(1)">접근</button>
-<button class="good" onclick="defend()">방어</button><button class="warn" onclick="specialSkill()">전술 스킬</button>
-<button class="bad" onclick="flee()">도망</button>
-</div></div></div>
+  <button class="primary" onclick="weaponAttack()">무기 공격</button>
+  <button class="magic" onclick="openCombatMagic()">마법 선택</button>
+  <button class="good" onclick="defend()">방어</button>
+  <button class="warn" onclick="specialSkill()">전술 스킬</button>
+  <button class="bad" onclick="flee()">도망</button>
+</div>
+</div></div>
+
+<div id="combatMagicModal" class="modal hidden"><div>
+<h2>사용할 마법 선택</h2>
+<p class="small">현재 MP 안에서 사용할 마법을 직접 선택하세요.</p>
+<div id="combatMagicList"></div>
+<button onclick="closeCombatMagic()">취소</button>
+</div></div>
 
 <div id="magicModal" class="modal hidden"><div><h2>마법 연구</h2><p class="small">속성·형태·변형을 조합해 자신만의 주문을 만든다.</p>
 <label>형태</label><select id="magicForm"><option value="탄환">탄환</option><option value="장벽">장벽</option><option value="영역">영역</option></select>
@@ -67,8 +98,7 @@ const PORTRAITS={system:"assets/portraits/mira.svg",미라:"assets/portraits/mir
 const SCENES={"낯선 숲길":"assets/backgrounds/bren-village.svg","브렌 마을":"assets/backgrounds/bren-village.svg","모험가 길드":"assets/backgrounds/bren-village.svg","마법 상점":"assets/backgrounds/bren-village.svg","대장간":"assets/backgrounds/bren-village.svg","서쪽 숲":"assets/backgrounds/bren-village.svg"};
 let G={name:"",trait:"",level:1,xp:0,rank:"미등록",gold:38,rep:0,hp:32,maxHp:32,mp:14,maxMp:14,fatigue:6,sword:3,dagger:2,bow:2,staff:2,manaControl:11,fire:8,day:1,hour:15,location:"낯선 숲길",stage:0,
 equipment:{weapon:null,offhand:null,armor:"낡은 여행복"},spells:[{name:"작은 불꽃",power:3,cost:2,status:"화상"}],quest:null,relations:{},log:[],combat:null};
-const WEAPONS={검:{name:"낡은 철검",type:"sword",atk:7,range:["근거리"],price:28},단검:{name:"사냥용 단검",type:"dagger",atk:5,range:["근거리"],price:22},활:{name:"짧은 활",type:"bow",atk:6,range:["중거리","원거리"],price:26},지팡이:{name:"견습 지팡이",type:"staff",atk:3,magic:4,range:["근거리","중거리"],price:30}};
-const DIST=["원거리","중거리","근거리"];
+const WEAPONS={검:{name:"낡은 철검",type:"sword",atk:7,price:28},단검:{name:"사냥용 단검",type:"dagger",atk:5,price:22},활:{name:"짧은 활",type:"bow",atk:6,price:26},지팡이:{name:"견습 지팡이",type:"staff",atk:3,magic:4,price:30}};
 function speakerArt(tag){return PORTRAITS[tag]||PORTRAITS.system}
 function add(tag,text){G.log.push({tag,text,img:speakerArt(tag)});if(G.log.length>80)G.log.shift();render()}
 function gainXP(n){G.xp+=n;while(G.xp>=G.level*100){G.xp-=G.level*100;G.level++;G.maxHp+=4;G.maxMp+=2;G.hp=G.maxHp;G.mp=G.maxMp;add("system",`<b>레벨 ${G.level}</b>이 되었다. 이전에는 두려웠던 적이 조금 작게 느껴진다.`)}}
@@ -93,12 +123,79 @@ function openMagic(){magicModal.classList.remove("hidden")}function closeMagic()
 function researchMagic(){let form=magicForm.value,mod=magicMod.value;let need=Math.max({탄환:15,장벽:24,영역:34}[form],{없음:0,압축:26,추적:30,연쇄:40}[mod]);if(G.manaControl<need){closeMagic();return add("리엔",`“아직 제어가 부족해요. 마나 제어 ${need} 정도는 필요해요.”`)}let n=magicName.value.trim()||((mod==="없음"?"":mod+" ")+(form==="탄환"?"화염탄":form==="장벽"?"화염장벽":"화염영역"));let power=6+Math.floor(G.fire/5)+(mod==="압축"?4:mod==="연쇄"?6:2);G.spells.push({name:n,power,cost:5+(form==="영역"?3:0),status:"화상"});G.manaControl+=2;G.fire+=2;gainXP(12);closeMagic();add("리엔",`리엔이 한동안 말없이 마법식을 바라본다.<br>“...이거, 기존 술식이 아니잖아요.”<br><b>${n}</b>을 직접 완성했다.`)}
 function startCombat(){G.combat={name:"고블린 정찰병",hp:34,maxHp:34,atk:7,intent:"강한 공격",burn:0,guard:false,enemyGuard:false,turn:1};combatModal.classList.remove("hidden");combatLog.innerHTML="고블린이 짧은 칼을 낮게 들고 당신을 살핀다.";updateCombat()}
 function intentRoll(){let r=Math.random();G.combat.intent=r<.32?"강한 공격":r<.58?"빠른 찌르기":r<.8?"모래 뿌리기":"방어 자세"}
-function updateCombat(){let c=G.combat;if(!c)return;combatPlayerName.textContent=G.name||"플레이어";combatPlayerHp.textContent=`${Math.max(0,G.hp)}/${G.maxHp}`;combatPlayerMp.textContent=`${Math.max(0,G.mp)}/${G.maxMp}`;combatPlayerHpBar.style.width=Math.max(0,G.hp/G.maxHp*100)+"%";combatPlayerMpBar.style.width=Math.max(0,G.mp/G.maxMp*100)+"%";enemyName.textContent=c.name;enemyHp.textContent=`${Math.max(0,c.hp)}/${c.maxHp}`;enemyBar.style.width=Math.max(0,c.hp/c.maxHp*100)+"%";enemyIntent.textContent=`적의 움직임: ${c.intent}`;let ss=[];if(c.burn>0)ss.push(`🔥 화상 ${c.burn}턴`);if(c.enemyGuard)ss.push("🛡 적 방어");combatStatus.innerHTML=ss.map(s=>`<span class="status">${s}</span>`).join("")||'<span class="small">상태이상 없음</span>'}\nfunction skillForWeapon(){let t=G.equipment.weapon?.type;return t==="sword"?G.sword:t==="dagger"?G.dagger:t==="bow"?G.bow:t==="staff"?G.staff:1}
-function validRange(arr){return arr.includes(DIST[G.combat.distance])}
+function updateCombat(){
+  let c=G.combat;if(!c)return;
+  combatPlayerName.textContent=G.name||"플레이어";
+  combatPlayerHp.textContent=`${Math.max(0,G.hp)}/${G.maxHp}`;
+  combatPlayerMp.textContent=`${Math.max(0,G.mp)}/${G.maxMp}`;
+  combatPlayerHpBar.style.width=Math.max(0,G.hp/G.maxHp*100)+"%";
+  combatPlayerMpBar.style.width=Math.max(0,G.mp/G.maxMp*100)+"%";
+  enemyName.textContent=c.name;
+  enemyHp.textContent=`${Math.max(0,c.hp)}/${c.maxHp}`;
+  enemyBar.style.width=Math.max(0,c.hp/c.maxHp*100)+"%";
+  enemyIntent.textContent=`적의 움직임: ${c.intent}`;
+  let ss=[];
+  if(c.burn>0)ss.push(`🔥 화상 ${c.burn}턴`);
+  if(c.enemyGuard)ss.push("🛡 적 방어");
+  combatStatus.innerHTML=ss.map(s=>`<span class="status">${s}</span>`).join("")||'<span class="small">상태이상 없음</span>';
+}
+function skillForWeapon(){let t=G.equipment.weapon?.type;return t==="sword"?G.sword:t==="dagger"?G.dagger:t==="bow"?G.bow:t==="staff"?G.staff:1}
 function endPlayerTurn(text){combatLog.innerHTML=text;updateCombat();enemyTurn()}
-function weaponAttack(){let c=G.combat,w=G.equipment.weapon;if(!w)return endPlayerTurn("맨손으로 공격했지만 제대로 된 피해를 주기 어렵다.");let dmg=Math.floor(w.atk+skillForWeapon()*.55+Math.random()*5);if(c.enemyGuard)dmg=Math.ceil(dmg*.45);c.hp-=dmg;c.enemyGuard=false;G[w.type]++;if(c.hp<=0)return victory(`${w.name}으로 ${dmg} 피해!`);endPlayerTurn(`${w.name}으로 <b>${dmg}</b> 피해를 줬다.`)}
-function openCombatMagic(){if(!G.combat)return;combatMagicList.innerHTML=G.spells.map((s,i)=>`<button class="spell-pick" ${G.mp<s.cost?"disabled":""} onclick="castSpellByIndex(${i})"><b>${s.name}</b><br><span class="small">위력 ${s.power} · MP ${s.cost} · ${s.status||"효과 없음"} ${G.mp<s.cost?"· MP 부족":""}</span></button>`).join("");combatMagicModal.classList.remove("hidden")}\nfunction closeCombatMagic(){combatMagicModal.classList.add("hidden")}\nfunction castSpellByIndex(i){let c=G.combat,s=G.spells[i];if(!c||!s||G.mp<s.cost)return;closeCombatMagic();G.mp-=s.cost;let dmg=Math.floor(s.power+G.fire*.35+(G.equipment.weapon?.magic||0)+Math.random()*4);if(c.enemyGuard)dmg=Math.ceil(dmg*.7);c.hp-=dmg;if(s.status==="화상")c.burn=2;c.enemyGuard=false;G.fire++;G.manaControl++;updateCombat();if(c.hp<=0)return victory(`${s.name}이 적을 집어삼켰다.`);endPlayerTurn(`<b>${s.name}</b>! ${dmg} 피해${s.status?" + "+s.status:""}.`)}\nfunction defend(){G.combat.guard=true;endPlayerTurn("자세를 낮추고 다음 공격에 대비한다.")}
-function specialSkill(){let c=G.combat,w=G.equipment.weapon;if(!w)return combatLog.innerHTML="무기를 장착해야 전술 스킬을 쓸 수 있다.";if(w.type==="sword"){let d=Math.floor(8+G.sword*.45);c.hp-=d;if(c.hp<=0)return victory("반격 베기로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>반격 베기</b>! ${d} 피해.`)}if(w.type==="dagger"){let d=Math.floor(5+G.dagger*.4);c.hp-=d*2;if(c.hp<=0)return victory("연속 찌르기로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>연속 찌르기</b>! 총 ${d*2} 피해.`)}if(w.type==="bow"){let d=Math.floor(10+G.bow*.5);c.hp-=d;if(c.hp<=0)return victory("조준 사격으로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>조준 사격</b>! ${d} 피해.`)}if(w.type==="staff"){G.mp=Math.min(G.maxMp,G.mp+3);G.manaControl++;updateCombat();return endPlayerTurn("<b>마나 순환</b>으로 MP 3 회복.")}}\nfunction enemyTurn(){let c=G.combat;if(!c)return;if(c.burn>0){c.hp-=3;c.burn--;if(c.hp<=0)return victory("화상 피해로 적이 쓰러졌다.")}let text="";if(c.intent==="강한 공격"){text=enemyDamage(10,"거친 내려찍기")}else if(c.intent==="빠른 찌르기"){text=enemyDamage(7,"빠른 찌르기")}else if(c.intent==="모래 뿌리기"){text="고블린이 흙을 걷어찼다. 시야가 흐려져 피로가 늘었다.";G.fatigue=Math.min(100,G.fatigue+4)}else{c.enemyGuard=true;text="고블린이 몸을 웅크리고 공격을 막을 준비를 한다."}c.guard=false;c.turn++;intentRoll();combatLog.innerHTML+=(combatLog.innerHTML?"<br><br>":"")+text;updateCombat()}\nfunction enemyDamage(base,name){let d=Math.max(1,base+Math.floor(Math.random()*4)-(G.combat.guard?5:0));G.hp-=d;if(G.hp<=0){G.hp=1;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");G.combat=null;G.location="브렌 마을";G.gold=Math.max(0,G.gold-6);add("미라","정신을 차렸을 때 길드 휴게실이었다. 미라가 화난 얼굴로 팔짱을 끼고 있다.<br>“제가 <b>살아서 돌아오라</b>고 했죠?”");return `${name}에 맞아 쓰러졌다.`}return `${name}! HP <b>-${d}</b>`}
+function weaponAttack(){
+  let c=G.combat,w=G.equipment.weapon;
+  if(!w)return endPlayerTurn("맨손으로 공격했지만 제대로 된 피해를 주기 어렵다.");
+  let dmg=Math.floor(w.atk+skillForWeapon()*.55+Math.random()*5);
+  if(c.enemyGuard)dmg=Math.ceil(dmg*.45);
+  c.hp-=dmg;c.enemyGuard=false;G[w.type]++;
+  if(c.hp<=0)return victory(`${w.name}으로 ${dmg} 피해!`);
+  endPlayerTurn(`${w.name}으로 <b>${dmg}</b> 피해를 줬다.`);
+}
+function openCombatMagic(){
+  if(!G.combat)return;
+  combatMagicList.innerHTML=G.spells.map((s,i)=>`
+    <button class="spell-pick" ${G.mp<s.cost?"disabled":""} onclick="castSpellByIndex(${i})">
+      <b>${s.name}</b><br>
+      <span class="small">위력 ${s.power} · MP ${s.cost} · ${s.status||"효과 없음"} ${G.mp<s.cost?"· MP 부족":""}</span>
+    </button>`).join("");
+  combatMagicModal.classList.remove("hidden");
+}
+function closeCombatMagic(){combatMagicModal.classList.add("hidden")}
+function castSpellByIndex(i){
+  let c=G.combat,s=G.spells[i];
+  if(!c||!s||G.mp<s.cost)return;
+  closeCombatMagic();
+  G.mp-=s.cost;
+  let dmg=Math.floor(s.power+G.fire*.35+(G.equipment.weapon?.magic||0)+Math.random()*4);
+  if(c.enemyGuard)dmg=Math.ceil(dmg*.7);
+  c.hp-=dmg;
+  if(s.status==="화상")c.burn=2;
+  c.enemyGuard=false;G.fire++;G.manaControl++;
+  updateCombat();
+  if(c.hp<=0)return victory(`${s.name}이 적을 집어삼켰다.`);
+  endPlayerTurn(`<b>${s.name}</b>! ${dmg} 피해${s.status?" + "+s.status:""}.`);
+}
+function defend(){G.combat.guard=true;endPlayerTurn("자세를 낮추고 다음 공격에 대비한다.")}
+function specialSkill(){
+  let c=G.combat,w=G.equipment.weapon;
+  if(!w)return combatLog.innerHTML="무기를 장착해야 전술 스킬을 쓸 수 있다.";
+  if(w.type==="sword"){let d=Math.floor(8+G.sword*.45);c.hp-=d;if(c.hp<=0)return victory("반격 베기로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>반격 베기</b>! ${d} 피해.`)}
+  if(w.type==="dagger"){let d=Math.floor(5+G.dagger*.4);c.hp-=d*2;if(c.hp<=0)return victory("연속 찌르기로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>연속 찌르기</b>! 총 ${d*2} 피해.`)}
+  if(w.type==="bow"){let d=Math.floor(10+G.bow*.5);c.hp-=d;if(c.hp<=0)return victory("조준 사격으로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>조준 사격</b>! ${d} 피해.`)}
+  if(w.type==="staff"){G.mp=Math.min(G.maxMp,G.mp+3);G.manaControl++;updateCombat();return endPlayerTurn("<b>마나 순환</b>으로 MP 3 회복.")}
+}
+function enemyTurn(){
+  let c=G.combat;if(!c)return;
+  if(c.burn>0){c.hp-=3;c.burn--;if(c.hp<=0)return victory("화상 피해로 적이 쓰러졌다.")}
+  let text="";
+  if(c.intent==="강한 공격")text=enemyDamage(10,"거친 내려찍기");
+  else if(c.intent==="빠른 찌르기")text=enemyDamage(7,"빠른 찌르기");
+  else if(c.intent==="모래 뿌리기"){text="고블린이 흙을 걷어찼다. 시야가 흐려져 피로가 늘었다.";G.fatigue=Math.min(100,G.fatigue+4)}
+  else{c.enemyGuard=true;text="고블린이 몸을 웅크리고 공격을 막을 준비를 한다."}
+  c.guard=false;c.turn++;intentRoll();
+  combatLog.innerHTML+=(combatLog.innerHTML?"<br><br>":"")+text;
+  updateCombat();
+}
+function enemyDamage(base,name){let d=Math.max(1,base+Math.floor(Math.random()*4)-(G.combat.guard?5:0));G.hp-=d;if(G.hp<=0){G.hp=1;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");G.combat=null;G.location="브렌 마을";G.gold=Math.max(0,G.gold-6);add("미라","정신을 차렸을 때 길드 휴게실이었다. 미라가 화난 얼굴로 팔짱을 끼고 있다.<br>“제가 <b>살아서 돌아오라</b>고 했죠?”");return `${name}에 맞아 쓰러졌다.`}return `${name}! HP <b>-${d}</b>`}
 function victory(txt){let c=G.combat;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");G.combat=null;G.gold+=10;G.rep+=1;gainXP(22);if(G.quest?.type==="goblin"){G.gold+=30;G.rep+=2;G.quest={title:"첫 위험한 의뢰 완료",desc:"미라에게 생환 보고를 마쳤다."};G.relations["미라"]??={aff:1,note:"브렌 길드 접수원."};G.relations["미라"].aff+=2;add("미라",`“...직접 싸웠어요?” 미라는 한숨을 쉬고 보상 주머니를 건넨다.<br>“그래도 돌아왔네요. <b>그건 잘했어요.</b>”`)}add("system",txt+" 전리품과 보상을 챙겼다.")}
 function flee(){if(Math.random()<.65){combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");G.combat=null;add("system","숨이 턱 끝까지 차올랐지만 전투에서 벗어났다.")}else{combatLog.innerHTML="도망칠 틈을 찾지 못했다.";enemyTurn()}}
 function saveGame(){localStorage.setItem("anotherWorldV03",JSON.stringify(G));add("system","게임을 저장했다.")}function loadGame(){let s=localStorage.getItem("anotherWorldV03");if(!s)return alert("저장 데이터가 없습니다.");G=JSON.parse(s);startModal.classList.add("hidden");render()}
