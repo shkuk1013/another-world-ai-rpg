@@ -1,0 +1,43 @@
+/* Quiet, readable adventure interface. Every action remains reachable. */
+:root{--accent:#d8bb82;--line:#344352;--text:#edf0ee;--muted:#a8b4c1}
+button:focus-visible{outline:3px solid #ffe4a4;outline-offset:3px}
+.game-shell{grid-template-columns:minmax(320px,1.15fr) minmax(340px,1fr) minmax(245px,.68fr);gap:12px;padding:14px}
+.panel{border-radius:12px}.stage-bg{object-position:center}.stage-shade{background:linear-gradient(180deg,#08111a10 40%,#08111acd)}
+.stage-npc{height:54%;width:43%;right:5%;bottom:5%;border-radius:12px;object-fit:cover}
+.story-panel{grid-template-rows:auto minmax(80px,1fr) auto}.dialogue-box{padding:24px}.dialogue-text{line-height:1.9;font-size:16px;min-height:100px}
+.actions-wrap{max-height:52vh;overflow:auto;padding:12px}.actions{gap:8px}.choice-btn{min-height:64px;border-radius:8px;background:#1b2936}.choice-btn.primary{background:#29465c;border-color:#8da6ad}.choice-btn.good{background:#24453c}.choice-btn.warn{background:#51432e}.choice-btn.magic{background:#413354}
+.choice-sub{line-height:1.5!important;font-size:11px!important;color:#c1cbd4!important}.choice-btn:disabled .choice-sub{color:#b9c1cb!important}
+#questTrail{padding:9px 11px;margin-bottom:10px;border-left:2px solid #d8bb82;background:#d8bb820b;font-size:12px;line-height:1.65;color:#e5d0a5}
+#questBox p{line-height:1.8}#questBox button{display:block;width:100%;margin-top:12px}
+#saveIndicator{display:block;font-size:10px;color:#a0bba4;margin-top:3px}.topbar{height:auto;min-height:74px;grid-template-columns:auto 1fr auto}.top-actions{flex-wrap:wrap;justify-content:flex-end;max-width:290px}.hud{flex-wrap:wrap}.hud-bars{min-width:220px}
+.map-static{height:auto;min-height:0}.map-static img{height:auto;min-height:0;object-fit:contain}.map-visual{min-height:0;align-self:start}
+@media(max-width:1150px){.game-shell{grid-template-columns:1fr 1fr}.side-panel{grid-column:1/-1;min-height:280px}.game-shell{overflow:visible}html,body{overflow:auto}#app{height:auto;min-height:100dvh}.stage-panel{min-height:440px}.story-panel{min-height:600px}.topbar{grid-template-columns:1fr auto}.hud{grid-column:1/-1;order:3}.side-tabs button{font-size:12px}}
+@media(max-width:720px){.game-shell{display:flex;flex-direction:column;padding:8px}.stage-panel{min-height:240px;height:32vh;flex:none}.stage-npc{height:82%;width:32%}.story-panel{min-height:unset;display:flex;flex-direction:column}.dialogue-box{padding:16px}.dialogue-text{min-height:70px;font-size:15px}.story-history-wrap{max-height:130px}.actions-wrap{max-height:none}.actions{grid-template-columns:1fr 1fr}.choice-btn{font-size:13px;padding-left:31px;min-height:76px}.choice-btn .choice-icon{left:8px;font-size:15px}.side-panel{min-height:320px}.side-tabs{grid-template-columns:repeat(4,1fr)}.top-actions button{font-size:11px;padding:7px}.brand span{display:block}.top-actions .kbd{display:none}.hud-chip{display:block;font-size:11px;padding:3px 6px}.hud-bars{flex-basis:100%}.topbar{position:relative;padding:10px;gap:8px}.top-actions{max-width:215px}.location-card b{font-size:18px}.location-card{left:12px;top:12px;max-width:68%}.speaker-card{bottom:12px;left:12px}.modal{padding:8px}.dual,.combat-grid{grid-template-columns:1fr}.enemy-art{max-height:180px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+/* Release QA layout: stats left, illustrated scene and dialogue center, actions right. */
+@media(min-width:1001px){
+ html,body{overflow:hidden}#app{height:100dvh;min-height:0}
+ .topbar{flex:0 0 auto;min-height:92px;grid-template-columns:160px 1fr 255px;padding:10px 14px}
+ .brand{min-width:0}.brand b{font-size:17px}.brand span{font-size:9px}.hud{grid-column:auto;order:0;gap:5px}.hud-chip{font-size:11px;padding:3px 7px}.hud-bars{flex-basis:100%;max-width:none;min-width:0}.mini-stat{min-width:60px}.top-actions{max-width:255px}
+ .game-shell{display:grid;grid-template-columns:235px minmax(350px,1fr) 290px;grid-template-rows:minmax(0,1fr);gap:10px;padding:10px;overflow:hidden}
+ .side-panel{grid-column:1;grid-row:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}
+ .stage-panel{grid-column:2;grid-row:1;min-height:0;position:relative}
+ .story-panel{grid-column:3;grid-row:1;min-height:0;display:flex;flex-direction:column}
+ .stage-npc{height:calc(100% - 215px);max-height:560px;width:70%;max-width:400px;left:50%;right:auto;transform:translateX(-50%);bottom:175px;object-fit:contain;border:0;border-radius:14px;box-shadow:none;mask-image:none;-webkit-mask-image:none}
+ .stage-panel .dialogue-box{position:absolute;bottom:0;left:0;right:0;z-index:5;min-height:164px;max-height:38%;overflow:auto;padding:17px 22px;background:#0b1521ef;border-top:1px solid #d6bc8266;border-bottom:0}
+ .dialogue-text{min-height:0;line-height:1.8;font-size:15px}.dialogue-name{margin-bottom:5px}.speaker-card{display:none}
+ .location-card{max-width:95%;left:12px;top:12px}.location-card b{font-size:18px}
+ .story-history-wrap{order:2;flex:0 1 auto;max-height:35%;min-height:0;border-top:1px solid var(--line);overflow:auto}
+ .story-history-wrap summary{cursor:pointer;padding:12px;color:#acbbc9;font-size:12px}.story-history-wrap .log{max-height:180px}
+ .actions-wrap{order:1;flex:1;max-height:none;overflow:auto;border-top:0;padding:10px}.actions{grid-template-columns:1fr 1fr;gap:7px}.choice-btn{min-height:63px;padding:9px 7px;font-size:12px}.choice-btn .choice-icon{display:none}.choice-btn:last-child:nth-child(odd){grid-column:auto}
+ .actions-title{font-size:14px;color:#ead5ab;margin:4px 0 12px}.choice-sub{font-size:10px!important}.side-tabs button{font-size:10px}.side-content{padding:10px}
+ #questTrail{font-size:11px;padding:8px;margin-bottom:10px}.quest.small{font-size:12px}#questBox p{margin:8px 0}.side-title{margin-top:8px}
+}
+@media(min-width:1500px){.game-shell{grid-template-columns:260px minmax(500px,1fr) 330px}.choice-btn{min-height:70px;font-size:13px}.stage-panel .dialogue-text{font-size:17px}.stage-npc{max-width:440px;max-height:660px}}
+@media(max-width:1000px){
+ .game-shell{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto}.stage-panel{min-height:550px;height:66vh;grid-column:auto}.side-panel{grid-column:auto;min-height:280px}.story-panel{min-height:0;display:flex;flex-direction:column}.actions-wrap{max-height:none}.story-history-wrap{order:2;max-height:180px}.story-history-wrap summary{padding:12px;cursor:pointer}.actions-title{font-size:15px;margin:0 0 10px}
+ .stage-npc{height:calc(100% - 205px);width:72%;max-width:360px;bottom:160px;left:50%;right:auto;transform:translateX(-50%);object-fit:contain;border:0;mask-image:none;-webkit-mask-image:none;box-shadow:none}
+ .stage-panel .dialogue-box{position:absolute;bottom:0;left:0;right:0;z-index:5;max-height:40%;overflow:auto;min-height:150px;background:#0b1521ed;padding:15px}.speaker-card{display:none}.dialogue-text{min-height:0}.hud-bars{min-width:100%;max-width:none}.mini-stat{min-width:45px}.hud-chip{display:block}.hud{flex-wrap:wrap}.topbar{position:relative}.top-actions button{font-size:11px}
+}
+@media(max-width:620px){.stage-panel{height:500px;min-height:500px}.stage-npc{width:80%;height:300px;bottom:165px}.mini-stat label{font-size:9px}.actions{grid-template-columns:1fr 1fr}.choice-btn{min-height:70px}.hud-chip{font-size:10px}.location-card span{font-size:10px}.dialogue-text{font-size:14px}.topbar{grid-template-columns:1fr auto}.brand span{display:block}}
+.shop-card{padding:14px;margin:8px 0;border:1px solid #3a4d63;border-radius:10px;line-height:1.7}.shop-card.owned{border-color:#6b977b;background:#1e332b}.shop-card button{min-width:120px;margin-top:8px}.survival-note{font-size:11px;color:#a7b9c9;line-height:1.6;margin:8px 0}.condition-warning{color:#ffc783}

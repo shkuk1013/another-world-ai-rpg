@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Another World v0.5.1 Visual Rebuild</title>
+<title>Another World v0.5.2 Visual Rebuild</title>
 <style>
 :root{
  --bg:#090d13;--panel:#111925;--panel2:#172231;--line:#314157;--text:#eef4fb;--muted:#99a9bb;
@@ -138,19 +138,22 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
  .hud{overflow:auto}.hud-chip{display:none}.map-visual,.map-static,.map-static img{min-height:300px}
 }
 </style>
+<link rel="stylesheet" href="css/playability.css?v=0.5.2">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div class="brand"><b>Another World</b><span>v0.5.1 · VISUAL REBUILD TEST</span></div>
+    <div class="brand"><b>Another World</b><span>v0.5.2 · 모험의 시작 · PLAYABILITY UPDATE</span></div>
     <div class="hud">
       <div class="hud-chip"><strong id="pname">이름 없음</strong> <span id="badges"></span><span id="activeTitleBox"></span></div>
-      <div class="hud-chip">Lv.<strong id="level">1</strong> · <span id="rank">미등록</span></div>
+      <div class="hud-chip">Lv.<strong id="level">1</strong> · <span id="rank">미등록</span> · XP <b id="hudXp">0/100</b></div>
       <div class="hud-chip">💰 <strong id="gold">0 G</strong></div>
       <div class="hud-chip">📍 <strong id="location">낯선 숲길</strong> · <span id="worldTime"></span></div>
       <div class="hud-bars">
         <div class="mini-stat"><label><span>HP</span><b id="hpT"></b></label><div class="mini-bar"><i id="hpB"></i></div></div>
         <div class="mini-stat"><label><span>MP</span><b id="mpT"></b></label><div class="mini-bar mp"><i id="mpB"></i></div></div>
+        <div class="mini-stat"><label><span>허기 ↑</span><b id="hungerT"></b></label><div class="mini-bar fat"><i id="hungerB"></i></div></div>
+        <div class="mini-stat"><label><span>수분 ↓</span><b id="waterT"></b></label><div class="mini-bar"><i id="waterB"></i></div></div>
         <div class="mini-stat"><label><span>피로</span><b id="fatT"></b></label><div class="mini-bar fat"><i id="fatB"></i></div></div>
       </div>
     </div>
@@ -170,18 +173,16 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
       <img id="stageNpc" class="stage-npc system" alt="">
       <div class="location-card"><b id="stageLocation">낯선 숲길</b><span id="stageDescription">어디인지 알 수 없는 숲길.</span></div>
       <div class="speaker-card"><b id="stageSpeaker">SYSTEM</b><span id="stageRole">상황 / 현재 장면</span></div>
-    </section>
-
-    <section class="panel story-panel">
       <div class="dialogue-box">
         <div id="focusSpeaker" class="dialogue-name">SYSTEM</div>
         <div id="focusText" class="dialogue-text">새로운 이야기가 시작된다.</div>
       </div>
-      <div class="story-history-wrap">
-        <div class="history-head"><b>최근 기록</b><span>대화는 초상화가 아니라 여기에는 텍스트 기록만 남음</span></div>
-        <div id="log" class="log"></div>
-      </div>
-      <div class="actions-wrap"><div id="actions" class="actions"></div></div>
+
+    </section>
+
+    <section class="panel story-panel">
+      <details class="story-history-wrap"><summary>최근 모험 기록</summary><div id="log" class="log"></div></details>
+      <div class="actions-wrap"><h3 class="actions-title">무엇을 할까?</h3><div id="actions" class="actions"></div></div>
     </section>
 
     <aside class="panel side-panel">
@@ -246,7 +247,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <select id="traitInput" style="width:100%;padding:9px;margin:6px 0 12px;background:#0d141d;border:1px solid #3a4a61;border-radius:8px;color:white">
 <option>마력감응</option><option>검술경험</option><option>사냥경험</option><option>도적감각</option>
 </select>
-<button class="primary" onclick="startGame()">이세계로 들어간다</button>
+<button class="primary" onclick="startGame()">새 모험 시작</button> <button onclick="loadGame()">저장한 모험 이어하기</button>
 </div></div>
 
 <div id="combatModal" class="modal hidden"><div>
@@ -382,7 +383,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <div id="titleModal" class="modal hidden"><div><h2>🏅 칭호</h2><p class="small">처치 기록에 따라 칭호가 해금된다.</p><div id="titleList"></div><button onclick="closeTitles()">닫기</button></div></div>
 <script>
 const $=id=>document.getElementById(id);
-const RAW="https://raw.githubusercontent.com/shkuk1013/another-world-ai-rpg/main/";
+const RAW="";
 const ASSET={
  bren:RAW+"assets/backgrounds/bren-village.svg",
  goblin:RAW+"assets/enemies/goblin-scout.svg",
@@ -443,7 +444,7 @@ function render(){
  hpT.textContent=`${G.hp}/${G.maxHp}`;mpT.textContent=`${G.mp}/${G.maxMp}`;fatT.textContent=G.fatigue+"/100";
  hpB.style.width=G.hp/G.maxHp*100+"%";mpB.style.width=G.mp/G.maxMp*100+"%";fatB.style.width=G.fatigue+"%";
  ["sword","dagger","bow","staff","manaControl","fire","ice","lightning"].forEach(k=>$(k).textContent=G[k]);
- location.textContent=G.location;worldTime.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;sceneImg.src=SCENES[G.location]||ASSET.bren;
+ document.getElementById("location").textContent=G.location;worldTime.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;sceneImg.src=SCENES[G.location]||ASSET.bren;
  log.innerHTML=G.log.map(e=>`<div class="entry"><img class="portrait" src="${e.img}"><div><div class="tag">${e.tag}</div>${e.text}</div></div>`).join("");log.scrollTop=log.scrollHeight;
  questBox.innerHTML=G.quest?`<b>${G.quest.title}</b><br>${G.quest.desc}`:"아직 목표가 없다.";
  equip.innerHTML=`<div class="slot">주무기: ${G.equipment.weapon?.name||"없음"}</div><div class="slot">방어구: ${G.equipment.armor}</div>`;
@@ -1164,7 +1165,7 @@ function enemyDamage(base,name){
 function victory(txt){
  let type=G.combat?.type;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");combatItemModal.classList.add("hidden");G.combat=null;G.gold+=10;G.rep++;gainXP(22);
  if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔","“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요. 해가 지기 전에 조금 쉬었다 갈까요?”");return}
- if(G.quest?.type==="goblin"){G.gold+=30;G.quest={title:"정찰 완료",desc:"첫 위험한 의뢰를 마쳤다."};add("미라","“직접 싸웠어요? ...그래도 돌아왔네요. 그건 잘했어요.”")}
+ if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}
  add("system",txt+" 전리품을 챙겼다.");
 }
 function flee(){if(Math.random()<.65){combatModal.classList.add("hidden");G.combat=null;add("system","숨이 차올랐지만 전투에서 벗어났다.")}else{combatLog.innerHTML="도주에 실패했다.";enemyTurn()}}
@@ -1377,7 +1378,7 @@ function victory(txt){let type=G.combat?.type;combatModal.classList.add("hidden"
  let mr=MONSTERS[type]?.rank||"F";
  let rewardXP=({F:18,E:24,"E+":28,D:35,C:50,"C+":58,B:75,"B+":85,"A-":105,A:120,"A+":145,S:220}[mr]||22);
  let rewardGold=Math.max(6,Math.round(rewardXP*.45));
- G.gold+=rewardGold;G.rep+=rewardXP>=75?2:1;gainXP(rewardXP);let drops=rollDrops(type);checkTitles();let dropText=drops.length?drops.map(d=>`<span class="drop-${d.rarity}">${d.name}${d.qty>1?` ×${d.qty}`:""}</span>`).join(", "):"특별한 전리품 없음";if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔",`“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요.”<br>전리품: ${dropText}`);return}if(G.quest?.type==="goblin"){G.gold+=30;G.quest={title:"정찰 완료",desc:"첫 위험한 의뢰를 마쳤다."};add("미라","“직접 싸웠어요? ...그래도 돌아왔네요. 그건 잘했어요.”")}add("system",txt+`<br>전리품: ${dropText}`);}
+ G.gold+=rewardGold;G.rep+=rewardXP>=75?2:1;gainXP(rewardXP);let drops=rollDrops(type);checkTitles();let dropText=drops.length?drops.map(d=>`<span class="drop-${d.rarity}">${d.name}${d.qty>1?` ×${d.qty}`:""}</span>`).join(", "):"특별한 전리품 없음";if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔",`“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요.”<br>전리품: ${dropText}`);return}if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}add("system",txt+`<br>전리품: ${dropText}`);}
 function codexLevel(k){return k>=30?5:k>=20?4:k>=10?3:k>=5?2:k>=1?1:0}
 function openCodex(){ensureProgress();codexList.innerHTML=Object.entries(MONSTERS).map(([id,m])=>{let seen=G.discoveredMonsters[id],kills=G.monsterKills[id]||0,l=codexLevel(kills);if(!seen)return`<div class="codex-entry codex-lock"><b>???</b><br>아직 발견하지 못한 몬스터</div>`;let drops=m.drops.map(d=>l>=2||d.rarity==="common"?`<span class="drop-${d.rarity}">${d.name}${l>=5?` (${Math.round(d.chance*100)}%)`:""}</span>`:`<span class="codex-lock">???</span>`).join(", ");return`<div class="codex-entry"><b>${m.name}</b> <span class="badge">${m.rank}급</span><br><span class="small">처치 ${kills}회 · 출현: ${l>=1?m.region:"???"}</span><br>${l>=2?`HP ${m.hp[0]}~${m.hp[1]} · 공격 ${m.atk[0]}~${m.atk[1]} · 방어 ${m.def}<br>`:""}${l>=3?`약점: ${m.weak} · 저항: ${m.resist}<br>`:""}${l>=2?`드랍: ${drops}`:"드랍: ???"}</div>`}).join("");codexModal.classList.remove("hidden")}
 function closeCodex(){codexModal.classList.add("hidden")}
@@ -2009,10 +2010,10 @@ equipmentInvBox.innerHTML=equipmentInvBox.innerHTML;
 // ===== v0.5.0 UI REBUILD =====
 const V05_PORTRAITS={
  system:"assets/portraits/system.svg",
- "미라":"assets/portraits/mira.png",
- "에밀리아":"assets/portraits/emilia.png",
- "브람":"assets/portraits/bram.png",
- "리엔":"assets/portraits/rien.png",
+ "미라":"assets/portraits/mira.webp",
+ "에밀리아":"assets/portraits/emilia.webp",
+ "브람":"assets/portraits/bram.webp",
+ "리엔":"assets/portraits/rien.webp",
  "세나":"assets/portraits/sena.svg",
  "리리아":"assets/portraits/lyria.svg",
  "도란":"assets/portraits/doran.svg",
@@ -2021,12 +2022,12 @@ const V05_PORTRAITS={
 };
 const V05_SCENES={
  "낯선 숲길":"assets/scenes/forest-road.svg",
- "브렌 마을":"assets/scenes/bren-village.png",
- "모험가 길드":"assets/scenes/guild-hall.png",
- "황금사슴 여관":"assets/scenes/golden-deer-inn.png",
- "대장간":"assets/scenes/blacksmith.png",
- "대장간 작업대":"assets/scenes/blacksmith.png",
- "마법 상점":"assets/scenes/magic-shop.png",
+ "브렌 마을":"assets/scenes/bren-village.webp",
+ "모험가 길드":"assets/scenes/guild-hall.webp",
+ "황금사슴 여관":"assets/scenes/golden-deer-inn.webp",
+ "대장간":"assets/scenes/blacksmith.webp",
+ "대장간 작업대":"assets/scenes/blacksmith.webp",
+ "마법 상점":"assets/scenes/magic-shop.webp",
  "브렌 시장":"assets/scenes/market.svg",
  "생활 도구 상점":"assets/scenes/market.svg",
  "서쪽 숲":"assets/scenes/west-forest.svg",
@@ -2080,7 +2081,7 @@ function v05CurrentFocus(){
  let last=(G.log||[])[(G.log||[]).length-1];
  let fac=V05_FACILITY[G.location];
  if(last && last.tag!=="system") return {tag:last.tag,text:last.text,role:fac?.npc===last.tag?fac.role:"대화"};
- if(fac) return {tag:fac.npc,text:fac.greet,role:fac.role};
+ if(!last && fac) return {tag:fac.npc,text:fac.greet,role:fac.role};
  if(last) return {tag:"system",text:last.text,role:"상황 / 현재 장면"};
  return {tag:"system",text:"새로운 이야기가 시작된다.",role:"상황 / 현재 장면"};
 }
@@ -2099,10 +2100,10 @@ function v05Render(){
  ["sword","dagger","bow","staff","manaControl","fire","ice","lightning","gathering","logging","mining","alchemy"].forEach(k=>{
    let el=document.getElementById(k);if(el)el.textContent=G[k]??0;
  });
- location.textContent=G.location;worldTime.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;
+ document.getElementById("location").textContent=G.location;worldTime.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;
  stageLocation.textContent=G.location;
  stageDescription.textContent=V05_PLACE_DESC[G.location]||LOCATIONS[G.location]?.desc||"아직 자세한 정보가 없는 장소.";
- sceneImg.src=V05_SCENES[G.location]||"assets/scenes/generic-wilderness.svg";
+ setSceneAsset(G.location);
 
  let focus=v05CurrentFocus();
  stageSpeaker.textContent=focus.tag==="system"?"현재 장면":focus.tag;
@@ -2203,11 +2204,18 @@ function v05MakeActions(){
    p("황금사슴 여관",()=>move("황금사슴 여관"),"good","식사 / 숙박 / 피로 회복");
    p("대장간",()=>move("대장간"),"warn","무기 / 제작 / 강화");
    p("마법 상점",()=>move("마법 상점"),"magic","리엔 / 마법");
+   p("서쪽 숲으로 간다",()=>move("서쪽 숲"),"primary","정찰 / 사냥 / 채집");
+   p("주변 지역 이동",()=>openWorldMap("bren"),"","벌목지 / 채석장 / 탐험");
    p("다른 장소",v05TownOther,"","시장 / 부두 / 농장 / 도구점");
+   p("우물가에서 쉰다",restAtWell,"good","무료 · 수분 / 피로 / 소량 회복");
+   p("상단 마차",openTravel,"","다른 지역 거점");
  }
  else if(G.location==="모험가 길드"){
    if(G.rank==="미등록")p("길드 등록",register,"primary","F급 모험가 등록");
-   else p("의뢰 확인",acceptQuest,"warn","현재 가능한 초급 의뢰");
+   else if(G.scoutQuest?.status==="scouted")p("정찰 보고 · 보상 받기",reportScoutQuest,"good","30G · 길드 공헌 20");
+   else if(G.scoutQuest?.status==="accepted")p("서쪽 숲으로 출발",()=>move("서쪽 숲"),"primary","전투 없이 정찰 가능");
+   else if(G.scoutQuest?.status!=="completed")p("서쪽 숲 정찰 수락",acceptQuest,"warn","안전 정찰 · 보상 30G");
+   p("길드 등급 / 승급",openGuild,"","공헌도와 승급 조건");
    p("최근 소문",checkGuildRumors,"","주변 사건/보스 단서");
    p("미라와 대화",talkMira,"","관계 / 생활 이야기");
    p("마을로 돌아간다",()=>move("브렌 마을"));
@@ -2216,6 +2224,7 @@ function v05MakeActions(){
    p("따뜻한 식사 · 6G",v05InnMeal,"good","HP와 피로 소량 회복");
    p("하룻밤 숙박 · 12G",v05InnSleep,"primary","HP/MP 완전 회복 · 피로 0");
    p("에밀리아와 대화",v05InnTalk,"","여관과 모험가 이야기");
+   p("여관 일손 돕기",innWork,"","하루 2회 · 6G · 1시간");
    p("소문을 듣는다",checkGuildRumors,"","손님들의 최근 이야기");
    p("마을로 돌아간다",()=>move("브렌 마을"));
  }
@@ -2249,22 +2258,30 @@ function v05MakeActions(){
    p("채집칼 구매",()=>buyTool("gatherKnife",10,"채집칼"),"good","채집 효율 증가");
    p("벌목도끼 구매",()=>buyTool("axe",14,"벌목도끼"),"good","벌목 가능");
    p("곡괭이 구매",()=>buyTool("pickaxe",16,"곡괭이"),"good","채광 가능");
+   p("맑은 물 마시기",drinkWater,"good","보유한 맑은 물 1개 사용");
    p("맑은 물 구매",buyWater,"","연금술 재료");
    p("마을로 돌아간다",()=>move("브렌 마을"));
  }
  else if(G.location==="프로스트벨"||G.location==="카르문 광산도시"||G.location==="엘로디아 숲마을"){
    let fac=V05_FACILITY[G.location];
-   p(`${fac.npc}와 대화`,()=>genericExplore(G.location),"primary","지역 NPC / 퀘스트");
+   p(`${fac.npc}와 대화`,()=>npcTalk(fac.npc),"primary","지역 NPC / 이야기");
    p("여관에서 숙박",stayAtRegionInn,"good","지역별 숙박비");
    p("상단 마차",openTravel,"","브렌으로 이동");
    p("주변 지도",()=>openWorldMap("world"),"","지역 확인");
    p("주변 지역 탐험",()=>genericExplore(G.location),"warn","지역 이벤트");
  }
  else if(G.location==="서쪽 숲"){
+   if(G.scoutQuest?.status==="accepted")p("안전한 거리에서 정찰",scoutForest,"primary","전투 없음 · 의뢰 목표");
+   if(G.scoutQuest?.status==="scouted")p("길드에 정찰 보고하러 간다",()=>move("모험가 길드"),"good","보상 수령");
+   if(G.flags.rienJoined&&!G.flags.campfire)p("리엔과 마력 흔적 조사",()=>startCombat("mana_goblin"),"magic","동료 의뢰 · 전투");
    p("고블린 흔적 추적",()=>startCombat(Math.random()<.25?"mana_goblin":"goblin"),"warn","전투 가능");
    p("약초 채집",doGathering,"good","채집 숙련");
    p("희귀 약초 탐색",rareGathering,"","달빛꽃 가능");
    if(G.bossUnlocks?.goblin_chief)p("족장 야영지 추적",()=>startBossByRoute("goblin_chief"),"bad","미니보스");
+   p("브렌으로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="숲속 야영지"){
+   if(!G.flags.campfire)p("리엔과 모닥불 대화",openCampfire,"good","동료 에피소드 마무리");
    p("브렌으로 돌아간다",()=>move("브렌 마을"));
  }
  else if(G.location==="동쪽 벌목지"){
@@ -2287,7 +2304,7 @@ function v05MakeActions(){
    p("브렌으로 귀환",()=>travelTo("브렌 마을"));
  }
  actions.innerHTML="";
- A.slice(0,5).forEach(([t,f,c,sub])=>{
+ A.forEach(([t,f,c,sub])=>{
    let b=document.createElement("button");let meta=choiceMeta(t,c,sub);
    b.className=`choice-btn ${c||""}`;b.innerHTML=`<span class="choice-icon">${meta.icon}</span>${t}<span class="choice-sub">${sub||meta.sub||""}</span>`;
    b.onclick=f;actions.appendChild(b);
@@ -2310,7 +2327,7 @@ const V05_BREN_PERCENT={
  "남쪽 농장":[62,84.2],"옛 왕도길":[17.9,83.8]
 };
 function v05MapImage(tab){
- return tab==="bren"?"assets/maps/bren-region-map.png":tab==="hunt"?"assets/maps/hunting-flow-map.png":"assets/maps/alterra-continent-map.png";
+ return tab==="bren"?"assets/maps/bren-region-map.webp":tab==="hunt"?"assets/maps/hunting-flow-map.webp":"assets/maps/alterra-continent-map.webp";
 }
 function renderMapTab(tab){
  currentMapTab=tab;
@@ -2337,9 +2354,8 @@ function renderMapTab(tab){
 function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapModal.classList.remove("hidden")}
 
 // refresh entry facility on initial render/load
-setTimeout(()=>{if(V05_FACILITY[G.location])v05FacilityGreeting(G.location);render();},0);
-
-render();
+// Runtime initializes after all asset and state helpers are loaded.
 </script>
+<script src="js/playability.js?v=0.5.2"></script>
 </body>
 </html>
