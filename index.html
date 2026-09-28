@@ -2,57 +2,110 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Another World AI RPG v0.2</title>
+<title>Another World AI RPG v0.3</title>
 <style>
-:root{--bg:#0d1118;--panel:#161d28;--line:#2b3748;--text:#eef2f7;--muted:#9da9ba;--accent:#8ab4f8}
-*{box-sizing:border-box}body{margin:0;background:#0d1118;color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-#app{max-width:1200px;margin:auto;padding:18px}.grid{display:grid;grid-template-columns:280px 1fr 300px;gap:14px}.card{background:#161d28;border:1px solid var(--line);border-radius:14px;padding:15px}
-h1,h2,h3{margin:0 0 10px}.small{font-size:13px;color:var(--muted);line-height:1.6}.stat{display:flex;justify-content:space-between;margin:7px 0}
-button{border:1px solid #3b4960;background:#222c3a;color:white;padding:10px;border-radius:9px;cursor:pointer;font-weight:700}.primary{background:#315a93}.warn{background:#6a5220}.good{background:#245c43}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.log{min-height:520px;max-height:620px;overflow:auto}.entry{padding:10px 0;border-bottom:1px solid var(--line);line-height:1.65}.tag{font-size:12px;color:var(--accent)}
-.slot{padding:8px;border:1px solid #39465d;border-radius:9px;margin:6px 0}.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}.modal>div{width:min(560px,100%);background:#171e29;border:1px solid var(--line);border-radius:14px;padding:20px}.hidden{display:none}
-input,select{width:100%;padding:9px;margin:6px 0 12px;background:#0f151e;border:1px solid #3a465e;border-radius:8px;color:white}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-</style></head>
-<body><div id="app">
-<h1>Another World <span class="small">Prototype v0.2</span></h1>
-<p class="small">살아있는 이세계 RPG 프로토타입</p>
+:root{--bg:#0a0f16;--panel:#131b27;--panel2:#1b2736;--line:#2d3b50;--text:#eef4fb;--muted:#9eabbb;--accent:#8bbcff;--good:#79d9a4;--warn:#f0c46d;--bad:#ff7d7d;--magic:#b68cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#17243a 0,#0a0f16 48%,#080b10 100%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{max-width:1320px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px}.brand small{display:block;color:var(--muted);margin-top:4px}
+.grid{display:grid;grid-template-columns:285px minmax(0,1fr) 310px;gap:14px}.card{background:rgba(19,27,39,.96);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 16px 36px #0005}
+h1,h2,h3{margin:0 0 10px}.small{font-size:13px;color:var(--muted);line-height:1.6}.stat{display:flex;justify-content:space-between;gap:10px;margin:7px 0}.stat b{text-align:right}
+.bar{height:8px;background:#08101a;border-radius:9px;overflow:hidden;margin:4px 0 9px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#4f86e7,#8bbcff)}
+.scene{height:235px;border-radius:13px;overflow:hidden;border:1px solid var(--line);position:relative;background:#0c131c;margin-bottom:12px}.scene img{width:100%;height:100%;object-fit:cover;display:block}.scene:after{content:"";position:absolute;inset:auto 0 0 0;height:55%;background:linear-gradient(transparent,#101721e8)}
+.scene-title{position:absolute;z-index:2;left:14px;bottom:12px}.scene-title b{font-size:22px;text-shadow:0 2px 9px #000}.scene-title span{display:block;color:#d3deea;font-size:12px}
+.log{min-height:330px;max-height:410px;overflow:auto;padding-right:4px}.entry{display:grid;grid-template-columns:58px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);line-height:1.65}.entry .portrait{width:54px;height:54px;border-radius:10px;object-fit:cover;background:#0d1520;border:1px solid #35465e}.entry .tag{font-size:12px;color:var(--accent);margin-bottom:3px}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+button{border:1px solid #3b4d66;background:#202b3b;color:white;padding:10px;border-radius:9px;cursor:pointer;font-weight:700}button:hover{background:#2a394d}.primary{background:#315d98}.good{background:#245f45}.warn{background:#715721}.bad{background:#733939}.magic{background:#513877}.ghost{background:#182230}
+.slot{padding:8px;border:1px solid #394a63;border-radius:9px;margin:6px 0;background:#101720}.spell{padding:8px;border-left:3px solid var(--magic);background:#121827;margin:6px 0;border-radius:8px}
+.badge{display:inline-block;padding:4px 8px;background:#243247;border-radius:999px;font-size:12px;margin:2px 3px 2px 0}.quest{padding:10px;border:1px solid var(--line);background:#101720;border-radius:10px;line-height:1.6}
+.modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;padding:18px;z-index:20}.modal>div{width:min(680px,100%);max-height:92vh;overflow:auto;background:#151f2c;border:1px solid var(--line);border-radius:16px;padding:20px}.hidden{display:none}
+input,select{width:100%;padding:9px;margin:6px 0 12px;background:#0d141d;border:1px solid #3a4a61;border-radius:8px;color:white}
+.combat-grid{display:grid;grid-template-columns:180px 1fr;gap:14px}.enemy-art{width:100%;aspect-ratio:1/1;border-radius:12px;object-fit:cover;border:1px solid #46566c;background:#0c131b}.intent{padding:10px;border-radius:10px;background:#221d14;border:1px solid #6c5530;color:#f5d690;margin:8px 0}.status{display:inline-block;padding:3px 7px;border-radius:999px;background:#26334a;margin:2px;font-size:12px}
+.combat-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.distance{font-weight:800;color:#a7cafc}
+hr{border:0;border-top:1px solid var(--line);margin:12px 0}@media(max-width:980px){.grid{grid-template-columns:1fr}.scene{height:210px}.combat-grid{grid-template-columns:1fr}.enemy-art{max-width:220px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="top"><div class="brand"><h1>Another World</h1><small>AI Isekai RPG · Prototype v0.3</small></div><div><button onclick="saveGame()">저장</button> <button onclick="loadGame()">불러오기</button></div></div>
 <div class="grid">
 <aside class="card">
-<h3 id="pname">이름 없음</h3>
-<div class="stat"><span>레벨</span><b id="level"></b></div><div class="stat"><span>길드</span><b id="rank"></b></div>
-<div class="stat"><span>골드</span><b id="gold"></b></div><div class="stat"><span>평판</span><b id="rep"></b></div>
-<hr><div class="stat"><span>HP</span><b id="hp"></b></div><div class="stat"><span>MP</span><b id="mp"></b></div><div class="stat"><span>피로</span><b id="fatigue"></b></div>
-<hr><h3>숙련도</h3>
-<div class="stat"><span>검술</span><b id="sword"></b></div><div class="stat"><span>단검술</span><b id="dagger"></b></div><div class="stat"><span>궁술</span><b id="bow"></b></div><div class="stat"><span>지팡이술</span><b id="staff"></b></div><div class="stat"><span>마나제어</span><b id="manaControl"></b></div><div class="stat"><span>화염감응</span><b id="fire"></b></div>
+<h3 id="pname">이름 없음</h3><div id="badges"></div><hr>
+<div class="stat"><span>레벨</span><b id="level"></b></div><div class="stat"><span>XP</span><b id="xp"></b></div><div class="stat"><span>길드</span><b id="rank"></b></div><div class="stat"><span>골드</span><b id="gold"></b></div><div class="stat"><span>평판</span><b id="rep"></b></div><hr>
+<div class="stat"><span>HP</span><b id="hpT"></b></div><div class="bar"><i id="hpB"></i></div><div class="stat"><span>MP</span><b id="mpT"></b></div><div class="bar"><i id="mpB"></i></div><div class="stat"><span>피로</span><b id="fatT"></b></div><div class="bar"><i id="fatB"></i></div><hr>
+<h3>숙련도</h3><div class="stat"><span>검술</span><b id="sword"></b></div><div class="stat"><span>단검술</span><b id="dagger"></b></div><div class="stat"><span>궁술</span><b id="bow"></b></div><div class="stat"><span>지팡이술</span><b id="staff"></b></div><div class="stat"><span>마나 제어</span><b id="manaControl"></b></div><div class="stat"><span>화염 감응</span><b id="fire"></b></div>
 </aside>
-<main class="card"><h2 id="location"></h2><div id="time" class="small"></div><div id="log" class="log"></div><div id="actions" class="actions"></div></main>
-<aside class="card"><h3>현재 목표</h3><div id="quest" class="small"></div><hr><h3>장비</h3><div id="equip"></div><hr><h3>마법</h3><div id="spells" class="small"></div><button class="primary" onclick="researchMagic()">마법 연구</button><hr><h3>저장</h3><button onclick="save()">저장</button> <button onclick="load()">불러오기</button></aside>
+<main class="card">
+<div class="scene"><img id="sceneImg" src="assets/backgrounds/bren-village.svg"><div class="scene-title"><b id="location"></b><span id="worldTime"></span></div></div>
+<div id="log" class="log"></div><div id="actions" class="actions"></div>
+</main>
+<aside class="card">
+<h3>현재 목표</h3><div id="questBox" class="quest small"></div><hr><h3>장비</h3><div id="equip"></div><hr><h3>마법</h3><div id="spells"></div><button class="magic" onclick="openMagic()">마법 연구</button><hr><h3>관계</h3><div id="relations" class="small">아직 특별한 인연이 없다.</div>
+</aside>
 </div></div>
-<div id="start" class="modal"><div><h2>새로운 삶</h2><label>이름</label><input id="nameInput" value="쿠노모스"><label>초기 성향</label><select id="trait"><option>마력감응</option><option>검술경험</option><option>사냥경험</option><option>도적감각</option><option>붙임성</option></select><button class="primary" onclick="startGame()">이세계로 들어간다</button></div></div>
+
+<div id="startModal" class="modal"><div><h2>새로운 삶을 시작합니다</h2><p class="small">이 세계는 당신이 주인공이라는 사실을 모릅니다.</p><label>이름</label><input id="nameInput" value="쿠노모스"><label>초기 성향</label><select id="traitInput"><option value="마력감응">마력감응</option><option value="검술경험">검술경험</option><option value="사냥경험">사냥경험</option><option value="도적감각">도적감각</option></select><button class="primary" onclick="startGame()">이세계로 들어간다</button></div></div>
+
+<div id="combatModal" class="modal hidden"><div>
+<h2>전투</h2><div class="combat-grid"><div><img id="enemyArt" class="enemy-art" src="assets/enemies/goblin-scout.svg"></div><div>
+<h3 id="enemyName"></h3><div class="stat"><span>적 HP</span><b id="enemyHp"></b></div><div class="bar"><i id="enemyBar"></i></div><div class="stat"><span>거리</span><b class="distance" id="distanceText"></b></div><div id="enemyIntent" class="intent"></div><div id="combatStatus"></div><div id="combatLog" class="quest small"></div>
+</div></div>
+<div class="combat-actions">
+<button class="primary" onclick="weaponAttack()">무기 공격</button><button class="magic" onclick="castSpell()">마법</button>
+<button onclick="changeDistance(-1)">거리 벌리기</button><button onclick="changeDistance(1)">접근</button>
+<button class="good" onclick="defend()">방어</button><button class="warn" onclick="specialSkill()">전술 스킬</button>
+<button class="bad" onclick="flee()">도망</button>
+</div></div></div>
+
+<div id="magicModal" class="modal hidden"><div><h2>마법 연구</h2><p class="small">속성·형태·변형을 조합해 자신만의 주문을 만든다.</p>
+<label>형태</label><select id="magicForm"><option value="탄환">탄환</option><option value="장벽">장벽</option><option value="영역">영역</option></select>
+<label>변형</label><select id="magicMod"><option value="없음">없음</option><option value="압축">압축</option><option value="추적">추적</option><option value="연쇄">연쇄</option></select>
+<input id="magicName" placeholder="주문 이름"><button class="magic" onclick="researchMagic()">연구한다</button> <button onclick="closeMagic()">닫기</button></div></div>
+
 <script>
-const $=x=>document.getElementById(x);
-let G={name:"",trait:"",level:1,xp:0,rank:"미등록",gold:38,rep:0,hp:30,maxHp:30,mp:12,maxMp:12,fatigue:8,sword:3,dagger:2,bow:2,staff:2,manaControl:11,fire:8,day:1,hour:15,location:"낯선 숲길",stage:0,equipment:{weapon:null,offhand:null,armor:"낡은 여행복",accessory:null},spells:[{name:"작은 불꽃",power:2,cost:2}],quest:null,log:[]};
-const weapons={검:{name:"낡은 철검",type:"sword",atk:6,price:28},단검:{name:"사냥용 단검",type:"dagger",atk:4,price:22},활:{name:"짧은 활",type:"bow",atk:5,price:26},지팡이:{name:"견습 지팡이",type:"staff",atk:2,magic:4,price:30}};
-function add(tag,text){G.log.push({tag,text});if(G.log.length>80)G.log.shift();render()}
-function render(){pname.textContent=G.name||"이름 없음";level.textContent=G.level;rank.textContent=G.rank;gold.textContent=G.gold+"G";rep.textContent=G.rep;hp.textContent=G.hp+"/"+G.maxHp;mp.textContent=G.mp+"/"+G.maxMp;fatigue.textContent=G.fatigue;sword.textContent=G.sword;dagger.textContent=G.dagger;bow.textContent=G.bow;staff.textContent=G.staff;manaControl.textContent=G.manaControl;fire.textContent=G.fire;location.textContent=G.location;time.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;log.innerHTML=G.log.map(x=>`<div class="entry"><div class="tag">${x.tag}</div>${x.text}</div>`).join("");log.scrollTop=log.scrollHeight;quest.innerHTML=G.quest?("<b>"+G.quest.title+"</b><br>"+G.quest.desc):"아직 목표가 없습니다.";equip.innerHTML=`<div class="slot">주무기: ${G.equipment.weapon?.name||"없음"}</div><div class="slot">보조: ${G.equipment.offhand||"없음"}</div><div class="slot">방어구: ${G.equipment.armor}</div>`;spells.innerHTML=G.spells.map(s=>`• <b>${s.name}</b> (위력 ${s.power}/MP ${s.cost})`).join("<br>");actions.innerHTML="";getActions().forEach(([t,f,c])=>{let b=document.createElement("button");b.textContent=t;b.className=c||"";b.onclick=f;actions.appendChild(b)})}
-function getActions(){let a=[];const p=(t,f,c)=>a.push([t,f,c]);if(G.stage===0){p("브렌 마을로 향한다",goVillage,"primary");p("주변 탐색",()=>add("탐색","낯선 풀과 짐승 발자국을 발견했다."))}
-else if(G.location==="브렌 마을"){p("모험가 길드",()=>move("모험가 길드"));p("대장간",()=>move("대장간"));p("마법 상점",()=>move("마법 상점"));p("여관",()=>move("여관"));p("훈련장",()=>move("훈련장"));p("서쪽 숲",()=>move("서쪽 숲"),"good")}
-else if(G.location==="모험가 길드"){if(G.rank==="미등록")p("길드 등록",()=>{G.rank="F급";G.rep++;G.quest={title:"첫 의뢰",desc:"서쪽 숲의 고블린을 정찰하라."};add("미라","“오늘부터 F급이에요. 무리하지 마세요.”")}, "primary");else p("고블린 정찰 의뢰",()=>{G.quest={title:"[F급] 고블린 정찰",desc:"서쪽 숲에서 고블린을 확인하고 생환."};add("의뢰","정찰 의뢰를 수락했다.")},"warn");p("마을로",()=>move("브렌 마을"))}
-else if(G.location==="대장간"){Object.entries(weapons).forEach(([k,v])=>p(k+" 구매 "+v.price+"G",()=>buyWeapon(v)));p("마을로",()=>move("브렌 마을"))}
-else if(G.location==="마법 상점"){p("화염탄 마법서 26G",()=>{if(G.gold<26)return add("상점","골드가 부족하다.");G.gold-=26;if(!G.spells.some(x=>x.name==="화염탄"))G.spells.push({name:"화염탄",power:6,cost:4});add("마법 습득","<b>화염탄</b>을 배웠다.")});p("마을로",()=>move("브렌 마을"))}
-else if(G.location==="훈련장"){["sword","dagger","bow","staff"].forEach(k=>p(k+" 훈련 5G",()=>train(k)));p("마을로",()=>move("브렌 마을"))}
-else if(G.location==="여관"){p("숙박 8G",sleep);p("마을로",()=>move("브렌 마을"))}
-else if(G.location==="서쪽 숲"){p("고블린 추적",fight,"warn");p("약초 채집",()=>{G.gold+=4;G.fatigue+=3;add("채집","약초를 팔아 4G를 벌었다.")},"good");p("마을로",()=>move("브렌 마을"))}return a}
-function startGame(){G.name=nameInput.value||"이방인";G.trait=trait.value;if(G.trait==="마력감응"){G.manaControl+=6;G.fire+=5;G.maxMp+=5;G.mp=G.maxMp}if(G.trait==="검술경험")G.sword+=7;if(G.trait==="사냥경험")G.bow+=6;if(G.trait==="도적감각")G.dagger+=6;start.classList.add("hidden");add("제1장","낯선 숲에서 눈을 떴다. 멀리 사람 사는 마을의 연기가 보인다.")}
-function goVillage(){G.stage=1;G.location="브렌 마을";G.hour++;add("브렌 마을","대장간의 망치 소리와 여관의 웃음소리가 섞여 들린다.")}
-function move(x){G.location=x;add("이동",x+"에 도착했다.")}
-function buyWeapon(v){if(G.gold<v.price)return add("상점","골드가 부족하다.");G.gold-=v.price;G.equipment.weapon={...v};add("장비",v.name+"을 장착했다.")}
-function train(k){if(G.gold<5)return add("훈련","훈련비가 부족하다.");G.gold-=5;G[k]+=3;G.fatigue+=6;add("훈련",k+" 숙련도가 3 올랐다.")}
-function sleep(){if(G.gold<8)return add("여관","숙박비가 부족하다.");G.gold-=8;G.hp=G.maxHp;G.mp=G.maxMp;G.fatigue=0;G.day++;G.hour=7;add("숙박","이세계에서 또 하루가 시작됐다.")}
-function fight(){let type=G.equipment.weapon?.type||"none",skill=type==="sword"?G.sword:type==="dagger"?G.dagger:type==="bow"?G.bow:type==="staff"?G.staff:1;let atk=(G.equipment.weapon?.atk||1)+skill*.6;let magic=(G.equipment.weapon?.magic||0)+G.fire*.25;let roll=atk+magic+Math.random()*10;if(roll>13){G.gold+=8;G.rep++;if(type!=="none")G[type]++;add("전투 승리","고블린을 쓰러뜨렸다. 8G를 얻었다.");if(G.quest){G.quest={title:"정찰 완료",desc:"브렌 길드에 생환 보고를 마쳤다."};G.gold+=30;add("의뢰 완료","정찰 보상 30G를 받았다.")}}else{let d=5+Math.floor(Math.random()*6);G.hp=Math.max(1,G.hp-d);add("전투","고블린에게 밀려 후퇴했다. HP -"+d)}}
-function researchMagic(){let need=15;if(G.manaControl<need)return add("마법 연구","마나 제어 15 이상이 필요하다.");let n=prompt("새 마법의 이름을 정하세요","압축 화염탄");if(!n)return;G.spells.push({name:n,power:7+Math.floor(G.fire/5),cost:5});G.manaControl+=2;G.fire+=2;add("새로운 마법",`<b>${n}</b>을 직접 완성했다.`)}
-function save(){localStorage.setItem("anotherWorldV02",JSON.stringify(G));add("시스템","저장 완료")}
-function load(){let s=localStorage.getItem("anotherWorldV02");if(!s)return alert("저장 데이터가 없습니다.");G=JSON.parse(s);start.classList.add("hidden");render()}
+const $=id=>document.getElementById(id);
+const PORTRAITS={system:"assets/portraits/mira.svg",미라:"assets/portraits/mira.svg",리엔:"assets/portraits/rien.svg",고블린:"assets/enemies/goblin-scout.svg"};
+const SCENES={"낯선 숲길":"assets/backgrounds/bren-village.svg","브렌 마을":"assets/backgrounds/bren-village.svg","모험가 길드":"assets/backgrounds/bren-village.svg","마법 상점":"assets/backgrounds/bren-village.svg","대장간":"assets/backgrounds/bren-village.svg","서쪽 숲":"assets/backgrounds/bren-village.svg"};
+let G={name:"",trait:"",level:1,xp:0,rank:"미등록",gold:38,rep:0,hp:32,maxHp:32,mp:14,maxMp:14,fatigue:6,sword:3,dagger:2,bow:2,staff:2,manaControl:11,fire:8,day:1,hour:15,location:"낯선 숲길",stage:0,
+equipment:{weapon:null,offhand:null,armor:"낡은 여행복"},spells:[{name:"작은 불꽃",power:3,cost:2,status:"화상",range:["근거리","중거리"]}],quest:null,relations:{},log:[],combat:null};
+const WEAPONS={검:{name:"낡은 철검",type:"sword",atk:7,range:["근거리"],price:28},단검:{name:"사냥용 단검",type:"dagger",atk:5,range:["근거리"],price:22},활:{name:"짧은 활",type:"bow",atk:6,range:["중거리","원거리"],price:26},지팡이:{name:"견습 지팡이",type:"staff",atk:3,magic:4,range:["근거리","중거리"],price:30}};
+const DIST=["원거리","중거리","근거리"];
+function speakerArt(tag){return PORTRAITS[tag]||PORTRAITS.system}
+function add(tag,text){G.log.push({tag,text,img:speakerArt(tag)});if(G.log.length>80)G.log.shift();render()}
+function gainXP(n){G.xp+=n;while(G.xp>=G.level*100){G.xp-=G.level*100;G.level++;G.maxHp+=4;G.maxMp+=2;G.hp=G.maxHp;G.mp=G.maxMp;add("system",`<b>레벨 ${G.level}</b>이 되었다. 이전에는 두려웠던 적이 조금 작게 느껴진다.`)}}
+function render(){pname.textContent=G.name||"이름 없음";badges.innerHTML=`<span class="badge">${G.trait||"무특성"}</span><span class="badge">${G.rank}</span>`;level.textContent=G.level;xp.textContent=`${G.xp}/${G.level*100}`;rank.textContent=G.rank;gold.textContent=G.gold+" G";rep.textContent=G.rep;hpT.textContent=`${G.hp}/${G.maxHp}`;mpT.textContent=`${G.mp}/${G.maxMp}`;fatT.textContent=G.fatigue+"/100";hpB.style.width=G.hp/G.maxHp*100+"%";mpB.style.width=G.mp/G.maxMp*100+"%";fatB.style.width=G.fatigue+"%";["sword","dagger","bow","staff","manaControl","fire"].forEach(k=>$(k).textContent=G[k]);location.textContent=G.location;worldTime.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;sceneImg.src=SCENES[G.location]||SCENES["브렌 마을"];log.innerHTML=G.log.map(e=>`<div class="entry"><img class="portrait" src="${e.img}"><div><div class="tag">${e.tag}</div>${e.text}</div></div>`).join("");log.scrollTop=log.scrollHeight;questBox.innerHTML=G.quest?`<b>${G.quest.title}</b><br>${G.quest.desc}`:"아직 목표가 없다.";equip.innerHTML=`<div class="slot">주무기: ${G.equipment.weapon?.name||"없음"}</div><div class="slot">방어구: ${G.equipment.armor}</div>`;spells.innerHTML=G.spells.map(s=>`<div class="spell"><b>${s.name}</b><br><span class="small">위력 ${s.power} · MP ${s.cost} · ${s.status||"효과 없음"}</span></div>`).join("");relations.innerHTML=Object.entries(G.relations).map(([k,v])=>`<b>${k}</b> 호감 ${v.aff}<br>${v.note}`).join("<br><br>")||"아직 특별한 인연이 없다.";makeActions()}
+function makeActions(){let A=[],p=(t,f,c="")=>A.push([t,f,c]);if(G.stage===0){p("브렌 마을로 향한다",goVillage,"primary");p("숲길을 살펴본다",()=>add("system","바람에 풀잎이 흔들린다. 이 세계에서 처음 듣는 새 울음소리다."))}
+else if(G.location==="브렌 마을"){p("모험가 길드",()=>move("모험가 길드"));p("대장간",()=>move("대장간"));p("마법 상점",()=>move("마법 상점"));p("서쪽 숲",()=>move("서쪽 숲"),"good")}
+else if(G.location==="모험가 길드"){if(G.rank==="미등록")p("길드 등록",register,"primary");else p("고블린 정찰 의뢰",acceptQuest,"warn");p("미라와 대화",talkMira);p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="대장간"){Object.values(WEAPONS).forEach(w=>p(`${w.name} ${w.price}G`,()=>buy(w)));p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="마법 상점"){p("리엔과 대화",talkRien);p("화염탄 배우기 24G",learnFireball,"magic");p("마을로",()=>move("브렌 마을"))}
+else if(G.location==="서쪽 숲"){p("고블린 흔적 추적",()=>startCombat("goblin"),"warn");p("약초 채집",()=>{G.gold+=4;G.fatigue=Math.min(100,G.fatigue+3);add("system","붉은 약초 몇 잎을 팔아 4G를 벌었다.")},"good");p("마을로",()=>move("브렌 마을"))}
+actions.innerHTML="";A.forEach(([t,f,c])=>{let b=document.createElement("button");b.textContent=t;b.onclick=f;b.className=c;actions.appendChild(b)})}
+function startGame(){G.name=nameInput.value||"이방인";G.trait=traitInput.value;if(G.trait==="마력감응"){G.manaControl+=6;G.fire+=5;G.maxMp+=5;G.mp=G.maxMp}if(G.trait==="검술경험"){G.sword+=7;G.maxHp+=4;G.hp=G.maxHp}if(G.trait==="사냥경험")G.bow+=6;if(G.trait==="도적감각")G.dagger+=6;startModal.classList.add("hidden");add("system","눈을 뜨자 흙냄새가 났다. 멀리 목책과 굴뚝 연기가 보인다. 가진 것은 낯선 동전 몇 닢뿐이다.")}
+function goVillage(){G.stage=1;G.location="브렌 마을";G.hour++;G.quest={title:"오늘 밤을 버텨라",desc:"잘 곳과 첫 수입원을 찾아보자."};add("system","목책을 지나자 빵 굽는 냄새와 대장간의 쇳소리가 들린다. 처음으로 이 세계가 실제로 살아 있다는 느낌이 든다.")}
+function move(x){G.location=x;add("system",x+"에 도착했다.")}
+function register(){G.rank="F급";G.rep++;G.relations["미라"]={aff:5,note:"신참 모험가인 당신을 걱정한다."};G.quest={title:"F급 모험가",desc:"길드에서 첫 의뢰를 받아보자."};add("미라",`“${G.name} 씨, 오늘부터 F급이에요. 강해 보이려 하지 말고 살아 돌아오세요.”`)}
+function acceptQuest(){G.quest={type:"goblin",title:"[F급] 서쪽 숲 고블린 정찰",desc:"고블린을 확인하고 생환. 보상 30G."};add("미라","“싸우라는 의뢰 아니에요. 위험하면 바로 돌아오세요.”")}
+function talkMira(){G.relations["미라"]??={aff:1,note:"브렌 길드 접수원."};G.relations["미라"].aff++;add("미라","“처음엔 누구나 고블린 하나가 무서워요. 겁먹는 게 이상한 게 아니라, 겁먹고도 판단하는 게 모험가예요.”")}
+function talkRien(){G.relations["리엔"]??={aff:1,note:"마법 이론을 좋아하는 견습 마법사."};G.relations["리엔"].aff++;G.manaControl++;add("리엔","“마법은 외우는 주문이 아니라 흐름이에요. 형태를 이해하면 자기 식으로 바꿀 수도 있어요.”")}
+function learnFireball(){if(G.gold<24)return add("리엔","“돈이 모자라네요. 책은 길드 물품이라 그냥 줄 수는 없어요.”");G.gold-=24;if(!G.spells.some(s=>s.name==="화염탄"))G.spells.push({name:"화염탄",power:7,cost:4,status:"화상",range:["중거리","원거리"]});add("리엔","“좋아요. 이번엔 불꽃을 던지는 게 아니라, 형태를 유지한 채 날려보세요.” <b>화염탄</b>을 익혔다.")}
+function buy(w){if(G.gold<w.price)return add("system","골드가 부족하다.");G.gold-=w.price;G.equipment.weapon={...w};add("system",`${w.name}을 장착했다. 손에 무게가 느껴진다.`)}
+function openMagic(){magicModal.classList.remove("hidden")}function closeMagic(){magicModal.classList.add("hidden")}
+function researchMagic(){let form=magicForm.value,mod=magicMod.value;let need=Math.max({탄환:15,장벽:24,영역:34}[form],{없음:0,압축:26,추적:30,연쇄:40}[mod]);if(G.manaControl<need){closeMagic();return add("리엔",`“아직 제어가 부족해요. 마나 제어 ${need} 정도는 필요해요.”`)}let n=magicName.value.trim()||((mod==="없음"?"":mod+" ")+(form==="탄환"?"화염탄":form==="장벽"?"화염장벽":"화염영역"));let power=6+Math.floor(G.fire/5)+(mod==="압축"?4:mod==="연쇄"?6:2);G.spells.push({name:n,power,cost:5+(form==="영역"?3:0),status:"화상",range:form==="영역"?["근거리","중거리","원거리"]:["중거리","원거리"]});G.manaControl+=2;G.fire+=2;gainXP(12);closeMagic();add("리엔",`리엔이 한동안 말없이 마법식을 바라본다.<br>“...이거, 기존 술식이 아니잖아요.”<br><b>${n}</b>을 직접 완성했다.`)}
+function startCombat(){G.combat={name:"고블린 정찰병",hp:34,maxHp:34,atk:7,distance:1,intent:"돌진",burn:0,guard:false,enemyGuard:false,turn:1};combatModal.classList.remove("hidden");combatLog.innerHTML="고블린이 짧은 칼을 낮게 들고 당신을 살핀다.";updateCombat()}
+function intentRoll(){let r=Math.random();G.combat.intent=r<.35?"돌진":r<.6?"빠른 찌르기":r<.8?"모래 뿌리기":"방어 자세"}
+function updateCombat(){let c=G.combat;if(!c)return;enemyName.textContent=c.name;enemyHp.textContent=`${Math.max(0,c.hp)}/${c.maxHp}`;enemyBar.style.width=Math.max(0,c.hp/c.maxHp*100)+"%";distanceText.textContent=DIST[c.distance];enemyIntent.textContent=`적의 움직임: ${c.intent}`;let ss=[];if(c.burn>0)ss.push(`🔥 화상 ${c.burn}턴`);if(c.enemyGuard)ss.push("🛡 적 방어");combatStatus.innerHTML=ss.map(s=>`<span class="status">${s}</span>`).join("")||'<span class="small">상태이상 없음</span>'}
+function skillForWeapon(){let t=G.equipment.weapon?.type;return t==="sword"?G.sword:t==="dagger"?G.dagger:t==="bow"?G.bow:t==="staff"?G.staff:1}
+function validRange(arr){return arr.includes(DIST[G.combat.distance])}
+function endPlayerTurn(text){combatLog.innerHTML=text;enemyTurn()}
+function weaponAttack(){let c=G.combat,w=G.equipment.weapon;if(!w)return endPlayerTurn("맨손으로 공격했지만 제대로 된 피해를 주기 어렵다.");if(!validRange(w.range))return combatLog.innerHTML=`<b>${w.name}</b>은(는) 현재 ${DIST[c.distance]}에서 제대로 사용할 수 없다.`;let dmg=Math.floor(w.atk+skillForWeapon()*.55+Math.random()*5);if(c.enemyGuard)dmg=Math.ceil(dmg*.45);c.hp-=dmg;c.enemyGuard=false;G[w.type]++;if(c.hp<=0)return victory(`${w.name}으로 ${dmg} 피해!`);endPlayerTurn(`${w.name}으로 <b>${dmg}</b> 피해를 줬다.`)}
+function castSpell(){let c=G.combat;let usable=G.spells.filter(s=>G.mp>=s.cost&&validRange(s.range));if(!usable.length)return combatLog.innerHTML="현재 거리에서 사용할 수 있는 마법이 없거나 마나가 부족하다.";let s=usable[usable.length-1];G.mp-=s.cost;let dmg=Math.floor(s.power+G.fire*.35+(G.equipment.weapon?.magic||0)+Math.random()*4);if(c.enemyGuard)dmg=Math.ceil(dmg*.7);c.hp-=dmg;c.burn=2;c.enemyGuard=false;G.fire++;G.manaControl++;if(c.hp<=0)return victory(`${s.name}이 적을 집어삼켰다.`);endPlayerTurn(`<b>${s.name}</b>! ${dmg} 피해와 화상을 입혔다.`)}
+function changeDistance(dir){let c=G.combat,old=c.distance;c.distance=Math.max(0,Math.min(2,c.distance+dir));if(old===c.distance)return combatLog.innerHTML="더 이상 그 방향으로 거리를 바꿀 수 없다.";endPlayerTurn(`거리를 바꿨다. 현재 <b>${DIST[c.distance]}</b>.`)}
+function defend(){G.combat.guard=true;endPlayerTurn("자세를 낮추고 다음 공격에 대비한다.")}
+function specialSkill(){let c=G.combat,w=G.equipment.weapon;if(!w)return combatLog.innerHTML="무기를 장착해야 전술 스킬을 쓸 수 있다.";if(w.type==="sword"&&c.distance===2){let d=Math.floor(8+G.sword*.45);c.hp-=d;if(c.hp<=0)return victory("반격 베기로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>반격 베기</b>! ${d} 피해.`)}if(w.type==="dagger"&&c.distance===2){let d=Math.floor(5+G.dagger*.4);c.hp-=d*2;if(c.hp<=0)return victory("연속 찌르기로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>연속 찌르기</b>! 총 ${d*2} 피해.`)}if(w.type==="bow"&&c.distance===0){let d=Math.floor(10+G.bow*.5);c.hp-=d;if(c.hp<=0)return victory("조준 사격으로 적을 쓰러뜨렸다.");return endPlayerTurn(`<b>조준 사격</b>! ${d} 피해.`)}if(w.type==="staff"){G.mp=Math.min(G.maxMp,G.mp+3);G.manaControl++;return endPlayerTurn("<b>마나 순환</b>으로 MP 3 회복.")}combatLog.innerHTML="현재 거리에서는 이 무기의 전술 스킬을 제대로 사용할 수 없다."}
+function enemyTurn(){let c=G.combat;if(!c)return;if(c.burn>0){c.hp-=3;c.burn--;if(c.hp<=0)return victory("화상 피해로 적이 쓰러졌다.")}let text="";if(c.intent==="돌진"){if(c.distance>0){c.distance++;text="고블린이 거칠게 달려들어 거리를 좁혔다."}else text=enemyDamage(5,"몸통 박치기")}else if(c.intent==="빠른 찌르기"){text=c.distance===2?enemyDamage(8,"빠른 찌르기"):"고블린의 찌르기가 닿지 않았다."}else if(c.intent==="모래 뿌리기"){text="고블린이 흙을 걷어찼다. 다음 공격이 불안정해질 것 같다.";G.fatigue=Math.min(100,G.fatigue+4)}else{c.enemyGuard=true;text="고블린이 몸을 웅크리고 공격을 막을 준비를 한다."}c.guard=false;c.turn++;intentRoll();combatLog.innerHTML+=(combatLog.innerHTML?"<br><br>":"")+text;updateCombat()}
+function enemyDamage(base,name){let d=Math.max(1,base+Math.floor(Math.random()*4)-(G.combat.guard?5:0));G.hp-=d;if(G.hp<=0){G.hp=1;combatModal.classList.add("hidden");G.combat=null;G.location="브렌 마을";G.gold=Math.max(0,G.gold-6);add("미라","정신을 차렸을 때 길드 휴게실이었다. 미라가 화난 얼굴로 팔짱을 끼고 있다.<br>“제가 <b>살아서 돌아오라</b>고 했죠?”");return `${name}에 맞아 쓰러졌다.`}return `${name}! HP <b>-${d}</b>`}
+function victory(txt){let c=G.combat;combatModal.classList.add("hidden");G.combat=null;G.gold+=10;G.rep+=1;gainXP(22);if(G.quest?.type==="goblin"){G.gold+=30;G.rep+=2;G.quest={title:"첫 위험한 의뢰 완료",desc:"미라에게 생환 보고를 마쳤다."};G.relations["미라"]??={aff:1,note:"브렌 길드 접수원."};G.relations["미라"].aff+=2;add("미라",`“...직접 싸웠어요?” 미라는 한숨을 쉬고 보상 주머니를 건넨다.<br>“그래도 돌아왔네요. <b>그건 잘했어요.</b>”`)}add("system",txt+" 전리품과 보상을 챙겼다.")}
+function flee(){if(Math.random()<.65){combatModal.classList.add("hidden");G.combat=null;add("system","숨이 턱 끝까지 차올랐지만 전투에서 벗어났다.")}else{combatLog.innerHTML="도망칠 틈을 찾지 못했다.";enemyTurn()}}
+function saveGame(){localStorage.setItem("anotherWorldV03",JSON.stringify(G));add("system","게임을 저장했다.")}function loadGame(){let s=localStorage.getItem("anotherWorldV03");if(!s)return alert("저장 데이터가 없습니다.");G=JSON.parse(s);startModal.classList.add("hidden");render()}
 render();
 </script></body></html>
