@@ -118,15 +118,12 @@ test('drop log, codex and crafting requirements render item icons',()=>{
  assert(context.forgeList.innerHTML.includes('item-inline-icon'));
 });
 
-test('goblin family battle art is clean and has no baked combat HUD',()=>{
+test('goblin family battle art crops out baked combat HUD',()=>{
  resetCareer();exec("G.name='고블린원화검사';startCombat('goblin')");
- assert.equal(get("MONSTER_DIRECT.goblin"),'assets/enemies/clean/goblin.svg');
- assert.equal(context.enemyArt.src,'assets/enemies/clean/goblin.svg');
- assert(!context.enemyArt.classList.contains('monster-atlas-art'));
- for(const file of ['goblin.svg','mana-goblin.svg','goblin-chief.svg']){
-  const svg=fs.readFileSync(root+'/assets/enemies/clean/'+file,'utf8');
-  assert(svg.includes('viewBox='));
-  assert(!/(>HP<|공격|스킬|아이템|도망)/.test(svg));
- }
+ assert.equal(get("MONSTER_CROP.goblin.y"),394);
+ assert.equal(get("MONSTER_CROP.goblin.h"),118);
+ assert.equal(context.enemyArt.src,'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
+ assert(context.enemyArt.classList.contains('monster-clean-crop'));
+ assert(context.enemyArt.style.backgroundImage.includes('monsters.webp'));
 });
 console.log(`${tests} regression checks passed.`);
