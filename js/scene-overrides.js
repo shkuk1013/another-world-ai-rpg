@@ -1,7 +1,6 @@
 /* v0.5.5 mobile-test — atlas-backed high-resolution visual overrides */
 (()=>{
   const SCENE_ATLAS="assets/atlases/scenes.webp",SCENE_COLS=4,SCENE_ROWS=4;
-  const PORTRAIT_ATLAS="assets/atlases/portraits.webp",PORTRAIT_COLS=2,PORTRAIT_ROWS=2;
   const SCENE_INDEX={
     "브렌 마을":0,
     "낯선 숲길":1,
@@ -42,12 +41,10 @@
     "용의 계곡":"assets/scenes/volcano.webp"
   };
   const DIRECT_PORTRAITS={
-    "미라":"assets/portraits/mira.webp"
-  };
-  const PORTRAIT_INDEX={
-    "에밀리아":1,
-    "브람":2,
-    "리엔":3
+    "미라":"assets/portraits/mira.webp",
+    "에밀리아":"assets/portraits/emilia.webp",
+    "브람":"assets/portraits/bram.webp",
+    "리엔":"assets/portraits/rien.webp"
   };
   const TRANSPARENT="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
@@ -74,22 +71,14 @@
     return false;
   }
   function applyPortrait(npc){
-    const direct=DIRECT_PORTRAITS[npc];
-    if(direct){
-      stageNpc.classList.remove("system","atlas-portrait");
-      stageNpc.style.backgroundImage="";
-      stageNpc.style.backgroundSize="";
-      stageNpc.style.backgroundPosition="";
-      stageNpc.src=direct;
-      return true;
-    }
-    if(PORTRAIT_INDEX[npc]===undefined)return false;
-    stageNpc.src=TRANSPARENT;
-    stageNpc.classList.remove("system");
-    stageNpc.classList.add("atlas-portrait");
-    stageNpc.style.backgroundImage=`url("${PORTRAIT_ATLAS}")`;
-    stageNpc.style.backgroundSize=`${PORTRAIT_COLS*100}% ${PORTRAIT_ROWS*100}%`;
-    stageNpc.style.backgroundPosition=atlasPos(PORTRAIT_INDEX[npc],PORTRAIT_COLS,PORTRAIT_ROWS);
+    const direct=DIRECT_PORTRAITS[npc]||V05_PORTRAITS?.[npc];
+    if(!direct||String(direct).startsWith("atlas:"))return false;
+    stageNpc.classList.remove("system","atlas-portrait");
+    stageNpc.style.backgroundImage="";
+    stageNpc.style.backgroundSize="";
+    stageNpc.style.backgroundPosition="";
+    stageNpc.src=direct;
+    stageNpc.alt=`${npc} 초상화`;
     return true;
   }
   const baseSetSceneAsset=window.setSceneAsset;
@@ -97,7 +86,7 @@
     if(!applyScene(place))baseSetSceneAsset?.(place);
     const focus=typeof v05CurrentFocus==="function"?v05CurrentFocus():null;
     const npc=focus?.speaker&&focus.speaker!=="SYSTEM"?focus.speaker:(V05_FACILITY?.[place]?.npc||null);
-    if(npc&&(DIRECT_PORTRAITS[npc]||PORTRAIT_INDEX[npc]!==undefined))applyPortrait(npc);
+    if(npc)applyPortrait(npc);
     else if(stageNpc){
       stageNpc.classList.remove("atlas-portrait");
       stageNpc.style.backgroundImage="";
@@ -106,14 +95,27 @@
   for(const [place] of Object.entries(SCENE_INDEX))V05_SCENES[place]=`atlas:${SCENE_INDEX[place]}`;
   for(const [place,path] of Object.entries(SCENE_FALLBACK))V05_SCENES[place]=path;
   for(const [npc,path] of Object.entries(DIRECT_PORTRAITS))V05_PORTRAITS[npc]=path;
-  for(const [npc] of Object.entries(PORTRAIT_INDEX))V05_PORTRAITS[npc]=`atlas:${PORTRAIT_INDEX[npc]}`;
   window.V053_SCENE_HQ=Object.fromEntries(Object.keys(SCENE_INDEX).map(k=>[k,SCENE_ATLAS]));
-  window.V053_PORTRAIT_HQ={...Object.fromEntries(Object.keys(PORTRAIT_INDEX).map(k=>[k,PORTRAIT_ATLAS])),...DIRECT_PORTRAITS};
+  window.V053_PORTRAIT_HQ={...DIRECT_PORTRAITS};
   window.v05MapImage=function(tab){
     if(tab==="bren")return "assets/maps/release/bren-region-map.webp";
     if(tab==="hunt")return "assets/maps/release/hunting-flow-map.webp";
     return "assets/maps/release/alterra-continent-map.webp";
   };
+
+  // The base UI rewrites stageNpc.src after setSceneAsset(). Re-assert the
+  // current speaker/facility portrait after every render so a later system
+  // log or a loaded save cannot hide the NPC or replace it with an atlas URI.
+  const basePortraitRender=window.render;
+  window.render=function(){
+    const out=basePortraitRender.apply(this,arguments);
+    const focus=typeof v05CurrentFocus==="function"?v05CurrentFocus():null;
+    const facility=V05_FACILITY?.[G.location];
+    const npc=focus?.tag&&focus.tag!=="system"?focus.tag:facility?.npc;
+    if(npc)applyPortrait(npc);
+    return out;
+  };
+
   setSceneAsset(G.location);
   render();
 })();
