@@ -902,8 +902,7 @@ const RECIPES=[
  {name:"하급 회복 포션",skill:1,needs:{"붉은 약초":2,"맑은 물":1},base:12,desc:"HP를 회복하는 기본 포션"},
  {name:"하급 마나 포션",skill:3,needs:{"푸른 약초":2,"맑은 물":1},base:10,desc:"MP를 회복하는 기본 포션"},
  {name:"해독제",skill:4,needs:{"해독초":2,"숯가루":1,"맑은 물":1},base:8,desc:"독을 제거하는 약"},
- {name:"중급 회복 포션",skill:8,needs:{"붉은 약초":3,"달빛꽃":1,"맑은 물":1},base:24,desc:"효과가 크게 강화된 회복 포션"}
-];
+ {name:"중급 회복 포션",skill:8,needs:{"붉은 약초":3,"달빛꽃":1,"맑은 물":1},base:24,desc:"효과가 크게 강화된 회복 포션"}];
 function hasNeeds(recipe){
  return Object.entries(recipe.needs).every(([k,v])=>(G.materials[k]||0)>=v);
 }
@@ -1003,3 +1002,1370 @@ function openEnhance(){
  let w=G.equipment.weapon;
  if(!w){enhanceInfo.innerHTML="강화할 무기를 먼저 장착하세요.";enhanceModal.classList.remove("hidden");return;}
  let lv=w.enhance||0,needOre=2+lv,needGold=12+lv*10;
+ enhanceInfo.innerHTML=`<b>${w.name} +${lv}</b><br><span class="small">필요: 철광석 ${needOre}개 + ${needGold}G<br>강화 성공 시 공격력 +2. +3부터 실패 가능.</span>`;
+ enhanceModal.classList.remove("hidden");
+}
+function closeEnhance(){enhanceModal.classList.add("hidden")}
+function enhanceWeapon(){
+ let w=G.equipment.weapon;if(!w)return;
+ let lv=w.enhance||0,needOre=2+lv,needGold=12+lv*10;
+ if((G.materials["철광석"]||0)<needOre||G.gold<needGold)return alert("재료 또는 골드가 부족합니다.");
+ removeMaterial("철광석",needOre);G.gold-=needGold;
+ let chance=lv<3?1:Math.max(.45,.9-(lv-2)*.12);
+ if(Math.random()<chance){w.enhance=lv+1;w.atk=(w.atk||0)+2;add("system",`🔥 강화 성공! <b>${w.name} +${w.enhance}</b>`);}
+ else add("system","강화에 실패했다. 장비는 파괴되지 않았지만 재료는 소모됐다.");
+ closeEnhance();render();
+}
+function talkBram(){
+ add("system","브람이 달궈진 철을 두드리며 말한다. “좋은 무기는 돈으로만 사는 게 아니야. 네가 직접 구해온 재료엔 네 여행이 묻어 있지.”");
+}
+
+
+function genericExplore(name){
+ const p=LOCATIONS[name]||{};
+ let roll=Math.random();
+ if(name==="옛 왕도길"){
+   if(roll<.35){G.gold+=7;add("system","버려진 검문소에서 오래된 동전 7G를 찾았다.");}
+   else if(roll<.7){addMaterial("가죽",1);add("system","버려진 짐에서 쓸 만한 가죽을 챙겼다.");}
+   else add("system","멀리 수상한 인영을 봤지만 금세 사라졌다.");
+ }else if(name==="버려진 감시탑"){
+   if(roll<.4){addMaterial("수정 조각",1);add("system","탑 꼭대기 낡은 상자에서 수정 조각을 발견했다.");}
+   else {G.rep++;add("system","주변 몬스터 이동을 관찰해 길드에 전달할 정보를 얻었다.");}
+ }else if(name==="안개 습지"){
+   if(roll<.45){addMaterial("해독초",2);add("system","습지 가장자리에서 해독초 2개를 발견했다.");}
+   else {G.fatigue=Math.min(100,G.fatigue+4);add("system","짙은 안개 속을 헤매다 돌아왔다.");}
+ }else if(name==="북부 숲길"||name==="서리 언덕"){
+   if(roll<.45){addMaterial("서리 송곳니",1);add("system","눈 위에서 커다란 서리 짐승의 흔적을 발견했다.");}
+   else {G.rep++;add("system","북부 순찰대에 전달할 만한 흔적을 기록했다.");}
+ }else if(name==="달그림자 숲"){
+   if(roll<.35){addMaterial("정령 잎",2);add("system","희미한 빛을 내는 정령 잎을 발견했다.");}
+   else add("system","멀리서 노랫소리 같은 바람이 들렸지만 모습을 확인하지 못했다.");
+ }else if(name==="붉은 화산로"){
+   if(roll<.30){addMaterial("미스릴 조각",1);add("system","용암이 식은 틈에서 미스릴 조각을 발견했다.");}
+   else add("system","열기 때문에 오래 머무르기 어렵다.");
+ }else if(name==="용의 계곡"){
+   if(!G.bossUnlocks?.ancient_dragon&&G.level>=12&&G.rep>=18&&roll<.45){
+     unlockBossRoute("ancient_dragon","계곡 깊은 곳의 거대한 발자국");
+     add("system","바위를 통째로 눌러 부순 듯한 발자국을 발견했다. 고대 적룡의 흔적이다.");
+   }else add("system","하늘을 가리는 거대한 그림자가 멀리 지나간다.");
+ }else{
+   let g=3+Math.floor(Math.random()*6);G.gold+=g;add("system",`${p.desc||"주변을 둘러봤다"} 탐색 중 작은 가치품을 찾아 ${g}G를 얻었다.`);
+ }
+}
+function genericGather(name){
+ G.fatigue=Math.min(100,G.fatigue+4);
+ const special={
+  "안개 습지":[["해독초",.55],["습지 점액",.45]],
+  "은빛 호수":[["달빛꽃",.4],["수정 조각",.6]],
+  "청동 협곡":[["청동 광편",.7],["철광석",.3]],
+  "바람절벽":[["달빛꽃",.25],["푸른 약초",.75]],
+  "달그림자 숲":[["고대 수액",.35],["정령 잎",.65]],
+  "고대 수로":[["마정석",.3],["수정 조각",.7]],
+  "검은 늪":[["저주받은 천",.5],["해독초",.5]],
+  "붉은 화산로":[["미스릴 조각",.28],["화염석",.72]]
+ };
+ if(special[name]){
+   let [a,b]=special[name],pick=Math.random()<a[1]?a[0]:b[0];
+   if(["청동 협곡","고대 수로","붉은 화산로"].includes(name)&&!G.tools.pickaxe)return add("system","곡괭이가 필요하다.");
+   addMaterial(pick,1); if(["청동 협곡","고대 수로","붉은 화산로"].includes(name))G.mining+=2;else G.gathering+=2;
+   add("system",`${name}에서 <b>${pick}</b>을 얻었다.`); return;
+ }
+ if(/숲|절벽|습지|농장/.test(name)){doGathering();return;}
+ if(/협곡|수로|광산|채석/.test(name)){if(G.tools.pickaxe)doMining();else add("system","곡괭이가 있으면 더 제대로 채집할 수 있을 것 같다.");return;}
+ addMaterial("붉은 약초",1);G.gathering++;add("system","지역에서 흔한 재료를 조금 채집했다.");
+}
+function pickWeighted(list){let total=list.reduce((s,x)=>s+x[1],0),r=Math.random()*total;for(let [id,w] of list){r-=w;if(r<=0)return id}return list[list.length-1][0]}
+function genericHunt(name){
+ let table=[["goblin",1]];
+ if(name==="안개 습지")table=[["marsh_slime",.65],["swamp_frog",.35]];
+ else if(name==="폐광 입구")table=[["cave_bat",.7],["mana_goblin",.3]];
+ else if(name==="고블린 야영지")table=G.bossUnlocks?.goblin_chief?[["goblin",.45],["mana_goblin",.3],["goblin_chief",.25]]:[["goblin",.7],["mana_goblin",.3]];
+ else if(name==="북부 숲길")table=[["mana_goblin",.55],["frost_wolf",.45]];
+ else if(name==="서리 언덕")table=[["frost_wolf",1]];
+ else if(name==="청동 협곡")table=[["bronze_ogre",1]];
+ else if(name==="바람절벽")table=[["wind_wyvern",1]];
+ else if(name==="달그림자 숲")table=[["spirit_beast",1]];
+ else if(name==="고대 수로")table=[["ancient_golem",1]];
+ else if(name==="검은 늪")table=[["swamp_knight",1]];
+ else if(name==="붉은 화산로")table=[["fire_drake",1]];
+ else if(name==="용의 계곡"){
+   if(G.level<12||G.rep<18)return add("system","계곡 안쪽으로 들어가기엔 아직 위험하다.");
+   table=G.bossUnlocks?.ancient_dragon?[["fire_drake",.7],["ancient_dragon",.3]]:[["fire_drake",1]];
+ }
+ startCombat(pickWeighted(table));
+}
+
+function startCombat(type){
+ let strong=type==="mana_goblin";
+ G.combat={name:strong?"마력에 물든 고블린":"고블린 정찰병",hp:strong?52:34,maxHp:strong?52:34,atk:strong?9:7,intent:"강한 공격",burn:0,chill:0,shock:0,guard:false,enemyGuard:false,turn:1,type};
+ enemyArt.src=ASSET.goblin;combatModal.classList.remove("hidden");combatLog.innerHTML=strong?"고블린의 피부 사이로 푸른 마력이 새어 나온다.":"고블린이 짧은 칼을 낮게 들고 다가온다.";updateCombat();
+}
+function intentRoll(){let r=Math.random();G.combat.intent=r<.3?"강한 공격":r<.55?"빠른 찌르기":r<.78?"모래 뿌리기":"방어 자세"}
+function updateCombat(){
+ let c=G.combat;if(!c)return;
+ combatPlayerName.textContent=G.name;combatPlayerHp.textContent=`${Math.max(0,G.hp)}/${G.maxHp}`;combatPlayerMp.textContent=`${Math.max(0,G.mp)}/${G.maxMp}`;
+ combatPlayerHpBar.style.width=Math.max(0,G.hp/G.maxHp*100)+"%";combatPlayerMpBar.style.width=Math.max(0,G.mp/G.maxMp*100)+"%";
+ if(G.companion){companionCombatPanel.classList.remove("hidden");combatCompanionName.textContent=`리엔 · ${G.companion.tactic}`;combatCompanionHp.textContent=`${G.companion.hp}/${G.companion.maxHp}`;combatCompanionMp.textContent=`${G.companion.mp}/${G.companion.maxMp}`;combatCompanionHpBar.style.width=G.companion.hp/G.companion.maxHp*100+"%";combatCompanionMpBar.style.width=G.companion.mp/G.companion.maxMp*100+"%"}else companionCombatPanel.classList.add("hidden");
+ enemyName.textContent=c.name;enemyHp.textContent=`${Math.max(0,c.hp)}/${c.maxHp}`;enemyBar.style.width=Math.max(0,c.hp/c.maxHp*100)+"%";enemyIntent.textContent=`적의 움직임: ${c.intent}`;
+ let ss=[];if(c.burn)ss.push(`🔥 화상 ${c.burn}`);if(c.chill)ss.push(`❄ 냉기 ${c.chill}`);if(c.shock)ss.push(`⚡ 감전 ${c.shock}`);if(c.enemyGuard)ss.push("🛡 방어");
+ combatStatus.innerHTML=ss.map(s=>`<span class="status">${s}</span>`).join("")||'<span class="small">상태이상 없음</span>';
+}
+function skillForWeapon(){let t=G.equipment.weapon?.type;return t==="sword"?G.sword:t==="dagger"?G.dagger:t==="bow"?G.bow:t==="staff"?G.staff:1}
+function playerDone(text){combatLog.innerHTML=text;companionTurn();if(G.combat)enemyTurn()}
+function weaponAttack(){
+ let c=G.combat,w=G.equipment.weapon;if(!w)return playerDone("맨손으로 공격했다. 제대로 힘이 실리지 않는다.");
+ let dmg=Math.floor(w.atk+skillForWeapon()*.55+Math.random()*5);if(c.enemyGuard)dmg=Math.ceil(dmg*.45);if(c.chill)dmg+=2;
+ c.hp-=dmg;c.enemyGuard=false;G[w.type]++;if(c.hp<=0)return victory(`${w.name}으로 마무리했다.`);playerDone(`${w.name}으로 <b>${dmg}</b> 피해.`);
+}
+function openCombatMagic(){combatMagicList.innerHTML=G.spells.map((s,i)=>`<button class="spell-pick" ${G.mp<s.cost?"disabled":""} onclick="castSpell(${i})"><b>${s.name}</b> · ${s.element}<br><span class="small">위력 ${s.power} · MP ${s.cost} · ${s.status}</span></button>`).join("");combatMagicModal.classList.remove("hidden")}
+function closeCombatMagic(){combatMagicModal.classList.add("hidden")}
+function castSpell(i){
+ let c=G.combat,s=G.spells[i];if(!c||G.mp<s.cost)return;closeCombatMagic();G.mp-=s.cost;
+ let affinity=s.element==="화염"?G.fire:s.element==="냉기"?G.ice:G.lightning;let dmg=Math.floor(s.power+affinity*.35+(G.equipment.weapon?.magic||0)+Math.random()*4);
+ if(c.enemyGuard)dmg=Math.ceil(dmg*.7);
+ if(s.element==="화염"){c.burn=2;if(c.chill){dmg+=6;c.chill=0}}
+ if(s.element==="냉기"){c.chill=2;if(c.burn){dmg+=4;c.burn=0}}
+ if(s.element==="번개"){c.shock=2;if(c.chill)dmg+=5}
+ c.hp-=dmg;c.enemyGuard=false;if(c.hp<=0)return victory(`${s.name}이 적을 쓰러뜨렸다.`);
+ playerDone(`<b>${s.name}</b>! ${dmg} 피해.`);
+}
+function defend(){G.combat.guard=true;playerDone("공격보다 생존을 택했다. 자세를 낮추고 버틴다.")}
+function specialSkill(){
+ let c=G.combat,w=G.equipment.weapon;if(!w)return combatLog.innerHTML="무기가 필요하다.";
+ let d=0,txt="";
+ if(w.type==="sword"){d=Math.floor(9+G.sword*.45);txt="반격 베기"}
+ if(w.type==="dagger"){d=Math.floor((5+G.dagger*.4)*2);txt="연속 찌르기"}
+ if(w.type==="bow"){d=Math.floor(10+G.bow*.5);txt="조준 사격"}
+ if(w.type==="staff"){G.mp=Math.min(G.maxMp,G.mp+4);return playerDone("<b>마나 순환</b>으로 MP 4 회복.")}
+ c.hp-=d;if(c.hp<=0)return victory(`${txt}로 전투를 끝냈다.`);playerDone(`<b>${txt}</b>! ${d} 피해.`);
+}
+function changeCompanionTactic(){
+ if(!G.companion)return combatLog.innerHTML="현재 동료가 없다.";
+ let list=["공격","균형","보호"],i=list.indexOf(G.companion.tactic);G.companion.tactic=list[(i+1)%list.length];combatLog.innerHTML=`리엔 전술을 <b>${G.companion.tactic}</b>으로 변경했다.`;updateCombat();
+}
+function companionTurn(){
+ if(!G.combat||!G.companion||G.companion.hp<=0)return;
+ let c=G.combat,p=G.companion,txt="";
+ if(p.tactic==="보호"&&G.hp<G.maxHp*.55&&p.mp>=4){p.mp-=4;let h=6+Math.floor(Math.random()*4);G.hp=Math.min(G.maxHp,G.hp+h);txt=`리엔이 <b>응급 회복</b>으로 HP ${h} 회복.`}
+ else if(p.mp>=4){p.mp-=4;let d=7+Math.floor(Math.random()*5);c.hp-=d;c.chill=Math.max(c.chill,1);txt=`리엔의 <b>서리탄</b>! ${d} 피해.`}
+ else{let d=3+Math.floor(Math.random()*3);c.hp-=d;txt=`리엔이 지팡이로 견제해 ${d} 피해.`}
+ combatLog.innerHTML+=`<br><br><b>[리엔]</b> ${txt}`;updateCombat();if(c.hp<=0)victory("리엔과 함께 적을 쓰러뜨렸다.");
+}
+function enemyTurn(){
+ let c=G.combat;if(!c)return;
+ if(c.burn){c.hp-=3;c.burn--}if(c.shock&&Math.random()<.35){combatLog.innerHTML+="<br><br>⚡ 감전으로 적의 행동이 끊겼다.";c.shock--;intentRoll();updateCombat();if(c.hp<=0)victory("지속 피해로 적이 쓰러졌다.");return}
+ if(c.hp<=0)return victory("지속 피해로 적이 쓰러졌다.");
+ let text="";
+ if(c.intent==="강한 공격")text=enemyDamage(10,"거친 내려찍기");
+ else if(c.intent==="빠른 찌르기")text=enemyDamage(7,"빠른 찌르기");
+ else if(c.intent==="모래 뿌리기"){G.fatigue=Math.min(100,G.fatigue+4);text="고블린이 흙을 걷어찼다. 피로가 늘었다."}
+ else{c.enemyGuard=true;text="고블린이 방어 자세를 취했다."}
+ c.guard=false;c.turn++;intentRoll();combatLog.innerHTML+=`<br><br>${text}`;updateCombat();
+}
+function enemyDamage(base,name){
+ let targetComp=G.companion&&G.companion.tactic==="보호"&&Math.random()<.35;
+ if(targetComp){let d=Math.max(1,base+Math.floor(Math.random()*4)-2);G.companion.hp=Math.max(0,G.companion.hp-d);if(G.companion.hp<=0)G.relations["리엔"].aff-=1;return `${name}! 리엔 HP <b>-${d}</b>`}
+ let d=Math.max(1,base+Math.floor(Math.random()*4)-(G.combat.guard?5:0));G.hp-=d;
+ if(G.hp<=0){G.hp=1;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");combatItemModal.classList.add("hidden");G.combat=null;G.location="브렌 마을";add("미라","정신을 차렸을 때 길드 휴게실이었다.<br>“살아서 돌아오라고 했죠?”");return `${name}에 맞아 쓰러졌다.`}
+ return `${name}! 내 HP <b>-${d}</b>`;
+}
+function victory(txt){
+ let type=G.combat?.type;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");combatItemModal.classList.add("hidden");G.combat=null;G.gold+=10;G.rep++;gainXP(22);
+ if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔","“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요. 해가 지기 전에 조금 쉬었다 갈까요?”");return}
+ if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}
+ add("system",txt+" 전리품을 챙겼다.");
+}
+function flee(){if(Math.random()<.65){combatModal.classList.add("hidden");G.combat=null;add("system","숨이 차올랐지만 전투에서 벗어났다.")}else{combatLog.innerHTML="도주에 실패했다.";enemyTurn()}}
+function openCampfire(){
+ campPortrait.src=ASSET.rien;campText.innerHTML="불꽃 너머로 리엔이 잠시 말이 없다.<br><br>“사실 오늘 혼자 왔으면... 무서웠을 거예요. 마법을 아는 것과 싸울 수 있는 건 다른 일이더라고요.”";
+ campChoices.innerHTML="";
+ [["나도 무서웠어",()=>campChoice(3,"“...그렇구나.” 리엔이 작게 웃는다. “그 말 들으니까 조금 안심돼요.”")],
+ ["그래도 잘했어",()=>campChoice(2,"리엔이 귀를 살짝 붉힌다. “칭찬에는 아직 익숙하지 않아요.”")],
+ ["다음엔 더 강해지자",()=>campChoice(1,"“네. 다음에는 서로 지켜줄 수 있게.”")]]
+ .forEach(([t,f])=>{let b=document.createElement("button");b.textContent=t;b.onclick=f;campChoices.appendChild(b)});
+ campfireModal.classList.remove("hidden");
+}
+function campChoice(aff,text){
+ G.flags.campfire=true;G.relations["리엔"].aff+=aff;G.quest={title:"임시 파티의 시작",desc:"리엔과 함께 브렌으로 돌아간다."};campfireModal.classList.add("hidden");
+ add("리엔",text+"<br><br>그날 밤, 브렌으로 돌아가는 길은 처음 왔을 때보다 조금 덜 낯설게 느껴졌다.");
+}
+function saveGame(){localStorage.setItem("anotherWorldV04Draft",JSON.stringify(G));add("system","테스트 저장 완료.")}
+function loadGame(){let s=localStorage.getItem("anotherWorldV04Draft");if(!s)return alert("저장 데이터가 없습니다.");G=JSON.parse(s);document.getElementById("startModal")?.classList.add("hidden");render()}
+
+const MAX_STACK=999;
+const LOCATIONS={
+ "브렌 마을":{id:"bren",region:"브렌 지방",type:"마을",level:1,desc:"강과 성벽으로 둘러싸인 초보 모험가들의 거점.",tags:["안전","상점","길드"]},
+ "모험가 길드":{id:"guild",region:"브렌 지방",type:"시설",level:1,desc:"의뢰와 소문, 모험가 정보가 모이는 곳.",tags:["의뢰","도감"]},
+ "대장간":{id:"smith",region:"브렌 지방",type:"시설",level:1,desc:"브람의 대장간. 장비 제작과 수리가 가능하다.",tags:["제작","강화"]},
+ "마법 상점":{id:"magic_shop",region:"브렌 지방",type:"시설",level:1,desc:"리엔이 머무는 작은 마법 상점.",tags:["마법","동료"]},
+ "브렌 시장":{id:"market",region:"브렌 지방",type:"시설",level:1,desc:"재료, 소모품과 소문이 오가는 시장.",tags:["거래","레시피"]},
+ "생활 도구 상점":{id:"tool_shop",region:"브렌 지방",type:"시설",level:1,desc:"채집·벌목·채광용 도구를 파는 상점.",tags:["도구"]},
+ "대장간 작업대":{id:"forge",region:"브렌 지방",type:"시설",level:1,desc:"수집한 재료로 장비를 제작할 수 있다.",tags:["제작","강화"]},
+ "황금사슴 여관":{id:"inn",region:"브렌 지방",type:"시설",level:1,desc:"따뜻한 식사와 침대를 제공하는 브렌의 여관.",tags:["휴식","소문"]},
+ "강변 부두":{id:"river",region:"브렌 지방",type:"생활",level:1,desc:"낚시꾼과 작은 상선이 드나드는 강변.",tags:["낚시","채집"]},
+ "남쪽 농장":{id:"farm",region:"브렌 지방",type:"생활",level:1,desc:"브렌의 식량을 책임지는 농경지.",tags:["채집","일거리"]},
+ "서쪽 숲":{id:"west_forest",region:"브렌 지방",type:"사냥터",level:1,desc:"고블린과 작은 짐승이 출몰하는 초반 사냥터.",tags:["약초","고블린"]},
+ "동쪽 벌목지":{id:"east_logging",region:"브렌 지방",type:"채집지",level:1,desc:"목재를 얻기 좋은 숲 가장자리.",tags:["벌목","목재"]},
+ "북쪽 채석장":{id:"north_quarry",region:"브렌 지방",type:"채집지",level:1,desc:"철과 구리가 나는 노천 채석장.",tags:["채광","광석"]},
+ "옛 왕도길":{id:"old_road",region:"브렌 지방",type:"탐험",level:1,desc:"폐허가 된 검문소와 행상인이 지나는 오래된 길.",tags:["돌발","도적"]},
+ "안개 습지":{id:"mist_marsh",region:"브렌 지방",type:"사냥터",level:2,rep:2,desc:"독초와 습지 슬라임이 많은 저지대.",tags:["독","약초"]},
+ "폐광 입구":{id:"old_mine",region:"브렌 지방",type:"던전",level:2,mining:2,desc:"오래전에 버려진 광산. 깊은 곳의 소문이 좋지 않다.",tags:["광석","트롤"]},
+ "버려진 감시탑":{id:"watchtower",region:"브렌 지방",type:"탐험",level:2,rep:2,desc:"몬스터 이동을 관찰하기 좋은 낡은 탑.",tags:["보물","조사"]},
+ "고블린 야영지":{id:"goblin_camp",region:"브렌 지방",type:"보스",level:2,boss:"goblin_chief",desc:"붉은 깃발 아래 고블린 무리가 모이는 장소.",tags:["보스","고블린"]},
+ "북부 숲길":{id:"north_woods",region:"북부 변경",type:"사냥터",level:3,rep:4,desc:"기온이 급격히 낮아지는 침엽수림.",tags:["늑대","냉기"]},
+ "서리 언덕":{id:"frost_hill",region:"북부 변경",type:"사냥터",level:4,rep:5,desc:"서리늑대가 영역을 지키는 차가운 구릉.",tags:["냉기","보스"]},
+ "은빛 호수":{id:"silver_lake",region:"북부 변경",type:"생활",level:4,rep:5,desc:"희귀한 냉수어와 얼음꽃이 자라는 호수.",tags:["낚시","희귀채집"]},
+ "고대 수로":{id:"aqueduct",region:"동부 산맥",type:"던전",level:4,rep:6,desc:"산맥을 가로지르는 오래된 지하 수로.",tags:["골렘","유적"]},
+ "청동 협곡":{id:"bronze_canyon",region:"동부 산맥",type:"사냥터",level:5,rep:7,desc:"광물과 마수가 풍부한 바위 협곡.",tags:["광석","오우거"]},
+ "바람절벽":{id:"wind_cliff",region:"동부 산맥",type:"탐험",level:6,rep:8,desc:"비행 마수와 희귀 약초가 발견되는 절벽 지대.",tags:["비행","희귀채집"]},
+ "달그림자 숲":{id:"moon_forest",region:"서부 대삼림",type:"사냥터",level:6,rep:8,desc:"엘프들이 경계하는 깊은 원시림.",tags:["엘프","마력목"]},
+ "고대 정령터":{id:"spirit_ruin",region:"서부 대삼림",type:"던전",level:7,rep:10,desc:"오래된 정령 숭배 흔적이 남은 폐허.",tags:["정령","유물"]},
+ "왕도 관문":{id:"capital_gate",region:"왕도권",type:"도시",level:7,rep:10,desc:"브렌과 왕도를 잇는 대형 관문도시.",tags:["상급상점","길드"]},
+ "검은 늪":{id:"black_marsh",region:"남부 습지",type:"사냥터",level:8,rep:11,desc:"강한 독과 언데드가 출몰하는 위험한 습지.",tags:["독","언데드"]},
+ "붉은 화산로":{id:"volcano_road",region:"남동부 화산지대",type:"사냥터",level:9,rep:12,desc:"화염계 마수와 희귀 금속이 나타나는 고열 지대.",tags:["화염","미스릴"]},
+ "용의 계곡":{id:"dragon_valley",region:"남동부 화산지대",type:"최상위",level:12,rep:18,desc:"옛 문헌에만 기록된 용족의 영역.",tags:["드래곤","전설"]}
+};
+const REGION_IMAGES={
+ world:"assets/maps/world-map.svg",
+ bren:"assets/maps/bren-region.svg",
+ hunt:"assets/maps/hunting-grounds.svg"
+};
+
+function placeUnlocked(name){
+ const p=LOCATIONS[name]; if(!p)return false;
+ if(G.level<(p.level||1))return false;
+ if((p.rep||0)>G.rep)return false;
+ if((p.mining||0)>G.mining)return false;
+ if(p.boss && !G.bossUnlocks?.[p.boss])return false;
+ return true;
+}
+function placeLockReason(name){
+ const p=LOCATIONS[name]; if(!p)return "알 수 없음";
+ if(G.level<(p.level||1))return `레벨 ${p.level} 필요`;
+ if((p.rep||0)>G.rep)return `평판 ${p.rep} 필요`;
+ if((p.mining||0)>G.mining)return `채광 ${p.mining} 필요`;
+ if(p.boss && !G.bossUnlocks?.[p.boss])return "관련 흔적 또는 소문 필요";
+ return "";
+}
+function travelTo(name){
+ if(!placeUnlocked(name))return;
+ closeWorldMap();
+ const from=G.location;
+ G.location=name;
+ if(LOCATIONS[name]?.type!=="시설" && LOCATIONS[name]?.type!=="마을"){
+   G.hour=(G.hour+1)%24; G.fatigue=Math.min(100,G.fatigue+2);
+ }
+ add("system",`<b>${name}</b>으로 이동했다.${from!==name?` <span class="small">${LOCATIONS[name]?.desc||""}</span>`:""}`);
+ if(name==="서쪽 숲")setTimeout(()=>maybeEvent("forest"),60);
+ if(name==="북쪽 채석장"||name==="폐광 입구")setTimeout(()=>maybeEvent("quarry"),60);
+ if(name==="동쪽 벌목지")setTimeout(()=>maybeEvent("logging"),60);
+}
+const MONSTERS={
+ goblin:{name:"고블린 정찰병",rank:"F",hp:[30,38],atk:[5,8],def:1,weak:"화염",resist:"없음",region:"서쪽 숲",drops:[{name:"고블린 송곳니",chance:1,qty:[1,2],rarity:"common"},{name:"질긴 가죽",chance:.45,qty:[1,1],rarity:"common"},{name:"낡은 단검",chance:.08,qty:[1,1],rarity:"rare"}]},
+ mana_goblin:{name:"마력에 물든 고블린",rank:"E+",hp:[48,58],atk:[8,11],def:2,weak:"번개",resist:"화염 약간",region:"서쪽 숲 깊은 곳",drops:[{name:"고블린 송곳니",chance:1,qty:[1,3],rarity:"common"},{name:"마력 찌꺼기",chance:.75,qty:[1,2],rarity:"common"},{name:"마정석",chance:.22,qty:[1,1],rarity:"rare"},{name:"푸른 마력 단검",chance:.05,qty:[1,1],rarity:"epic"}]},
+ goblin_chief:{name:"고블린 족장",rank:"D",hp:[90,110],atk:[13,18],def:5,weak:"냉기",resist:"출혈 저항",region:"고블린 야영지",drops:[{name:"고블린 송곳니",chance:1,qty:[2,4],rarity:"common"},{name:"족장 금속 조각",chance:.55,qty:[1,2],rarity:"rare"},{name:"족장 목걸이",chance:.12,qty:[1,1],rarity:"rare"},{name:"고블린 왕의 톱니검",chance:.08,qty:[1,1],rarity:"epic"}]},
+ frost_wolf:{name:"서리늑대 우두머리",rank:"C",hp:[150,180],atk:[20,25],def:7,weak:"화염",resist:"냉기",region:"북부 설원",drops:[{name:"서리 송곳니",chance:1,qty:[1,2],rarity:"common"},{name:"빙결 가죽",chance:.6,qty:[1,2],rarity:"rare"},{name:"서리송곳니 단검",chance:.07,qty:[1,1],rarity:"epic"}]},
+ mine_troll:{name:"광산 트롤",rank:"C+",hp:[190,230],atk:[24,31],def:10,weak:"번개",resist:"타격 저항",region:"폐광 깊은 곳",drops:[{name:"트롤 가죽",chance:1,qty:[1,2],rarity:"common"},{name:"광산 핵석",chance:.5,qty:[1,2],rarity:"rare"},{name:"바위깨기 대검",chance:.06,qty:[1,1],rarity:"epic"}]},
+ marsh_slime:{name:"독안개 슬라임",rank:"E",hp:[42,58],atk:[6,10],def:1,weak:"냉기",resist:"독 면역",region:"안개 습지",drops:[{name:"습지 점액",chance:1,qty:[1,3],rarity:"common"},{name:"독낭",chance:.28,qty:[1,1],rarity:"rare"},{name:"응축 점액핵",chance:.05,qty:[1,1],rarity:"epic"}]},
+ swamp_frog:{name:"거대 늪개구리",rank:"E+",hp:[60,78],atk:[9,13],def:2,weak:"번개",resist:"독 저항",region:"안개 습지",drops:[{name:"독낭",chance:.55,qty:[1,2],rarity:"common"},{name:"질긴 가죽",chance:.4,qty:[1,1],rarity:"common"}]},
+ cave_bat:{name:"광맥 박쥐",rank:"E",hp:[36,48],atk:[8,12],def:1,weak:"화염",resist:"회피 높음",region:"폐광",drops:[{name:"송곳니",chance:.75,qty:[1,2],rarity:"common"},{name:"마력 찌꺼기",chance:.2,qty:[1,1],rarity:"rare"}]},
+ bronze_ogre:{name:"청동 오우거",rank:"B",hp:[280,340],atk:[34,42],def:15,weak:"냉기",resist:"물리 저항",region:"청동 협곡",drops:[{name:"오우거 힘줄",chance:1,qty:[1,2],rarity:"common"},{name:"청동 광편",chance:.7,qty:[1,3],rarity:"rare"},{name:"오우거 파쇄봉",chance:.05,qty:[1,1],rarity:"epic"}]},
+ wind_wyvern:{name:"바람 와이번",rank:"B+",hp:[330,390],atk:[38,47],def:12,weak:"번개",resist:"바람 저항",region:"바람절벽",drops:[{name:"와이번 비늘",chance:1,qty:[1,2],rarity:"common"},{name:"바람결정",chance:.35,qty:[1,1],rarity:"rare"},{name:"천공의 활시위",chance:.04,qty:[1,1],rarity:"epic"}]},
+ spirit_beast:{name:"달그림자 정령수",rank:"A-",hp:[410,480],atk:[44,54],def:16,weak:"화염",resist:"마법 저항",region:"달그림자 숲",drops:[{name:"정령 잎",chance:1,qty:[1,3],rarity:"common"},{name:"고대 수액",chance:.45,qty:[1,1],rarity:"rare"},{name:"달그림자 부적",chance:.04,qty:[1,1],rarity:"epic"}]},
+ ancient_golem:{name:"고대 수로 골렘",rank:"A-",hp:[460,540],atk:[46,58],def:22,weak:"번개",resist:"출혈 면역",region:"고대 수로",drops:[{name:"마정석",chance:.8,qty:[1,2],rarity:"common"},{name:"수정 조각",chance:.7,qty:[1,3],rarity:"common"},{name:"고대 핵",chance:.18,qty:[1,1],rarity:"rare"},{name:"고대 마도지팡이 파편",chance:.035,qty:[1,1],rarity:"epic"}]},
+ swamp_knight:{name:"검은 늪 기사",rank:"A",hp:[520,610],atk:[52,64],def:20,weak:"빛",resist:"독·암흑",region:"검은 늪",drops:[{name:"언데드 뼛조각",chance:1,qty:[1,3],rarity:"common"},{name:"저주받은 천",chance:.55,qty:[1,2],rarity:"rare"},{name:"망자의 장검",chance:.035,qty:[1,1],rarity:"epic"}]},
+ fire_drake:{name:"화염 드레이크",rank:"A+",hp:[650,760],atk:[62,76],def:24,weak:"냉기",resist:"화염 면역",region:"붉은 화산로",drops:[{name:"화염석",chance:1,qty:[1,3],rarity:"common"},{name:"미스릴 조각",chance:.35,qty:[1,1],rarity:"rare"},{name:"용염 비늘",chance:.16,qty:[1,1],rarity:"rare"},{name:"화염비늘 대검",chance:.025,qty:[1,1],rarity:"epic"}]},
+ ancient_dragon:{name:"고대 적룡",rank:"S",hp:[1200,1500],atk:[95,120],def:38,weak:"냉기·고대 마법",resist:"화염 면역",region:"용의 계곡",drops:[{name:"드래곤 파편",chance:1,qty:[2,4],rarity:"rare"},{name:"아다만티움 조각",chance:.45,qty:[1,2],rarity:"rare"},{name:"용의 심장 파편",chance:.12,qty:[1,1],rarity:"epic"},{name:"용염 대검",chance:.015,qty:[1,1],rarity:"legend"}]}
+};
+const TITLE_RULES=[
+ {name:"고블린 사냥꾼",monster:"goblin",kills:5,effect:"고블린 도감 일반 드랍 해금"},
+ {name:"고블린 숙련자",monster:"goblin",kills:20,effect:"고블린 상대 피해 +2%"},
+ {name:"고블린 학살자",monster:"goblin",kills:50,effect:"고블린 희귀 드랍률 +2%"},
+ {name:"브렌의 고블린 악몽",monster:"goblin",kills:100,effect:"브렌 길드 특별 반응"},
+ {name:"족장 사냥꾼",monster:"goblin_chief",kills:10,effect:"족장 재료 파밍 숙련"}
+];
+function ensureProgress(){G.monsterKills=G.monsterKills||{};G.discoveredMonsters=G.discoveredMonsters||{};G.titles=G.titles||[];if(G.activeTitle===undefined)G.activeTitle=null;for(const k of Object.keys(MONSTERS))if(G.monsterKills[k]===undefined)G.monsterKills[k]=0;sanitizeStacks();}
+
+function genericExplore(name){
+ const p=LOCATIONS[name]||{};
+ let roll=Math.random();
+ if(name==="옛 왕도길"){
+   if(roll<.35){G.gold+=7;add("system","버려진 검문소에서 오래된 동전 7G를 찾았다.");}
+   else if(roll<.7){addMaterial("가죽",1);add("system","버려진 짐에서 쓸 만한 가죽을 챙겼다.");}
+   else add("system","멀리 수상한 인영을 봤지만 금세 사라졌다.");
+ }else if(name==="버려진 감시탑"){
+   if(roll<.4){addMaterial("수정 조각",1);add("system","탑 꼭대기 낡은 상자에서 수정 조각을 발견했다.");}
+   else {G.rep++;add("system","주변 몬스터 이동을 관찰해 길드에 전달할 정보를 얻었다.");}
+ }else if(name==="안개 습지"){
+   if(roll<.45){addMaterial("해독초",2);add("system","습지 가장자리에서 해독초 2개를 발견했다.");}
+   else {G.fatigue=Math.min(100,G.fatigue+4);add("system","짙은 안개 속을 헤매다 돌아왔다.");}
+ }else if(name==="북부 숲길"||name==="서리 언덕"){
+   if(roll<.45){addMaterial("서리 송곳니",1);add("system","눈 위에서 커다란 서리 짐승의 흔적을 발견했다.");}
+   else {G.rep++;add("system","북부 순찰대에 전달할 만한 흔적을 기록했다.");}
+ }else if(name==="달그림자 숲"){
+   if(roll<.35){addMaterial("정령 잎",2);add("system","희미한 빛을 내는 정령 잎을 발견했다.");}
+   else add("system","멀리서 노랫소리 같은 바람이 들렸지만 모습을 확인하지 못했다.");
+ }else if(name==="붉은 화산로"){
+   if(roll<.30){addMaterial("미스릴 조각",1);add("system","용암이 식은 틈에서 미스릴 조각을 발견했다.");}
+   else add("system","열기 때문에 오래 머무르기 어렵다.");
+ }else if(name==="용의 계곡"){
+   if(!G.bossUnlocks?.ancient_dragon&&G.level>=12&&G.rep>=18&&roll<.45){
+     unlockBossRoute("ancient_dragon","계곡 깊은 곳의 거대한 발자국");
+     add("system","바위를 통째로 눌러 부순 듯한 발자국을 발견했다. 고대 적룡의 흔적이다.");
+   }else add("system","하늘을 가리는 거대한 그림자가 멀리 지나간다.");
+ }else{
+   let g=3+Math.floor(Math.random()*6);G.gold+=g;add("system",`${p.desc||"주변을 둘러봤다"} 탐색 중 작은 가치품을 찾아 ${g}G를 얻었다.`);
+ }
+}
+function genericGather(name){
+ G.fatigue=Math.min(100,G.fatigue+4);
+ const special={
+  "안개 습지":[["해독초",.55],["습지 점액",.45]],
+  "은빛 호수":[["달빛꽃",.4],["수정 조각",.6]],
+  "청동 협곡":[["청동 광편",.7],["철광석",.3]],
+  "바람절벽":[["달빛꽃",.25],["푸른 약초",.75]],
+  "달그림자 숲":[["고대 수액",.35],["정령 잎",.65]],
+  "고대 수로":[["마정석",.3],["수정 조각",.7]],
+  "검은 늪":[["저주받은 천",.5],["해독초",.5]],
+  "붉은 화산로":[["미스릴 조각",.28],["화염석",.72]]
+ };
+ if(special[name]){
+   let [a,b]=special[name],pick=Math.random()<a[1]?a[0]:b[0];
+   if(["청동 협곡","고대 수로","붉은 화산로"].includes(name)&&!G.tools.pickaxe)return add("system","곡괭이가 필요하다.");
+   addMaterial(pick,1); if(["청동 협곡","고대 수로","붉은 화산로"].includes(name))G.mining+=2;else G.gathering+=2;
+   add("system",`${name}에서 <b>${pick}</b>을 얻었다.`); return;
+ }
+ if(/숲|절벽|습지|농장/.test(name)){doGathering();return;}
+ if(/협곡|수로|광산|채석/.test(name)){if(G.tools.pickaxe)doMining();else add("system","곡괭이가 있으면 더 제대로 채집할 수 있을 것 같다.");return;}
+ addMaterial("붉은 약초",1);G.gathering++;add("system","지역에서 흔한 재료를 조금 채집했다.");
+}
+function pickWeighted(list){let total=list.reduce((s,x)=>s+x[1],0),r=Math.random()*total;for(let [id,w] of list){r-=w;if(r<=0)return id}return list[list.length-1][0]}
+function genericHunt(name){
+ let table=[["goblin",1]];
+ if(name==="안개 습지")table=[["marsh_slime",.65],["swamp_frog",.35]];
+ else if(name==="폐광 입구")table=[["cave_bat",.7],["mana_goblin",.3]];
+ else if(name==="고블린 야영지")table=G.bossUnlocks?.goblin_chief?[["goblin",.45],["mana_goblin",.3],["goblin_chief",.25]]:[["goblin",.7],["mana_goblin",.3]];
+ else if(name==="북부 숲길")table=[["mana_goblin",.55],["frost_wolf",.45]];
+ else if(name==="서리 언덕")table=[["frost_wolf",1]];
+ else if(name==="청동 협곡")table=[["bronze_ogre",1]];
+ else if(name==="바람절벽")table=[["wind_wyvern",1]];
+ else if(name==="달그림자 숲")table=[["spirit_beast",1]];
+ else if(name==="고대 수로")table=[["ancient_golem",1]];
+ else if(name==="검은 늪")table=[["swamp_knight",1]];
+ else if(name==="붉은 화산로")table=[["fire_drake",1]];
+ else if(name==="용의 계곡"){
+   if(G.level<12||G.rep<18)return add("system","계곡 안쪽으로 들어가기엔 아직 위험하다.");
+   table=G.bossUnlocks?.ancient_dragon?[["fire_drake",.7],["ancient_dragon",.3]]:[["fire_drake",1]];
+ }
+ startCombat(pickWeighted(table));
+}
+
+function startCombat(type){ensureProgress();let m=MONSTERS[type]||MONSTERS.goblin;G.discoveredMonsters[type]=true;let hp=Math.floor(m.hp[0]+Math.random()*(m.hp[1]-m.hp[0]+1));let atk=Math.floor(m.atk[0]+Math.random()*(m.atk[1]-m.atk[0]+1));G.combat={name:m.name,hp,maxHp:hp,atk,intent:"강한 공격",burn:0,chill:0,shock:0,guard:false,enemyGuard:false,turn:1,type,def:m.def||0};enemyArt.src=ASSET.goblin;combatModal.classList.remove("hidden");combatLog.innerHTML=`${m.name}이 모습을 드러냈다. <span class="kbd">I</span>로 도감을 확인할 수 있다.`;updateCombat();}
+function rollDrops(type){
+ let m=MONSTERS[type];if(!m)return [];
+ let out=[];
+ for(let d of m.drops){
+  let bonus=(type==="goblin"&&G.titles.includes("고블린 학살자")&&d.rarity!=="common")?.02:0;
+  if(Math.random()<Math.min(.99,d.chance+bonus)){
+   let qty=Math.floor(d.qty[0]+Math.random()*(d.qty[1]-d.qty[0]+1));
+   let unique=(typeof UNIQUE_ITEMS!=="undefined")?UNIQUE_ITEMS[d.name]:null;
+   if(unique){
+    for(let q=0;q<qty;q++) G.equipmentInventory.push({name:d.name,type:unique.type,atk:unique.atk||0,def:unique.def||0,magic:unique.magic||0,enhance:0,rarity:unique.rarity||d.rarity,effect:unique.effect||""});
+   }else if(/단검|장검|대검|톱니검|활|장궁|지팡이|중갑|로브|갑옷/.test(d.name)){
+    let typeGuess=/활|장궁/.test(d.name)?"bow":/지팡이/.test(d.name)?"staff":/중갑|로브|갑옷/.test(d.name)?"armor":/단검/.test(d.name)?"dagger":"sword";
+    for(let q=0;q<qty;q++) G.equipmentInventory.push({name:d.name,type:typeGuess,atk:d.rarity==="epic"?15:8,def:typeGuess==="armor"?10:0,magic:typeGuess==="staff"?8:0,enhance:0,rarity:d.rarity});
+   }else addMaterial(d.name,qty);
+   out.push({name:d.name,qty,rarity:d.rarity});
+  }
+ }
+ return out;
+}
+function checkTitles(){for(let t of TITLE_RULES){if(G.titles.includes(t.name))continue;if((G.monsterKills[t.monster]||0)>=t.kills){G.titles.push(t.name);setTimeout(()=>add("system",`🏅 새 칭호 획득: <b>${t.name}</b><br><span class="small">${t.effect}</span>`),0);}}}
+function victory(txt){let type=G.combat?.type;combatModal.classList.add("hidden");combatMagicModal.classList.add("hidden");combatItemModal.classList.add("hidden");G.combat=null;G.monsterKills[type]=(G.monsterKills[type]||0)+1;
+ let mr=MONSTERS[type]?.rank||"F";
+ let rewardXP=({F:18,E:24,"E+":28,D:35,C:50,"C+":58,B:75,"B+":85,"A-":105,A:120,"A+":145,S:220}[mr]||22);
+ let rewardGold=Math.max(6,Math.round(rewardXP*.45));
+ G.gold+=rewardGold;G.rep+=rewardXP>=75?2:1;gainXP(rewardXP);let drops=rollDrops(type);checkTitles();let dropText=drops.length?drops.map(d=>`<span class="drop-${d.rarity}">${d.name}${d.qty>1?` ×${d.qty}`:""}</span>`).join(", "):"특별한 전리품 없음";if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔",`“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요.”<br>전리품: ${dropText}`);return}if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}add("system",txt+`<br>전리품: ${dropText}`);}
+function codexLevel(k){return k>=30?5:k>=20?4:k>=10?3:k>=5?2:k>=1?1:0}
+function openCodex(){ensureProgress();codexList.innerHTML=Object.entries(MONSTERS).map(([id,m])=>{let seen=G.discoveredMonsters[id],kills=G.monsterKills[id]||0,l=codexLevel(kills);if(!seen)return`<div class="codex-entry codex-lock"><b>???</b><br>아직 발견하지 못한 몬스터</div>`;let drops=m.drops.map(d=>l>=2||d.rarity==="common"?`<span class="drop-${d.rarity}">${d.name}${l>=5?` (${Math.round(d.chance*100)}%)`:""}</span>`:`<span class="codex-lock">???</span>`).join(", ");return`<div class="codex-entry"><b>${m.name}</b> <span class="badge">${m.rank}급</span><br><span class="small">처치 ${kills}회 · 출현: ${l>=1?m.region:"???"}</span><br>${l>=2?`HP ${m.hp[0]}~${m.hp[1]} · 공격 ${m.atk[0]}~${m.atk[1]} · 방어 ${m.def}<br>`:""}${l>=3?`약점: ${m.weak} · 저항: ${m.resist}<br>`:""}${l>=2?`드랍: ${drops}`:"드랍: ???"}</div>`}).join("");codexModal.classList.remove("hidden")}
+function closeCodex(){codexModal.classList.add("hidden")}
+function openTitles(){ensureProgress();titleList.innerHTML=TITLE_RULES.map(t=>{let u=G.titles.includes(t.name),cur=G.monsterKills[t.monster]||0;return`<div class="codex-entry ${u?"":"codex-lock"}"><b>${u?t.name:"???"}</b><br><span class="small">${cur}/${t.kills} 처치${u?`<br>${t.effect}`:""}</span>${u?`<br><button onclick="equipTitle('${t.name}')">칭호 장착</button>`:""}</div>`}).join("");titleModal.classList.remove("hidden")}
+function closeTitles(){titleModal.classList.add("hidden")}
+function equipTitle(name){if(!G.titles.includes(name))return;G.activeTitle=name;render();openTitles()}
+document.addEventListener("keydown",e=>{if((e.key==="i"||e.key==="I")&&!e.ctrlKey&&!e.metaKey&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)){e.preventDefault();codexModal.classList.contains("hidden")?openCodex():closeCodex();}});
+const oldLoadGameV043=loadGame;loadGame=function(){let s=localStorage.getItem("anotherWorldV04Draft");if(!s)return alert("저장 데이터가 없습니다.");G=JSON.parse(s);ensureProgress();document.getElementById("startModal")?.classList.add("hidden");render()};
+
+ensureProgress();
+
+// ===== v0.4.7 regional towns / NPCs / 5-tier gear =====
+LOCATIONS["프로스트벨"]={id:"frostbell",region:"북부 변경",type:"마을",level:3,rep:4,desc:"서리 언덕 아래 자리한 사냥꾼들의 변경 마을.",tags:["사냥길드","냉기","여관"]};
+LOCATIONS["카르문 광산도시"]={id:"karmun",region:"동부 산맥",type:"도시",level:5,rep:7,desc:"광산과 제련소를 중심으로 성장한 산악 도시.",tags:["광산","제련","상급장비"]};
+LOCATIONS["엘로디아 숲마을"]={id:"elodia",region:"서부 대삼림",type:"마을",level:6,rep:8,desc:"엘프와 인간이 조심스럽게 교류하는 깊은 숲의 정착지.",tags:["엘프","정령","마력목"]};
+
+SCENES["프로스트벨"]=ASSET.bren;
+SCENES["카르문 광산도시"]=ASSET.bren;
+SCENES["엘로디아 숲마을"]=ASSET.bren;
+
+G.regionQuests=G.regionQuests||{frostbell:0,karmun:0,elodia:0};
+G.regionFlags=G.regionFlags||{frostbell:false,karmun:false,elodia:false};
+
+const GEAR_TIERS_V047={
+ sword:[
+  {tier:1,name:"철검",atk:8,lv:1,needs:{"철광석":3,"참나무":1},gold:12},
+  {tier:2,name:"강철 장검",atk:14,lv:3,needs:{"철광석":5,"석탄":3,"단풍나무":1},gold:24},
+  {tier:3,name:"정제강 장검",atk:21,lv:5,needs:{"철광석":7,"은광석":2,"석탄":4},gold:42},
+  {tier:4,name:"미스릴 장검",atk:31,lv:8,needs:{"미스릴 조각":5,"마정석":2},gold:80},
+  {tier:5,name:"아다만티움 장검",atk:44,lv:11,needs:{"아다만티움 조각":5,"미스릴 조각":3,"용의 심장 파편":1},gold:150}
+ ],
+ dagger:[
+  {tier:1,name:"철 단검",atk:6,lv:1,needs:{"철광석":2,"가죽":1},gold:10},
+  {tier:2,name:"강철 단검",atk:11,lv:3,needs:{"철광석":4,"석탄":2,"가죽":1},gold:20},
+  {tier:3,name:"은빛 단검",atk:17,lv:5,needs:{"은광석":3,"철광석":3,"가죽":2},gold:38},
+  {tier:4,name:"미스릴 단검",atk:25,lv:8,needs:{"미스릴 조각":4,"마정석":1},gold:72},
+  {tier:5,name:"아다만티움 단검",atk:36,lv:11,needs:{"아다만티움 조각":4,"미스릴 조각":2,"용의 심장 파편":1},gold:135}
+ ],
+ bow:[
+  {tier:1,name:"단풍나무 활",atk:7,lv:1,needs:{"단풍나무":3,"가죽":1},gold:12},
+  {tier:2,name:"강화 목궁",atk:12,lv:3,needs:{"단풍나무":5,"철광석":2,"가죽":2},gold:24},
+  {tier:3,name:"복합궁",atk:19,lv:5,needs:{"단풍나무":4,"은광석":2,"가죽":3},gold:40},
+  {tier:4,name:"미스릴 보강궁",atk:28,lv:8,needs:{"마력목":2,"미스릴 조각":4,"와이번 비늘":1},gold:78},
+  {tier:5,name:"아다만티움 전투궁",atk:40,lv:11,needs:{"마력목":2,"아다만티움 조각":4,"바람결정":2},gold:145}
+ ],
+ staff:[
+  {tier:1,name:"견습 지팡이",atk:3,magic:4,lv:1,needs:{"참나무":2,"수정 조각":1},gold:12},
+  {tier:2,name:"마정석 지팡이",atk:4,magic:8,lv:3,needs:{"단풍나무":2,"마정석":2},gold:25},
+  {tier:3,name:"수정 지팡이",atk:5,magic:13,lv:5,needs:{"마력목":1,"수정 조각":4,"마정석":2},gold:44},
+  {tier:4,name:"미스릴 마도지팡이",atk:7,magic:20,lv:8,needs:{"마력목":2,"미스릴 조각":3,"고대 핵":1},gold:82},
+  {tier:5,name:"고대 마도지팡이",atk:10,magic:29,lv:11,needs:{"고대 핵":2,"아다만티움 조각":2,"용의 심장 파편":1},gold:155}
+ ],
+ armor:[
+  {tier:1,name:"가죽 갑옷",def:4,lv:1,needs:{"가죽":3},gold:10},
+  {tier:2,name:"철제 흉갑",def:8,lv:3,needs:{"철광석":5,"가죽":2},gold:24},
+  {tier:3,name:"정제강 갑옷",def:13,lv:5,needs:{"철광석":8,"은광석":2},gold:45},
+  {tier:4,name:"미스릴 갑옷",def:20,lv:8,needs:{"미스릴 조각":6,"와이번 비늘":1},gold:85},
+  {tier:5,name:"아다만티움 갑옷",def:29,lv:11,needs:{"아다만티움 조각":6,"용염 비늘":2},gold:160}
+ ]
+};
+function tierGearNeeds(it){return Object.entries(it.needs).map(([k,v])=>`${k} ${v}`).join(" + ")}
+function canTierCraft(it){return G.level>=it.lv&&Object.entries(it.needs).every(([k,v])=>(G.materials[k]||0)>=v)&&G.gold>=it.gold}
+function craftTierGearV047(type,tier){
+ const it=GEAR_TIERS_V047[type].find(x=>x.tier===tier);if(!it||!canTierCraft(it))return;
+ Object.entries(it.needs).forEach(([k,v])=>removeMaterial(k,v));G.gold-=it.gold;
+ G.equipmentInventory.push({name:it.name,type:type==="armor"?"armor":type,atk:it.atk||0,def:it.def||0,magic:it.magic||0,enhance:0,tier:it.tier,rarity:"normal"});
+ add("system",`⚒️ <b>${it.name}</b> 제작 완료. ${it.tier}단계 장비다.`);
+ renderTierForgeV047();render();
+}
+function renderTierForgeV047(){
+ const order=[["sword","검"],["dagger","단검"],["bow","활"],["staff","지팡이"],["armor","방어구"]];
+ forgeList.innerHTML=order.map(([key,label])=>`<h3>${label}</h3>`+GEAR_TIERS_V047[key].map(it=>`
+ <div class="recipe"><b>${it.tier}단계 · ${it.name}</b><br>
+ <span class="small">${key==="armor"?`방어 ${it.def}`:key==="staff"?`공격 ${it.atk} · 마법 ${it.magic}`:`공격 ${it.atk}`} · Lv.${it.lv}<br>${tierGearNeeds(it)} · ${it.gold}G</span><br>
+ <button ${canTierCraft(it)?"":"disabled"} onclick="craftTierGearV047('${key}',${it.tier})">${G.level>=it.lv?"제작":"레벨 부족"}</button></div>`).join("")).join("");
+}
+function openForge(){renderTierForgeV047();forgeModal.classList.remove("hidden")}
+
+const genericExploreBaseV047=genericExplore;
+genericExplore=function(name){
+ if(name==="프로스트벨"){
+  if(!G.regionFlags.frostbell){G.regionFlags.frostbell=true;G.relations["세나"]={aff:3,note:"프로스트벨의 베테랑 사냥꾼."};add("세나","“브렌에서 왔다고? 북부에선 칼보다 추위를 먼저 조심해. 발자국 하나 잘못 읽으면 돌아오지 못해.”");return;}
+  if(G.regionQuests.frostbell===0){G.regionQuests.frostbell=1;G.quest={title:"[북부] 돌아오지 않는 사냥꾼",desc:"서리 언덕에서 실종된 사냥꾼들의 흔적을 찾는다."};add("세나","“사냥꾼 둘이 돌아오지 않았어. 마지막 흔적은 서리 언덕이야.”");return;}
+  add("세나","“무리해서 영웅 노릇 하지 마. 북부에서 오래 살아남는 사람이 진짜 사냥꾼이야.”");return;
+ }
+ if(name==="카르문 광산도시"){
+  if(!G.regionFlags.karmun){G.regionFlags.karmun=true;G.relations["도란"]={aff:2,note:"카르문 제련장의 장인."};add("도란","“광석만 좋다고 좋은 검이 되는 게 아니다. 불과 망치와 사람 손이 다 맞아야 하지.”");return;}
+  if(G.regionQuests.karmun===0){G.regionQuests.karmun=1;G.quest={title:"[카르문] 사라진 광차",desc:"청동 협곡에서 사라진 광차와 광부들의 흔적을 조사한다."};add("도란","“청동 협곡에서 광차 셋이 사라졌다. 오우거 짓이라면 흔적이 남았을 거다.”");return;}
+  openForge();return;
+ }
+ if(name==="엘로디아 숲마을"){
+  if(!G.regionFlags.elodia){G.regionFlags.elodia=true;G.relations["리리아"]={aff:3,note:"엘로디아의 젊은 정령술사."};add("리리아","“숲은 계속 대답하고 있어요. 사람이 듣지 않을 뿐이죠.”");return;}
+  if(G.regionQuests.elodia===0){G.regionQuests.elodia=1;G.quest={title:"[엘로디아] 병든 숲의 목소리",desc:"달그림자 숲에서 정령들이 불안해하는 원인을 조사한다."};add("리리아","“병든 나무를 베는 것보다 왜 병들었는지 찾는 게 먼저예요.”");return;}
+  add("리리아","“달그림자 숲의 정령들이 아직 불안해해요. 오래된 마력이 움직이고 있어요.”");return;
+ }
+ if(name==="서리 언덕"&&G.regionQuests?.frostbell===1){
+  G.regionQuests.frostbell=2;G.rep+=2;G.gold+=24;addGuildPoints(35);add("system","눈 속 대피처에서 실종 사냥꾼 한 명을 찾아냈다. 보상 24G, 평판 +2.");return;
+ }
+ if(name==="청동 협곡"&&G.regionQuests?.karmun===1){
+  G.regionQuests.karmun=2;G.rep+=2;G.gold+=36;addGuildPoints(45);addMaterial("청동 광편",2);add("system","뒤집힌 광차를 발견했다. 광부들은 대피했지만 오우거 흔적이 선명하다. 보상 36G.");return;
+ }
+ if(name==="달그림자 숲"&&G.regionQuests?.elodia===1){
+  G.regionQuests.elodia=2;G.rep+=3;addGuildPoints(55);addMaterial("정령 잎",2);add("system","검게 변한 뿌리 아래서 외부 마력 오염의 흔적을 발견했다.");return;
+ }
+ return genericExploreBaseV047(name);
+};
+
+const equipCraftedBaseV047=equipCrafted;
+equipCrafted=function(i){
+ let it=G.equipmentInventory[i];if(!it)return;
+ if(it.type==="armor")G.equipment.armor={name:it.name,def:it.def||0,tier:it.tier||0};
+ else G.equipment.weapon={name:it.name,type:it.type,atk:it.atk||0,magic:it.magic||0,enhance:it.enhance||0,tier:it.tier||0,rarity:it.rarity||"normal"};
+ add("system",`${it.name}을 장착했다.`);render();
+};
+
+function ensureV047State(){
+ G.regionQuests=Object.assign({frostbell:0,karmun:0,elodia:0},G.regionQuests||{});
+ G.regionFlags=Object.assign({frostbell:false,karmun:false,elodia:false},G.regionFlags||{});
+ ["미스릴 조각","아다만티움 조각","용의 심장 파편","와이번 비늘","바람결정","고대 핵","용염 비늘"].forEach(k=>{if(G.materials[k]===undefined)G.materials[k]=0});
+}
+ensureV047State();
+
+
+// ===== v0.4.8: guild / companions / travel / collection codex =====
+function ensureV048State(){
+ G.guildPoints=Number.isFinite(G.guildPoints)?G.guildPoints:0;
+ G.guildRank=G.guildRank||G.rank||"F급";
+ G.regionStay=Object.assign({bren:0,frostbell:0,karmun:0,elodia:0},G.regionStay||{});
+ G.companionsUnlocked=Object.assign({rien:!!G.flags?.rienJoined,sena:false,lyria:false},G.companionsUnlocked||{});
+ G.companionRoster=G.companionRoster||[];
+ G.uniqueFound=G.uniqueFound||[];
+ G.recipeFound=G.recipeFound||[...(G.discoveredRecipes||[])];
+ G.caravanDay=Number.isFinite(G.caravanDay)?G.caravanDay:G.day;
+ if(G.companionsUnlocked.rien&&!G.companionRoster.includes("리엔"))G.companionRoster.push("리엔");
+}
+ensureV048State();
+
+const GUILD_RANKS=[
+ {rank:"F급",needLevel:1,needRep:0,needPoints:0,reward:"기본 의뢰"},
+ {rank:"E급",needLevel:3,needRep:3,needPoints:40,reward:"지역 의뢰 / 북부 추천서"},
+ {rank:"D급",needLevel:5,needRep:7,needPoints:110,reward:"중형 보스 의뢰 / 카르문 추천서"},
+ {rank:"C급",needLevel:7,needRep:11,needPoints:220,reward:"고급 지역 의뢰 / 파티 등록"},
+ {rank:"B급",needLevel:9,needRep:15,needPoints:380,reward:"왕도권 의뢰 / 특수 제작 허가"},
+ {rank:"A급",needLevel:11,needRep:20,needPoints:600,reward:"국가급 의뢰 / 최고위 던전"},
+ {rank:"S급",needLevel:14,needRep:28,needPoints:900,reward:"전설급 의뢰 / 길드 역사 기록"}
+];
+function guildIndex(){let i=GUILD_RANKS.findIndex(x=>x.rank===G.guildRank);return i<0?0:i}
+function addGuildPoints(n){G.guildPoints=Math.max(0,(G.guildPoints||0)+n)}
+function openGuild(){
+ ensureV048State();
+ let idx=guildIndex(),cur=GUILD_RANKS[idx],next=GUILD_RANKS[idx+1];
+ guildInfo.innerHTML=`<div class="quest"><b>${G.name}</b> · ${G.guildRank}<br>길드 공헌 ${G.guildPoints} · 평판 ${G.rep} · Lv.${G.level}<br><span class="small">${cur.reward}</span></div>`;
+ if(!next)guildPromotion.innerHTML='<div class="quest">최고 등급에 도달했다.</div>';
+ else{
+  let ok=G.level>=next.needLevel&&G.rep>=next.needRep&&G.guildPoints>=next.needPoints;
+  let pct=Math.min(100,Math.round(G.guildPoints/next.needPoints*100));
+  guildPromotion.innerHTML=`<div class="quest"><b>다음 승급: ${next.rank}</b><br>
+  Lv.${next.needLevel} / 평판 ${next.needRep} / 공헌 ${next.needPoints}<br>
+  <div class="progress-line"><i style="width:${pct}%"></i></div>
+  <button ${ok?"":"disabled"} onclick="promoteGuild()">${ok?"승급 심사":"조건 미달"}</button></div>`;
+ }
+ guildModal.classList.remove("hidden");
+}
+function closeGuild(){guildModal.classList.add("hidden")}
+function promoteGuild(){
+ let next=GUILD_RANKS[guildIndex()+1];if(!next)return;
+ if(G.level<next.needLevel||G.rep<next.needRep||G.guildPoints<next.needPoints)return;
+ G.guildRank=next.rank;G.rank=next.rank;
+ add("미라",`“축하해요. 오늘부터 <b>${next.rank}</b> 모험가예요. 등급보다 중요한 건... 계속 살아 돌아오는 거예요.”`);
+ openGuild();render();
+}
+
+// 기존 전투 승리에 길드 공헌과 희귀장비 발견 기록을 연결
+const victoryBaseV048=victory;
+victory=function(txt){
+ let beforeInv=(G.equipmentInventory||[]).map(x=>x.name);
+ let beforeKills=JSON.stringify(G.monsterKills||{});
+ victoryBaseV048(txt);
+ let gained=6;
+ let ranks={F:5,E:7,"E+":8,D:11,C:15,"C+":17,B:22,"B+":25,"A-":30,A:34,"A+":40,S:65};
+ // combat is already cleared, infer latest kill by delta
+ let type=null;
+ try{
+  let old=JSON.parse(beforeKills);
+  for(let k of Object.keys(G.monsterKills||{}))if((G.monsterKills[k]||0)>(old[k]||0)){type=k;break}
+ }catch(e){}
+ if(type)gained=ranks[MONSTERS[type]?.rank]||6;
+ addGuildPoints(gained);
+ let afterInv=(G.equipmentInventory||[]).map(x=>x.name);
+ afterInv.filter(n=>!beforeInv.includes(n)).forEach(n=>{if(!G.uniqueFound.includes(n))G.uniqueFound.push(n);});
+ checkCompanionUnlocks();
+};
+
+const RECIPES_V048=[
+ {name:"하급 회복 포션",source:"기본 연금술"},
+ {name:"하급 마나 포션",source:"기본 연금술"},
+ {name:"해독제",source:"브렌 레시피 상인"},
+ {name:"중급 회복 포션",source:"브렌 레시피 상인"},
+ {name:"서리 저항약",source:"프로스트벨 사냥꾼"},
+ {name:"광부의 강장제",source:"카르문 광산조합"},
+ {name:"정령 진정제",source:"엘로디아 정령술사"}
+];
+const UNIQUE_CATALOG=[
+ ["고블린 왕의 톱니검","고블린 족장","영웅"],
+ ["푸른 마력 단검","마력에 물든 고블린","영웅"],
+ ["서리송곳니 단검","서리늑대 우두머리","영웅"],
+ ["바위깨기 대검","광산 트롤","영웅"],
+ ["오우거 파쇄봉","청동 오우거","영웅"],
+ ["달그림자 부적","달그림자 정령수","영웅"],
+ ["망자의 장검","검은 늪 기사","영웅"],
+ ["화염비늘 대검","화염 드레이크","영웅"],
+ ["용염 대검","고대 적룡","전설"]
+];
+function openCollectionCodex(tab="recipes"){ensureV048State();renderCollection(tab);collectionModal.classList.remove("hidden")}
+function closeCollectionCodex(){collectionModal.classList.add("hidden")}
+function renderCollection(tab){
+ if(tab==="recipes"){
+  collectionList.innerHTML=RECIPES_V048.map(r=>{
+   let found=(G.discoveredRecipes||[]).includes(r.name)||G.recipeFound.includes(r.name);
+   return `<div class="journal-entry ${found?"":"codex-lock"}"><b>${found?r.name:"???"}</b><br><span class="small">${found?r.source:"아직 발견하지 못한 레시피"}</span></div>`;
+  }).join("");
+ }else if(tab==="unique"){
+  collectionList.innerHTML=UNIQUE_CATALOG.map(([name,src,rar])=>{
+   let found=G.uniqueFound.includes(name)||(G.equipmentInventory||[]).some(x=>x.name===name);
+   return `<div class="journal-entry ${found?"":"codex-lock"}"><b class="${rar==="전설"?"rarity-legend":"rarity-epic"}">${found?name:"???"}</b><br><span class="small">${found?`${rar} · ${src}`:"희귀 장비를 직접 획득하면 기록된다."}</span></div>`;
+  }).join("");
+ }else{
+  let rows=[
+   ["리엔","브렌 마법사",G.companionsUnlocked.rien],
+   ["세나","프로스트벨 사냥꾼",G.companionsUnlocked.sena],
+   ["리리아","엘로디아 정령술사",G.companionsUnlocked.lyria],
+   ["도란","카르문 제련장 장인",false]
+  ];
+  collectionList.innerHTML=rows.map(([n,r,u])=>`<div class="journal-entry ${u?"":"codex-lock"}"><b>${u?n:"???"}</b><br><span class="small">${u?`${r} · 동료 등록 가능`:"관계를 더 쌓으면 정보가 열린다."}</span></div>`).join("");
+ }
+}
+
+function checkCompanionUnlocks(){
+ ensureV048State();
+ let sena=G.relations?.["세나"]?.aff||0, lyria=G.relations?.["리리아"]?.aff||0;
+ if(G.regionQuests?.frostbell>=2&&sena>=5&&!G.companionsUnlocked.sena){
+  G.companionsUnlocked.sena=true;G.companionRoster.push("세나");
+  add("세나","“브렌까지 갈 생각이면 같이 가지. 빚진 것도 있고... 혼자 다니는 것보단 둘이 낫잖아.”");
+ }
+ if(G.regionQuests?.elodia>=2&&lyria>=6&&!G.companionsUnlocked.lyria){
+  G.companionsUnlocked.lyria=true;G.companionRoster.push("리리아");
+  add("리리아","“숲 밖의 마력 오염도 확인하고 싶어요. 한동안 동행해도 될까요?”");
+ }
+}
+function recruitCompanion(name){
+ ensureV048State();
+ if(name==="리엔"&&!G.companionsUnlocked.rien)return;
+ if(name==="세나"&&!G.companionsUnlocked.sena)return;
+ if(name==="리리아"&&!G.companionsUnlocked.lyria)return;
+ if(name==="리엔")G.companion={name:"리엔",hp:26,maxHp:26,mp:24,maxMp:24,tactic:"균형",element:"냉기"};
+ if(name==="세나")G.companion={name:"세나",hp:42,maxHp:42,mp:8,maxMp:8,tactic:"공격",element:"물리"};
+ if(name==="리리아")G.companion={name:"리리아",hp:30,maxHp:30,mp:34,maxMp:34,tactic:"보호",element:"정령"};
+ add("system",`<b>${name}</b>이(가) 현재 동료가 되었다.`);render();
+}
+
+// companion turn 확장
+const companionTurnBaseV048=companionTurn;
+companionTurn=function(){
+ if(!G.combat||!G.companion||G.companion.hp<=0)return;
+ if(G.companion.name==="리엔")return companionTurnBaseV048();
+ let c=G.combat,p=G.companion;
+ if(p.name==="세나"){
+  let d=10+Math.floor(Math.random()*7)+(G.level>=7?3:0);c.hp-=d;
+  combatLog.innerHTML+=`<br><br><b>[세나]</b> 정밀 사격! ${d} 피해.`;updateCombat();if(c.hp<=0)victory("세나와 함께 적을 쓰러뜨렸다.");return;
+ }
+ if(p.name==="리리아"){
+  if(G.hp<G.maxHp*.6&&p.mp>=5){p.mp-=5;let h=9+Math.floor(Math.random()*6);G.hp=Math.min(G.maxHp,G.hp+h);combatLog.innerHTML+=`<br><br><b>[리리아]</b> 정령 치유로 HP ${h} 회복.`;}
+  else{let d=8+Math.floor(Math.random()*6);c.hp-=d;combatLog.innerHTML+=`<br><br><b>[리리아]</b> 정령탄! ${d} 피해.`;}
+  updateCombat();if(c.hp<=0)victory("리리아와 함께 적을 쓰러뜨렸다.");return;
+ }
+};
+
+const TRAVEL_ROUTES=[
+ {from:"브렌 마을",to:"프로스트벨",cost:14,hours:5,rep:4},
+ {from:"브렌 마을",to:"카르문 광산도시",cost:18,hours:6,rep:7},
+ {from:"브렌 마을",to:"엘로디아 숲마을",cost:20,hours:7,rep:8},
+ {from:"프로스트벨",to:"브렌 마을",cost:12,hours:5,rep:0},
+ {from:"카르문 광산도시",to:"브렌 마을",cost:15,hours:6,rep:0},
+ {from:"엘로디아 숲마을",to:"브렌 마을",cost:16,hours:7,rep:0}
+];
+function openTravel(){
+ ensureV048State();
+ let routes=TRAVEL_ROUTES.filter(r=>r.from===G.location);
+ travelList.innerHTML=routes.length?routes.map((r,i)=>`<div class="caravan-card"><b>${r.to}</b><br><span class="small">${r.hours}시간 · ${r.cost}G${G.rep<r.rep?` · 평판 ${r.rep} 필요`:""}</span><br><button ${G.rep>=r.rep&&G.gold>=r.cost?"":"disabled"} onclick="takeCaravan(${TRAVEL_ROUTES.indexOf(r)})">상단 마차 탑승</button></div>`).join(""):"현재 이용 가능한 상단 노선이 없다.";
+ travelModal.classList.remove("hidden");
+}
+function closeTravel(){travelModal.classList.add("hidden")}
+function takeCaravan(i){
+ let r=TRAVEL_ROUTES[i];if(!r||r.from!==G.location||G.rep<r.rep||G.gold<r.cost)return;
+ G.gold-=r.cost;G.hour+=r.hours;while(G.hour>=24){G.hour-=24;G.day++}
+ G.fatigue=Math.min(100,G.fatigue+4);G.location=r.to;
+ closeTravel();add("system",`상단 마차를 타고 <b>${r.to}</b>에 도착했다. 이동비 ${r.cost}G.`);render();
+}
+function stayAtRegionInn(){
+ let costs={"브렌 마을":12,"프로스트벨":16,"카르문 광산도시":18,"엘로디아 숲마을":17};
+ let c=costs[G.location];if(!c)return;
+ if(G.gold<c)return add("system","숙박비가 부족하다.");
+ G.gold-=c;G.day++;G.hour=8;G.hp=G.maxHp;G.mp=G.maxMp;G.fatigue=Math.max(0,G.fatigue-45);
+ add("system",`${G.location}에서 하룻밤 묵었다. ${c}G.`);render();
+}
+
+// 지도 이동은 먼 거점의 경우 도보 대신 상단 이용을 유도
+const travelToBaseV048=travelTo;
+travelTo=function(name){
+ if(["프로스트벨","카르문 광산도시","엘로디아 숲마을"].includes(name)&&G.location==="브렌 마을"){
+  openTravel();return;
+ }
+ return travelToBaseV048(name);
+}
+
+// makeActions 후처리: 지역 거점에 숙박/상단/동료 선택을 최소 선택지로 추가
+const makeActionsBaseV048=makeActions;
+makeActions=function(){
+ makeActionsBaseV048();
+ let extra=[];
+ if(["브렌 마을","프로스트벨","카르문 광산도시","엘로디아 숲마을"].includes(G.location)){
+   extra.push(["상단 마차",openTravel,"primary","다른 거점으로 이동"]);
+   extra.push(["여관 숙박",stayAtRegionInn,"good","HP/MP/피로 회복"]);
+ }
+ let available=(G.companionRoster||[]).filter(n=>!G.companion||G.companion.name!==n);
+ if(available.length)extra.push(["동료 변경",()=>openCompanionPickerV048(available),"magic","현재 파티 동료 선택"]);
+ if(!extra.length)return;
+ // 현재 화면이 이미 5개면 기타행동에 추가
+ let current=[...actions.querySelectorAll("button")];
+ if(current.length<5){
+   for(let e of extra.slice(0,5-current.length)){
+    let b=document.createElement("button");let meta=choiceMeta(e[0],e[2],e[3]);b.className=`choice-btn ${e[2]}`;b.innerHTML=`<span class="choice-icon">${meta.icon}</span>${e[0]}<span class="choice-sub">${meta.sub}</span>`;b.onclick=e[1];actions.appendChild(b);
+   }
+ }else{
+   // 가장 마지막 기타행동 버튼이 있으면 그대로 두고 별도 모달은 지도/상단에서 접근 가능
+ }
+}
+function openCompanionPickerV048(list){
+ moreActionsList.innerHTML="";
+ list.forEach(n=>{let b=document.createElement("button");b.className="choice-btn magic";b.innerHTML=`<span class="choice-icon">🤝</span>${n}<span class="choice-sub">파티 동료로 지정</span>`;b.onclick=()=>{closeMoreActions();recruitCompanion(n)};moreActionsList.appendChild(b)});
+ moreActionsModal.classList.remove("hidden");
+}
+
+// NPC 대화 시 관계 상승과 동료 조건 체크
+const genericExploreV048=genericExplore;
+genericExplore=function(name){
+ let beforeS=G.relations?.["세나"]?.aff||0,beforeL=G.relations?.["리리아"]?.aff||0;
+ let r=genericExploreV048(name);
+ if(name==="프로스트벨"&&G.regionFlags?.frostbell&&G.regionQuests?.frostbell>=2&&G.relations?.["세나"])G.relations["세나"].aff=Math.max(G.relations["세나"].aff,5);
+ if(name==="엘로디아 숲마을"&&G.regionFlags?.elodia&&G.regionQuests?.elodia>=2&&G.relations?.["리리아"])G.relations["리리아"].aff=Math.max(G.relations["리리아"].aff,6);
+ checkCompanionUnlocks();return r;
+};
+
+// 지역 퀘스트 클리어에도 길드 공헌
+const addBaseV048=add;
+
+
+// ===== v0.4.9: world map overhaul / unique gear diversification =====
+function ensureV049State(){
+ G.visitedLocations=Array.isArray(G.visitedLocations)?G.visitedLocations:[];
+ if(G.location&&!G.visitedLocations.includes(G.location))G.visitedLocations.push(G.location);
+}
+ensureV049State();
+
+function markVisitedLocation(name){
+ if(!name)return;
+ ensureV049State();
+ if(!G.visitedLocations.includes(name))G.visitedLocations.push(name);
+}
+
+const LOCATION_COORDS={
+ "브렌 마을":[346,430],"모험가 길드":[378,418],"대장간":[402,446],"마법 상점":[319,446],"브렌 시장":[352,456],"황금사슴 여관":[336,404],
+ "강변 부두":[740,430],"남쪽 농장":[674,548],"서쪽 숲":[176,320],"동쪽 벌목지":[728,272],"북쪽 채석장":[520,152],"옛 왕도길":[228,540],
+ "안개 습지":[200,216],"폐광 입구":[545,238],"버려진 감시탑":[356,214],"고블린 야영지":[128,248],
+ "프로스트벨":[492,118],"북부 숲길":[514,88],"서리 언덕":[602,82],"은빛 호수":[678,126],
+ "카르문 광산도시":[812,322],"청동 협곡":[768,352],"고대 수로":[714,280],"바람절벽":[866,246],
+ "엘로디아 숲마을":[186,252],"달그림자 숲":[160,282],"고대 정령터":[116,220],
+ "왕도 관문":[690,392],"검은 늪":[522,584],"붉은 화산로":[862,584],"용의 계곡":[948,564]
+};
+const WORLD_REGION_LOOKUP={
+ "브렌 마을":"브렌 지방","모험가 길드":"브렌 지방","대장간":"브렌 지방","마법 상점":"브렌 지방","브렌 시장":"브렌 지방","황금사슴 여관":"브렌 지방","강변 부두":"브렌 지방","남쪽 농장":"브렌 지방","서쪽 숲":"브렌 지방","동쪽 벌목지":"브렌 지방","북쪽 채석장":"브렌 지방","옛 왕도길":"브렌 지방","안개 습지":"브렌 지방","폐광 입구":"브렌 지방","버려진 감시탑":"브렌 지방","고블린 야영지":"브렌 지방",
+ "프로스트벨":"북부 변경","북부 숲길":"북부 변경","서리 언덕":"북부 변경","은빛 호수":"북부 변경",
+ "카르문 광산도시":"동부 산맥","청동 협곡":"동부 산맥","고대 수로":"동부 산맥","바람절벽":"동부 산맥",
+ "엘로디아 숲마을":"서부 대삼림","달그림자 숲":"서부 대삼림","고대 정령터":"서부 대삼림",
+ "왕도 관문":"왕도권","검은 늪":"남부 습지","붉은 화산로":"남동부 화산지대","용의 계곡":"남동부 화산지대"
+};
+const FUTURE_AREAS=[
+ {x:82,y:84,w:132,h:88,label:"서부 미개척 해안"},
+ {x:884,y:108,w:170,h:110,label:"동부 제국 변경"},
+ {x:790,y:18,w:214,h:72,label:"북동 설원 심부"},
+ {x:60,y:564,w:150,h:92,label:"남서부 해무 군도"},
+ {x:610,y:620,w:210,h:74,label:"지하대공 심연"}
+];
+function currentWorldPoint(){
+ return LOCATION_COORDS[G.location]||LOCATION_COORDS["브렌 마을"];
+}
+function buildWorldSvg(){
+ let [mx,my]=currentWorldPoint();
+ let region=WORLD_REGION_LOOKUP[G.location]||"미확인";
+ let visited=new Set(G.visitedLocations||[]);
+ let pin=(name,color,size=8)=>{
+   let p=LOCATION_COORDS[name]; if(!p) return "";
+   let current=name===G.location;
+   let seen=visited.has(name)||current;
+   if(!seen && ["브렌 마을","프로스트벨","카르문 광산도시","엘로디아 숲마을","왕도 관문"].includes(name)===false) return "";
+   let fill=current?"#ffcf59":color;
+   let stroke=current?"#7a1c00":"#1a1f27";
+   let labelColor=current?"#fff4d3":"#f5edd7";
+   return `<g>
+     <circle cx="${p[0]}" cy="${p[1]}" r="${size}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+     <text x="${p[0]+12}" y="${p[1]-8}" fill="${labelColor}" font-size="14" font-weight="700">${name}</text>
+   </g>`;
+ };
+ let fog=FUTURE_AREAS.map(f=>`<g>
+   <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="24" fill="rgba(220,230,245,.12)" stroke="rgba(240,248,255,.3)" stroke-dasharray="8 6"/>
+   <text x="${f.x+f.w/2}" y="${f.y+f.h/2}" text-anchor="middle" fill="#dbe7f5" font-size="16" font-weight="700">안개 지역</text>   <text x="${f.x+f.w/2}" y="${f.y+f.h/2+22}" text-anchor="middle" fill="#b9c6d8" font-size="12">${f.label}</text>
+ </g>`).join("");
+ return `
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" width="100%" height="100%">
+ <defs>
+   <linearGradient id="sea9" x1="0" x2="1"><stop stop-color="#153047"/><stop offset="1" stop-color="#0d2234"/></linearGradient>
+   <linearGradient id="land9" x1="0" x2="1"><stop stop-color="#8b9b63"/><stop offset="1" stop-color="#6d7f4b"/></linearGradient>
+ </defs>
+ <rect width="1100" height="720" fill="url(#sea9)"/>
+ <path d="M122 540 Q160 206 430 106 Q714 0 956 168 Q1058 260 1026 472 Q980 634 770 664 Q502 720 284 664 Q160 628 122 540Z" fill="url(#land9)" stroke="#d8d2a7" stroke-width="8"/>
+ <path d="M188 474 Q342 396 514 402 Q674 410 900 286" fill="none" stroke="#2f6d94" stroke-width="24" opacity=".9"/>
+ <path d="M300 174 Q414 254 546 210 Q676 162 876 228" fill="none" stroke="#7b8f53" stroke-width="44" opacity=".45"/>
+ <text x="552" y="42" text-anchor="middle" fill="#f5eed8" font-size="28" font-family="serif">알테라 대륙</text>
+ <text x="550" y="70" text-anchor="middle" fill="#c1cfdd" font-size="13">현재 위치는 금빛 표식으로 표시된다. 아직 구현되지 않은 곳은 안개 지역으로 남아 있다.</text>
+
+ <text x="318" y="418" fill="#f5efd8" font-size="30" font-weight="700">브렌 지방</text>
+ <text x="510" y="136" fill="#eef3ff" font-size="24" font-weight="700">북부 변경</text>
+ <text x="790" y="288" fill="#f7f1df" font-size="24" font-weight="700">동부 산맥</text>
+ <text x="160" y="248" fill="#eef6e5" font-size="24" font-weight="700">서부 대삼림</text>
+ <text x="674" y="392" fill="#fff0d1" font-size="24" font-weight="700">왕도권</text>
+ <text x="476" y="604" fill="#f6edd8" font-size="22" font-weight="700">남부 습지</text>
+ <text x="820" y="608" fill="#ffd3bb" font-size="22" font-weight="700">남동부 화산지대</text>
+
+ ${pin("브렌 마을","#d9b56b",10)}
+ ${pin("프로스트벨","#9ad7ff",10)}
+ ${pin("카르문 광산도시","#e4c688",10)}
+ ${pin("엘로디아 숲마을","#92de9c",10)}
+ ${pin("왕도 관문","#e6d8a1",10)}
+ ${pin("서리 언덕","#8dd6ff",7)}
+ ${pin("은빛 호수","#b7e6ff",6)}
+ ${pin("청동 협곡","#d8a15c",7)}
+ ${pin("바람절벽","#d8e9ff",6)}
+ ${pin("달그림자 숲","#8ec394",7)}
+ ${pin("고대 정령터","#bde5b6",6)}
+ ${pin("검은 늪","#99ae80",7)}
+ ${pin("붉은 화산로","#ff9a66",7)}
+ ${pin("용의 계곡","#ff6b44",8)}
+
+ <g>
+   <circle cx="${mx}" cy="${my}" r="18" fill="rgba(255,205,70,.18)"/>
+   <circle cx="${mx}" cy="${my}" r="10" fill="rgba(255,205,70,.25)"/>
+   <circle cx="${mx}" cy="${my}" r="5" fill="#fff5b4" stroke="#7a1c00" stroke-width="2"/>
+ </g>
+ ${fog}
+ <rect x="18" y="626" width="302" height="78" rx="14" fill="rgba(12,18,27,.55)" stroke="rgba(244,235,210,.25)"/>
+ <text x="34" y="652" fill="#f4e7c9" font-size="14">현재 위치: ${G.location}</text>
+ <text x="34" y="673" fill="#d4deea" font-size="12">지역: ${region} · 방문한 장소 ${visited.size}곳</text>
+ <text x="34" y="693" fill="#b6c4d5" font-size="11">금색 점: 현재 위치 / 작은 점: 주요 거점·사냥터 / 안개 지역: 향후 확장 예정</text>
+ </svg>`;
+}
+function buildBrenSvg(){
+ let p=currentWorldPoint();
+ let show=(name,labelColor="#f5edd8")=>{
+   let q=LOCATION_COORDS[name]; if(!q) return "";
+   let cur=name===G.location;
+   return `<g><circle cx="${q[0]}" cy="${q[1]}" r="${cur?9:6}" fill="${cur?"#ffcf59":"#f3ca6e"}" stroke="#3e2d15" stroke-width="2"/>
+   <text x="${q[0]+8}" y="${q[1]-8}" fill="${labelColor}" font-size="13" font-weight="700">${name}</text></g>`;
+ };
+ return `
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+ <rect width="1000" height="700" fill="#203548"/>
+ <path d="M112 586 Q84 254 256 118 Q510 12 806 122 Q936 310 868 580 Q620 692 314 660Z" fill="#859863" stroke="#d8d0a1" stroke-width="7"/>
+ <path d="M102 454 Q332 342 514 370 Q702 404 900 286" fill="none" stroke="#3b739c" stroke-width="26"/>
+ <circle cx="470" cy="390" r="95" fill="#bda575" stroke="#684f33" stroke-width="10"/>
+ <circle cx="470" cy="390" r="72" fill="#d5bd87" stroke="#80664a" stroke-width="4"/>
+ <text x="470" y="387" text-anchor="middle" fill="#2d2014" font-size="28" font-weight="700">브렌</text>
+ ${show("서쪽 숲")}
+ ${show("동쪽 벌목지")}
+ ${show("북쪽 채석장")}
+ ${show("강변 부두")}
+ ${show("남쪽 농장")}
+ ${show("옛 왕도길")}
+ ${show("안개 습지")}
+ ${show("폐광 입구")}
+ ${show("버려진 감시탑")}
+ ${show("고블린 야영지")}
+ <rect x="18" y="628" width="266" height="58" rx="14" fill="rgba(12,18,27,.55)" stroke="rgba(244,235,210,.25)"/>
+ <text x="34" y="654" fill="#f4e7c9" font-size="14">현재 위치: ${G.location}</text>
+ <text x="34" y="674" fill="#b6c4d5" font-size="11">브렌 지방 내 세부 지형 및 사냥터</text>
+ </svg>`;
+}
+function buildHuntSvg(){
+ let current=G.location;
+ const rows=[
+  ["초급","서쪽 숲 · 옛 왕도길", current==="서쪽 숲"||current==="옛 왕도길"],
+  ["초중급","안개 습지 · 폐광 입구", current==="안개 습지"||current==="폐광 입구"],
+  ["중급","북부 숲길 · 서리 언덕", current==="북부 숲길"||current==="서리 언덕"],
+  ["중고급","청동 협곡 · 고대 수로 · 달그림자 숲", ["청동 협곡","고대 수로","달그림자 숲"].includes(current)],
+  ["고급","검은 늪 · 바람절벽", ["검은 늪","바람절벽"].includes(current)],
+  ["최상위","붉은 화산로 · 용의 계곡", ["붉은 화산로","용의 계곡"].includes(current)]
+ ];
+ let blocks=rows.map((r,i)=>{
+   let x=70+(i%2)*440, y=90+Math.floor(i/2)*180, w=360,h=130;
+   return `<g>
+     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="26" fill="${r[2]?'#59492c':'#2c3c4d'}" stroke="${r[2]?'#ffd47d':'#8ba2b6'}" stroke-width="4"/>
+     <text x="${x+w/2}" y="${y+42}" text-anchor="middle" fill="#f5eed8" font-size="24" font-weight="700">${r[0]}</text>
+     <text x="${x+w/2}" y="${y+78}" text-anchor="middle" fill="#d0d8e1" font-size="15">${r[1]}</text>
+     ${r[2]?`<text x="${x+w/2}" y="${y+108}" text-anchor="middle" fill="#ffd778" font-size="13">현재 위치 포함</text>`:""}
+   </g>`;
+ }).join("");
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+   <rect width="1000" height="700" fill="#142131"/>
+   <text x="500" y="42" text-anchor="middle" fill="#f4ecd7" font-size="28" font-family="serif">사냥터 성장 흐름</text>
+   <text x="500" y="66" text-anchor="middle" fill="#bcc9d6" font-size="12">지역 장비/재료 파밍 동선과 대략적인 난이도</text>
+   ${blocks}
+  </svg>`;
+}
+function renderMapTab(tab){
+ currentMapTab=tab;
+ let currentInfo=$("mapCurrentInfo"); if(currentInfo) currentInfo.innerHTML=`<b>${G.location}</b><br><span class="small">현재 지역: ${WORLD_REGION_LOOKUP[G.location]||"미확인"} · 길드 등급 ${G.guildRank||G.rank} · 방문 ${((G.visitedLocations||[]).length)}곳</span>`;
+ let host=$("mapSvgHost"); if(host){
+   host.innerHTML = tab==="world" ? buildWorldSvg() : tab==="bren" ? buildBrenSvg() : buildHuntSvg();
+ }
+ let names=Object.keys(LOCATIONS);
+ if(tab==="bren")names=names.filter(n=>LOCATIONS[n].region==="브렌 지방");
+ if(tab==="hunt")names=names.filter(n=>["사냥터","던전","보스","탐험","최상위"].includes(LOCATIONS[n].type));
+ mapPlaceList.innerHTML=names.map(n=>{
+   let p=LOCATIONS[n],ok=placeUnlocked(n),reason=placeLockReason(n);
+   let current=n===G.location,visited=(G.visitedLocations||[]).includes(n);
+   let btnLabel=current?"현재 위치":(ok?"이동":"잠김 · "+reason);
+   let disabled=current||!ok;
+   return `<div class="map-place ${ok?"":"locked"} ${current?"current":""}">
+    <b>${n}</b> <span class="region-chip">${p.type}</span> ${current?`<span class="region-chip">현재 위치</span>`:visited?`<span class="region-chip">방문함</span>`:""}
+    <div class="meta">${p.region} · 권장 Lv.${p.level}${p.rep?` · 평판 ${p.rep}`:""}</div>
+    <div class="small">${p.desc}</div>
+    ${regionMonsterHint(n)}
+    ${["프로스트벨","카르문 광산도시","엘로디아 숲마을"].includes(n)?`<div class="meta">지역 거점 · NPC/퀘스트/상점</div>`:""}
+    <div>${(p.tags||[]).map(t=>`<span class="region-chip">${t}</span>`).join("")}</div>
+    <button ${disabled?"disabled":""} onclick="travelTo('${n.replace(/'/g,"\\'")}')">${btnLabel}</button>
+   </div>`;
+ }).join("");
+}
+
+// visited location hooks
+const moveBaseV049=move;
+move=function(x){ let r=moveBaseV049(x); markVisitedLocation(x); return r; }
+const travelToBaseV049=travelTo;
+travelTo=function(name){ let r=travelToBaseV049(name); if(G.location===name) markVisitedLocation(name); return r; }
+const takeCaravanBaseV049=takeCaravan;
+takeCaravan=function(i){ let r=takeCaravanBaseV049(i); markVisitedLocation(G.location); return r; }
+
+// diversify unique equipment
+const UNIQUE_ITEMS={};
+Object.assign(UNIQUE_ITEMS,{
+ "고블린 왕의 톱니검":{type:"sword",atk:13,rarity:"epic",effect:"출혈 특화 · 초반 고유무기"},
+ "푸른 마력 단검":{type:"dagger",atk:14,magic:3,rarity:"epic",effect:"마력 고블린 전용 희귀품"},
+ "서리 추적자의 활":{type:"bow",atk:22,rarity:"epic",effect:"원거리 냉기 사냥 특화"},
+ "바위깨기 대검":{type:"sword",atk:29,rarity:"epic",effect:"방어력이 높은 적에게 유리"},
+ "천공의 장궁":{type:"bow",atk:34,rarity:"epic",effect:"비행 마수 사냥 특화"},
+ "달그림자 지팡이":{type:"staff",atk:7,magic:18,rarity:"epic",effect:"정령 마력 증폭"},
+ "고대핵 지팡이":{type:"staff",atk:9,magic:23,rarity:"epic",effect:"고대 골렘의 마도핵을 품은 지팡이"},
+ "망자기사 중갑":{type:"armor",def:19,rarity:"epic",effect:"무거운 방어형 희귀 장비"},
+ "화염비늘 로브":{type:"armor",def:16,magic:8,rarity:"epic",effect:"화염 저항과 마력 강화"},
+ "용염 대검":{type:"sword",atk:58,magic:8,rarity:"legend",effect:"고대 적룡 전설장비"}
+});
+MONSTERS.frost_wolf.drops=[
+ {name:"서리 송곳니",chance:1.0,qty:[1,2],rarity:"common"},
+ {name:"빙결 가죽",chance:.6,qty:[1,2],rarity:"rare"},
+ {name:"서리 추적자의 활",chance:.07,qty:[1,1],rarity:"epic"}
+];
+MONSTERS.wind_wyvern.drops=[
+ {name:"와이번 비늘",chance:1.0,qty:[1,2],rarity:"common"},
+ {name:"바람결정",chance:.35,qty:[1,1],rarity:"rare"},
+ {name:"천공의 장궁",chance:.04,qty:[1,1],rarity:"epic"}
+];
+MONSTERS.spirit_beast.drops=[
+ {name:"정령 잎",chance:1.0,qty:[1,3],rarity:"common"},
+ {name:"고대 수액",chance:.45,qty:[1,1],rarity:"rare"},
+ {name:"달그림자 지팡이",chance:.04,qty:[1,1],rarity:"epic"}
+];
+MONSTERS.ancient_golem.drops=[
+ {name:"마정석",chance:.8,qty:[1,2],rarity:"common"},
+ {name:"수정 조각",chance:.7,qty:[1,3],rarity:"common"},
+ {name:"고대 핵",chance:.18,qty:[1,1],rarity:"rare"},
+ {name:"고대핵 지팡이",chance:.035,qty:[1,1],rarity:"epic"}
+];
+MONSTERS.swamp_knight.drops=[
+ {name:"언데드 뼛조각",chance:1.0,qty:[1,3],rarity:"common"},
+ {name:"저주받은 천",chance:.55,qty:[1,2],rarity:"rare"},
+ {name:"망자기사 중갑",chance:.035,qty:[1,1],rarity:"epic"}
+];
+MONSTERS.fire_drake.drops=[
+ {name:"화염석",chance:1.0,qty:[1,3],rarity:"common"},
+ {name:"미스릴 조각",chance:.35,qty:[1,1],rarity:"rare"},
+ {name:"용염 비늘",chance:.16,qty:[1,1],rarity:"rare"},
+ {name:"화염비늘 로브",chance:.025,qty:[1,1],rarity:"epic"}
+];
+
+// update unique catalog for collection codex
+UNIQUE_CATALOG.length=0;
+UNIQUE_CATALOG.push(
+ ["고블린 왕의 톱니검","고블린 족장","영웅"],
+ ["푸른 마력 단검","마력에 물든 고블린","영웅"],
+ ["서리 추적자의 활","서리늑대 우두머리","영웅"],
+ ["바위깨기 대검","광산 트롤","영웅"],
+ ["천공의 장궁","바람 와이번","영웅"],
+ ["달그림자 지팡이","달그림자 정령수","영웅"],
+ ["고대핵 지팡이","고대 수로 골렘","영웅"],
+ ["망자기사 중갑","검은 늪 기사","영웅"],
+ ["화염비늘 로브","화염 드레이크","영웅"],
+ ["용염 대검","고대 적룡","전설"]
+);
+
+// better equipment list card for varied types
+equipmentInvBox.innerHTML=equipmentInvBox.innerHTML;
+
+// ensure recipe/unique codex remembers legacy items
+["고블린 왕의 톱니검","푸른 마력 단검","서리 추적자의 활","바위깨기 대검","천공의 장궁","달그림자 지팡이","고대핵 지팡이","망자기사 중갑","화염비늘 로브","용염 대검"].forEach(n=>{
+ if((G.equipmentInventory||[]).some(x=>x.name===n) && !G.uniqueFound.includes(n))G.uniqueFound.push(n);
+});
+
+
+// ===== v0.5.0 UI REBUILD =====
+const V05_PORTRAITS={
+ system:"assets/portraits/system.svg",
+ "미라":"assets/portraits/mira.webp",
+ "에밀리아":"assets/portraits/emilia.webp",
+ "브람":"assets/portraits/bram.webp",
+ "리엔":"assets/portraits/rien.webp",
+ "세나":"assets/portraits/sena.svg",
+ "리리아":"assets/portraits/lyria.svg",
+ "도란":"assets/portraits/doran.svg",
+ "카르딘":"assets/portraits/cardin.svg",
+ "상인":"assets/portraits/merchant.svg"
+};
+const V05_SCENES={
+ "낯선 숲길":"assets/scenes/forest-road.svg",
+ "브렌 마을":"assets/scenes/bren-village.webp",
+ "모험가 길드":"assets/scenes/guild-hall.webp",
+ "황금사슴 여관":"assets/scenes/golden-deer-inn.webp",
+ "대장간":"assets/scenes/blacksmith.webp",
+ "대장간 작업대":"assets/scenes/blacksmith.webp",
+ "마법 상점":"assets/scenes/magic-shop.webp",
+ "브렌 시장":"assets/scenes/market.svg",
+ "생활 도구 상점":"assets/scenes/market.svg",
+ "서쪽 숲":"assets/scenes/west-forest.svg",
+ "동쪽 벌목지":"assets/scenes/logging-camp.svg",
+ "북쪽 채석장":"assets/scenes/quarry.svg",
+ "프로스트벨":"assets/scenes/frostbell.svg",
+ "카르문 광산도시":"assets/scenes/karmun.svg",
+ "엘로디아 숲마을":"assets/scenes/elodia.svg"
+};
+const V05_FACILITY={
+ "모험가 길드":{npc:"미라",role:"브렌 모험가 길드 접수원",greet:"“어서 와요. 의뢰를 보러 왔나요, 아니면 오늘은 그냥 얼굴만 비추러 왔나요?”"},
+ "황금사슴 여관":{npc:"에밀리아",role:"황금사슴 여관 주인",greet:"“어서 오세요. 많이 지쳐 보이는데요? 따뜻한 식사부터 할래요, 아니면 방부터 잡아드릴까요?”"},
+ "대장간":{npc:"브람",role:"브렌의 대장장이",greet:"“왔군. 장비는 목숨값이야. 싸구려를 들고 나갔다가 내 탓은 하지 마.”"},
+ "대장간 작업대":{npc:"브람",role:"브렌의 대장장이",greet:"“재료 가져왔으면 내려놔. 뭘 만들 건지부터 보자고.”"},
+ "마법 상점":{npc:"리엔",role:"마법 연구자",greet:"“왔네요. 방금 재미있는 술식 하나 생각났는데… 아, 우선 필요한 게 있으면 말해요.”"},
+ "브렌 시장":{npc:"상인",role:"브렌 시장 상인",greet:"“싸게 사서 비싸게 판다는 건 소문이고요. 쓸 만한 물건 있으면 먼저 보여줘요.”"},
+ "생활 도구 상점":{npc:"상인",role:"생활 도구 상인",greet:"“맨손으로 광석 캐겠다는 사람만 아니면 환영이죠. 뭐가 필요해요?”"},
+ "프로스트벨":{npc:"세나",role:"프로스트벨 사냥꾼",greet:"“북부에선 체력보다 판단이 먼저야. 눈이 이상하게 쌓였으면 발부터 멈춰.”"},
+ "카르문 광산도시":{npc:"도란",role:"카르문 제련장 장인",greet:"“광석 냄새가 나는군. 여행자인지 광부인지, 손을 보면 대충 알 수 있지.”"},
+ "엘로디아 숲마을":{npc:"리리아",role:"엘로디아 정령술사",greet:"“숲에 들어가기 전에는 잠깐 귀를 기울여주세요. 여긴 길보다 기척이 먼저예요.”"}
+};
+const V05_PLACE_DESC={
+ "낯선 숲길":"이세계에서 눈을 뜬 첫 장소.",
+ "브렌 마을":"강과 성벽에 둘러싸인 작은 변경도시.",
+ "모험가 길드":"의뢰와 소문, 모험가들이 모이는 브렌의 중심.",
+ "황금사슴 여관":"따뜻한 식사와 침대가 있는 안전한 휴식처.",
+ "대장간":"불꽃과 쇳소리가 끊이지 않는 브렌의 대장간.",
+ "대장간 작업대":"수집한 재료로 장비를 만들고 강화하는 작업장.",
+ "마법 상점":"책과 룬, 마정석 냄새가 뒤섞인 작은 마법점.",
+ "브렌 시장":"재료와 물건, 소문이 오가는 시장.",
+ "생활 도구 상점":"채집·벌목·채광 도구를 구할 수 있는 가게.",
+ "서쪽 숲":"초보 모험가도 들어가지만 방심하면 돌아오지 못하는 숲.",
+ "동쪽 벌목지":"브렌의 목재를 책임지는 숲 가장자리.",
+ "북쪽 채석장":"광석과 돌먼지가 가득한 채석장.",
+ "프로스트벨":"차가운 바람 속에 자리한 북부 사냥꾼 마을.",
+ "카르문 광산도시":"광산과 용광로가 도시의 심장처럼 뛰는 산악도시.",
+ "엘로디아 숲마을":"정령과 엘프의 흔적이 생활 속에 스며든 숲마을."
+};
+let V05_sideTab="quest";
+function switchSideTab(tab){
+ V05_sideTab=tab;
+ ["quest","inventory","character","social"].forEach(k=>{
+   document.getElementById("pane"+k[0].toUpperCase()+k.slice(1))?.classList.toggle("active",k===tab);
+   document.getElementById("tab"+k[0].toUpperCase()+k.slice(1))?.classList.toggle("active",k===tab);
+ });
+}
+function v05Portrait(tag){return V05_PORTRAITS[tag]||V05_PORTRAITS.system}
+art=function(tag){return v05Portrait(tag)};
+
+function v05CurrentFocus(){
+ let last=(G.log||[])[(G.log||[]).length-1];
+ let fac=V05_FACILITY[G.location];
+ if(last && last.tag!=="system") return {tag:last.tag,text:last.text,role:fac?.npc===last.tag?fac.role:"대화"};
+ if(!last && fac) return {tag:fac.npc,text:fac.greet,role:fac.role};
+ if(last) return {tag:"system",text:last.text,role:"상황 / 현재 장면"};
+ return {tag:"system",text:"새로운 이야기가 시작된다.",role:"상황 / 현재 장면"};
+}
+function v05EquipName(v){return typeof v==="string"?v:(v?.name||"없음")}
+function v05Render(){
+ ensureV047State?.();ensureV048State?.();ensureV049State?.();
+ pname.textContent=G.name||"이름 없음";
+ badges.innerHTML=`<span class="badge">${G.trait||"무특성"}</span>`;
+ activeTitleBox.innerHTML=G.activeTitle?`<span class="badge">🏅 ${G.activeTitle}</span>`:"";
+ level.textContent=G.level;rank.textContent=G.guildRank||G.rank;gold.textContent=G.gold+" G";rep.textContent=G.rep;
+ xp.textContent=`${G.xp}/${G.level*100}`;
+ hpT.textContent=`${G.hp}/${G.maxHp}`;mpT.textContent=`${G.mp}/${G.maxMp}`;fatT.textContent=`${G.fatigue}/100`;
+ hpB.style.width=Math.max(0,Math.min(100,G.hp/G.maxHp*100))+"%";
+ mpB.style.width=Math.max(0,Math.min(100,G.mp/G.maxMp*100))+"%";
+ fatB.style.width=Math.max(0,Math.min(100,G.fatigue))+"%";
+ ["sword","dagger","bow","staff","manaControl","fire","ice","lightning","gathering","logging","mining","alchemy"].forEach(k=>{
+   let el=document.getElementById(k);if(el)el.textContent=G[k]??0;
+ });
+ document.getElementById("location").textContent=G.location;worldTime.textContent=`제 ${G.day}일 · ${String(G.hour).padStart(2,"0")}:00`;
+ stageLocation.textContent=G.location;
+ stageDescription.textContent=V05_PLACE_DESC[G.location]||LOCATIONS[G.location]?.desc||"아직 자세한 정보가 없는 장소.";
+ setSceneAsset(G.location);
+
+ let focus=v05CurrentFocus();
+ stageSpeaker.textContent=focus.tag==="system"?"현재 장면":focus.tag;
+ stageRole.textContent=focus.role||"대화";
+ focusSpeaker.textContent=focus.tag==="system"?"SYSTEM":focus.tag;
+ focusText.innerHTML=focus.text||"";
+ if(focus.tag==="system"){
+   stageNpc.classList.add("system");stageNpc.removeAttribute("src");
+ }else{
+   stageNpc.classList.remove("system");stageNpc.src=v05Portrait(focus.tag);
+ }
+ // history: portraits intentionally removed here. dialogue portrait appears only on stage.
+ log.innerHTML=(G.log||[]).slice(-12).map(e=>`<div class="entry"><span class="tag">${e.tag}</span>${e.text}</div>`).join("");
+ log.scrollTop=log.scrollHeight;
+
+ questBox.innerHTML=G.quest?`<b>${G.quest.title}</b><br>${G.quest.desc}`:"오늘 정해진 목표는 없다.";
+ equip.innerHTML=`<div class="slot">주무기 <b>${G.equipment.weapon?.name||"없음"}</b></div><div class="slot">방어구 <b>${v05EquipName(G.equipment.armor)}</b></div>`;
+ spells.innerHTML=(G.spells||[]).map(s=>`<div class="spell"><b>${s.name}</b> · ${s.element}<br><span class="small">위력 ${s.power} · MP ${s.cost}</span></div>`).join("")||'<span class="small">배운 마법이 없다.</span>';
+ relations.innerHTML=Object.entries(G.relations||{}).map(([k,v])=>`<div class="journal-entry"><b>${k}</b> · 신뢰 ${v.aff}<br><span class="small">${v.note||""}</span></div>`).join("")||"아직 특별한 인연이 없다.";
+ toolsBox.innerHTML=`<span class="tool-pill">${G.tools.gatherKnife?"✅":"❌"} 채집칼</span><span class="tool-pill">${G.tools.axe?"✅":"❌"} 벌목도끼</span><span class="tool-pill">${G.tools.pickaxe?"✅":"❌"} 곡괭이</span>`;
+ materialsBox.innerHTML=Object.entries(G.materials||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="material"><span>${k}</span><b>${v}/999</b></div>`).join("")||"모은 재료가 없다.";
+ consumablesBox.innerHTML=Object.entries(G.consumables||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="inv-item"><b>${k}</b> × ${v}<br><button onclick="useConsumable('${k}')">사용</button></div>`).join("")||"보유한 소모품이 없다.";
+ equipmentInvBox.innerHTML=(G.equipmentInventory||[]).length?G.equipmentInventory.map((it,i)=>`<div class="inv-item"><b>${it.name}</b> ${it.enhance?`+${it.enhance}`:""}<br><span class="small">공격 ${it.atk||0} · 방어 ${it.def||0}${it.magic?` · 마법 ${it.magic}`:""}</span><br><button onclick="equipCrafted(${i})">장착</button></div>`).join(""):"보유 장비가 없다.";
+ if(G.companion){
+   companionBox.innerHTML=`<div class="companion-box"><b>${G.companion.name}</b><br>HP ${G.companion.hp}/${G.companion.maxHp} · MP ${G.companion.mp}/${G.companion.maxMp}<br><span class="small">전술 ${G.companion.tactic||"균형"}</span></div>`;
+ }else companionBox.textContent="아직 함께 다니는 동료가 없다.";
+ v05MakeActions();
+ switchSideTab(V05_sideTab);
+}
+render=v05Render;
+
+function v05FacilityGreeting(name){
+ let fac=V05_FACILITY[name];if(!fac)return;
+ let last=(G.log||[]).at(-1);
+ if(last?.tag===fac.npc&&last?.text===fac.greet)return;
+ G.log.push({tag:fac.npc,text:fac.greet,img:v05Portrait(fac.npc)});
+ if(G.log.length>100)G.log.shift();
+}
+const v05OldMove=move;
+move=function(x){
+ if(LOCATIONS[x]&&!placeUnlocked(x))return add("system",`아직 <b>${x}</b>에 갈 수 없다. ${placeLockReason(x)}`);
+ G.location=x;markVisitedLocation?.(x);
+ G.log.push({tag:"system",text:`<b>${x}</b>에 도착했다.`,img:v05Portrait("system")});
+ if(G.log.length>100)G.log.shift();
+ v05FacilityGreeting(x);
+ if(x==="서쪽 숲")setTimeout(()=>maybeEvent("forest"),60);
+ if(x==="북쪽 채석장"||x==="폐광 입구")setTimeout(()=>maybeEvent("quarry"),60);
+ if(x==="동쪽 벌목지")setTimeout(()=>maybeEvent("logging"),60);
+ render();
+};
+
+function v05More(list){
+ openMoreActions(list.map(x=>[x[0],x[1],x[2]||"",x[3]||""]));
+}
+function v05InnMeal(){
+ if(G.gold<6)return add("에밀리아","“미안해요. 우선 돈부터 조금 마련해오셔야 할 것 같아요.”");
+ G.gold-=6;G.fatigue=Math.max(0,G.fatigue-14);G.hp=Math.min(G.maxHp,G.hp+8);
+ add("에밀리아","“천천히 드세요. 따뜻한 걸 먹으면 생각보다 많이 회복돼요.”");
+}
+function v05InnSleep(){
+ if(G.gold<12)return add("에밀리아","“방값은 12골드예요. 외상은… 아직은 조금 곤란해요.”");
+ G.gold-=12;G.day++;G.hour=8;G.hp=G.maxHp;G.mp=G.maxMp;G.fatigue=0;
+ add("에밀리아","“푹 주무셨어요? 아침 식사는 간단하게 준비해둘게요.”");
+}
+function v05InnTalk(){
+ G.relations["에밀리아"]??={aff:2,note:"황금사슴 여관을 혼자 꾸려가는 젊은 여관주인."};
+ G.relations["에밀리아"].aff++;
+ add("에밀리아","“모험가들이 밤마다 자랑은 많이 하는데요. 정말 강한 사람들은 오히려 조용하더라고요.”");
+}
+function v05BlacksmithShop(){
+ v05More(Object.values(WEAPONS).map(w=>[`${w.name} · ${w.price}G`,()=>buy(w),"",`공격 ${w.atk||0}`]));
+}
+function v05MagicLessons(){
+ let arr=[];
+ if(!G.flags.iceLearned)arr.push(["냉기 기초 · 18G",learnIce,"magic","서리창 습득"]);
+ if(!G.flags.lightningLearned)arr.push(["번개 기초 · 22G",learnLightning,"magic","전격 습득"]);
+ if(!arr.length)arr.push(["배울 수 있는 기초 마법이 없다",()=>add("리엔","“지금은 기초보다 응용이 필요한 단계네요.”"),""]);
+ v05More(arr);
+}
+function v05TownOther(){
+ v05More([
+  ["브렌 시장",()=>move("브렌 시장"),"","거래/레시피"],
+  ["생활 도구 상점",()=>move("생활 도구 상점"),"","채집 도구"],
+  ["대장간 작업대",()=>move("대장간 작업대"),"","제작/강화"],
+  ["강변 부두",()=>travelTo("강변 부두"),"","채집/생활"],
+  ["남쪽 농장",()=>travelTo("남쪽 농장"),"","일거리/채집"]
+ ]);
+}
+
+function v05MakeActions(){
+ let A=[],p=(t,f,c="",sub="")=>A.push([t,f,c,sub]);
+ if(G.stage===0){
+   p("브렌 마을로 향한다",goVillage,"primary","사람이 사는 곳으로 이동");
+   p("주변을 살펴본다",()=>add("system","낯선 새 울음과 바람소리. 멀리 성벽과 연기가 보인다."),"","상황 확인");
+ }
+ else if(G.location==="브렌 마을"){
+   p("모험가 길드",()=>move("모험가 길드"),"primary","의뢰 / 등록 / 소문");
+   p("황금사슴 여관",()=>move("황금사슴 여관"),"good","식사 / 숙박 / 피로 회복");
+   p("대장간",()=>move("대장간"),"warn","무기 / 제작 / 강화");
+   p("마법 상점",()=>move("마법 상점"),"magic","리엔 / 마법");
+   p("서쪽 숲으로 간다",()=>move("서쪽 숲"),"primary","정찰 / 사냥 / 채집");
+   p("주변 지역 이동",()=>openWorldMap("bren"),"","벌목지 / 채석장 / 탐험");
+   p("다른 장소",v05TownOther,"","시장 / 부두 / 농장 / 도구점");
+   p("우물가에서 쉰다",restAtWell,"good","무료 · 수분 / 피로 / 소량 회복");
+   p("상단 마차",openTravel,"","다른 지역 거점");
+ }
+ else if(G.location==="모험가 길드"){
+   if(G.rank==="미등록")p("길드 등록",register,"primary","F급 모험가 등록");
+   else if(G.scoutQuest?.status==="scouted")p("정찰 보고 · 보상 받기",reportScoutQuest,"good","30G · 길드 공헌 20");
+   else if(G.scoutQuest?.status==="accepted")p("서쪽 숲으로 출발",()=>move("서쪽 숲"),"primary","전투 없이 정찰 가능");
+   else if(G.scoutQuest?.status!=="completed")p("서쪽 숲 정찰 수락",acceptQuest,"warn","안전 정찰 · 보상 30G");
+   p("길드 등급 / 승급",openGuild,"","공헌도와 승급 조건");
+   p("최근 소문",checkGuildRumors,"","주변 사건/보스 단서");
+   p("미라와 대화",talkMira,"","관계 / 생활 이야기");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="황금사슴 여관"){
+   p("따뜻한 식사 · 6G",v05InnMeal,"good","HP와 피로 소량 회복");
+   p("하룻밤 숙박 · 12G",v05InnSleep,"primary","HP/MP 완전 회복 · 피로 0");
+   p("에밀리아와 대화",v05InnTalk,"","여관과 모험가 이야기");
+   p("여관 일손 돕기",innWork,"","하루 2회 · 6G · 1시간");
+   p("소문을 듣는다",checkGuildRumors,"","손님들의 최근 이야기");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="대장간"){
+   p("무기 둘러보기",v05BlacksmithShop,"warn","기본 무기 구매");
+   p("장비 제작",openForge,"good","5단계 장비 제작");
+   p("현재 무기 강화",openEnhance,"primary","재료/골드 사용");
+   p("브람과 대화",talkBram,"","대장장이 이야기");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="대장간 작업대"){
+   p("장비 제작",openForge,"good","5단계 장비 제작");
+   p("현재 무기 강화",openEnhance,"primary","+5까지 강화");
+   p("브람과 대화",talkBram,"","장비와 재료");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="마법 상점"){
+   p("리엔과 대화",talkRien,"","관계 / 마법 이야기");
+   if(G.flags.rienMet&&!G.flags.rienQuest)p("마력 샘 부탁 듣기",offerRienQuest,"magic","동료 에피소드 시작");
+   if(G.flags.rienQuest&&!G.flags.rienJoined)p("리엔과 함께 출발",joinRien,"good","임시 파티 결성");
+   p("마법 배우기",v05MagicLessons,"magic","냉기 / 번개 기초");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="브렌 시장"){
+   p("재료 판매",openMarket,"good","채집/사냥 재료");
+   p("포션 거래",openPotionMarket,"","소모품 판매");
+   p("레시피 상인",openRecipeShop,"magic","연금술 레시피");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="생활 도구 상점"){
+   p("채집칼 구매",()=>buyTool("gatherKnife",10,"채집칼"),"good","채집 효율 증가");
+   p("벌목도끼 구매",()=>buyTool("axe",14,"벌목도끼"),"good","벌목 가능");
+   p("곡괭이 구매",()=>buyTool("pickaxe",16,"곡괭이"),"good","채광 가능");
+   p("맑은 물 마시기",drinkWater,"good","보유한 맑은 물 1개 사용");
+   p("맑은 물 구매",buyWater,"","연금술 재료");
+   p("마을로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="프로스트벨"||G.location==="카르문 광산도시"||G.location==="엘로디아 숲마을"){
+   let fac=V05_FACILITY[G.location];
+   p(`${fac.npc}와 대화`,()=>npcTalk(fac.npc),"primary","지역 NPC / 이야기");
+   p("여관에서 숙박",stayAtRegionInn,"good","지역별 숙박비");
+   p("상단 마차",openTravel,"","브렌으로 이동");
+   p("주변 지도",()=>openWorldMap("world"),"","지역 확인");
+   p("주변 지역 탐험",()=>genericExplore(G.location),"warn","지역 이벤트");
+ }
+ else if(G.location==="서쪽 숲"){
+   if(G.scoutQuest?.status==="accepted")p("안전한 거리에서 정찰",scoutForest,"primary","전투 없음 · 의뢰 목표");
+   if(G.scoutQuest?.status==="scouted")p("길드에 정찰 보고하러 간다",()=>move("모험가 길드"),"good","보상 수령");
+   if(G.flags.rienJoined&&!G.flags.campfire)p("리엔과 마력 흔적 조사",()=>startCombat("mana_goblin"),"magic","동료 의뢰 · 전투");
+   p("고블린 흔적 추적",()=>startCombat(Math.random()<.25?"mana_goblin":"goblin"),"warn","전투 가능");
+   p("약초 채집",doGathering,"good","채집 숙련");
+   p("희귀 약초 탐색",rareGathering,"","달빛꽃 가능");
+   if(G.bossUnlocks?.goblin_chief)p("족장 야영지 추적",()=>startBossByRoute("goblin_chief"),"bad","미니보스");
+   p("브렌으로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="숲속 야영지"){
+   if(!G.flags.campfire)p("리엔과 모닥불 대화",openCampfire,"good","동료 에피소드 마무리");
+   p("브렌으로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="동쪽 벌목지"){
+   p("벌목",doLogging,"good","목재 획득");
+   p("오래된 나무 조사",rareLogging,"","마력목 가능");
+   p("브렌으로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(G.location==="북쪽 채석장"){
+   p("채광",doMining,"good","광석 획득");
+   p("깊은 광맥 조사",rareMining,"warn","희귀 광석 가능");
+   if(G.bossUnlocks?.mine_troll)p("트롤 굴 추적",()=>startBossByRoute("mine_troll"),"bad","미니보스");
+   p("브렌으로 돌아간다",()=>move("브렌 마을"));
+ }
+ else if(LOCATIONS[G.location]){
+   let P=LOCATIONS[G.location];
+   p("주변 탐색",()=>genericExplore(G.location),"primary","사건 / 자원 조사");
+   if(["사냥터","던전","보스","최상위"].includes(P.type))p("위험한 흔적 추적",()=>genericHunt(G.location),"warn","전투 가능");
+   if(["생활","채집지","탐험","사냥터"].includes(P.type))p("재료 채집",()=>genericGather(G.location),"good","지역 특산물");
+   p("지도 열기",()=>openWorldMap(P.region==="브렌 지방"?"bren":"world"),"","지역 이동");
+   p("브렌으로 귀환",()=>travelTo("브렌 마을"));
+ }
+ actions.innerHTML="";
+ A.forEach(([t,f,c,sub])=>{
+   let b=document.createElement("button");let meta=choiceMeta(t,c,sub);
+   b.className=`choice-btn ${c||""}`;b.innerHTML=`<span class="choice-icon">${meta.icon}</span>${t}<span class="choice-sub">${sub||meta.sub||""}</span>`;
+   b.onclick=f;actions.appendChild(b);
+ });
+}
+makeActions=v05MakeActions;
+
+// static image based maps. Labels are part of the image; current marker is the only overlay.
+const V05_MAP_PERCENT={
+ "브렌 마을":[31.5,58.5],"프로스트벨":[46,22],"카르문 광산도시":[76,49],"엘로디아 숲마을":[17,39],
+ "왕도 관문":[61.5,54],"서리 언덕":[54,18],"은빛 호수":[61,24],"청동 협곡":[72,51],"바람절벽":[82,38],
+ "달그림자 숲":[14,43],"고대 정령터":[10,32],"검은 늪":[47,79],"붉은 화산로":[80,80],"용의 계곡":[89,76],
+ "서쪽 숲":[18,47],"동쪽 벌목지":[69,41],"북쪽 채석장":[50,22],"안개 습지":[20,31],"폐광 입구":[55,34],
+ "강변 부두":[73,59],"남쪽 농장":[66,76],"옛 왕도길":[23,76],"고블린 야영지":[12,36]
+};
+const V05_BREN_PERCENT={
+ "브렌 마을":[39.2,56.9],"서쪽 숲":[14.3,42.6],"동쪽 벌목지":[72.4,38.7],
+ "북쪽 채석장":[45.4,19.3],"안개 습지":[14.2,28.1],"폐광 입구":[48.5,33.1],
+ "버려진 감시탑":[29.8,30.5],"고블린 야영지":[8.2,35.8],"강변 부두":[70,68],
+ "남쪽 농장":[62,84.2],"옛 왕도길":[17.9,83.8]
+};
+function v05MapImage(tab){
+ return tab==="bren"?"assets/maps/bren-region-map.webp":tab==="hunt"?"assets/maps/hunting-flow-map.webp":"assets/maps/alterra-continent-map.webp";
+}
+function renderMapTab(tab){
+ currentMapTab=tab;
+ let worldPos=V05_MAP_PERCENT[G.location]||V05_MAP_PERCENT["브렌 마을"];
+ let brenPos=V05_BREN_PERCENT[G.location];
+ let pos=tab==="bren"?brenPos:worldPos;
+ if(mapCurrentInfo)mapCurrentInfo.innerHTML=`<b>현재 위치 · ${G.location}</b><br><span class="small">${LOCATIONS[G.location]?.region||"브렌 지방"} · 방문 ${(G.visitedLocations||[]).length}곳</span>`;
+ if(mapSvgHost){
+   let marker=(tab!=="hunt"&&pos)?`<span class="current-marker" style="left:${pos[0]}%;top:${pos[1]}%"></span>`:"";
+   mapSvgHost.innerHTML=`<div class="map-static"><img src="${v05MapImage(tab)}" alt="지도">${marker}</div>`;
+ }
+ let names=Object.keys(LOCATIONS);
+ if(tab==="bren")names=names.filter(n=>LOCATIONS[n].region==="브렌 지방");
+ if(tab==="hunt")names=names.filter(n=>["사냥터","던전","보스","탐험","최상위"].includes(LOCATIONS[n].type));
+ mapPlaceList.innerHTML=names.map(n=>{
+   let p=LOCATIONS[n],ok=placeUnlocked(n),reason=placeLockReason(n),current=n===G.location;
+   return `<div class="map-place ${ok?"":"locked"} ${current?"current":""}">
+   <b>${n}</b> <span class="region-chip">${p.type}</span>${current?` <span class="region-chip">현재</span>`:""}
+   <div class="small">${p.region} · 권장 Lv.${p.level}<br>${p.desc}</div>
+   <button ${current||!ok?"disabled":""} onclick="travelTo('${n.replace(/'/g,"\\'")}')">${current?"현재 위치":ok?"이동":"잠김 · "+reason}</button>
+   </div>`;
+ }).join("");
+}
+function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapModal.classList.remove("hidden")}
+
+// refresh entry facility on initial render/load
+// Runtime initializes after all asset and state helpers are loaded.
+</script>
+<script src="js/playability.js?v=0.5.5-hotfix1"></script>
+<script src="js/scene-overrides.js?v=0.5.5"></script>
+<script src="js/resource-feedback.js?v=0.5.5"></script>
+<script src="js/mobile-ui.js?v=0.5.5"></script>
+<script src="js/monster-art.js?v=0.5.5"></script>
+</body>
+</html>
