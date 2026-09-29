@@ -13,10 +13,11 @@ context.document={getElementById:id=>elements[id]||(elements[id]=new Element()),
 vm.createContext(context);const exec=s=>vm.runInContext(s,context);
 for(const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g))exec(m[1]);
 exec(fs.readFileSync(root+'/js/playability.js','utf8'));
+exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
-test('boot renders without exceptions',()=>assert.equal(get('G.schemaVersion'),'0.5.2'));
+test('boot renders without exceptions',()=>assert.equal(get('G.schemaVersion'),'0.5.6'));
 test('registration and first quest available',()=>{exec("G.name='테스터';goVillage();move('모험가 길드');register();acceptQuest()");assert.equal(get('G.guildRank'),'F급');assert.equal(get('G.scoutQuest.status'),'accepted');assert(context.actions.children.some(b=>b.innerHTML.includes('서쪽 숲으로 출발')))});
 test('safe scouting and exactly one guild reward',()=>{const before=get('G.gold');exec("move('서쪽 숲');scoutForest()");assert.equal(get('G.scoutQuest.status'),'scouted');assert.equal(get('G.gold'),before);exec("move('모험가 길드');reportScoutQuest();reportScoutQuest();acceptQuest()");assert.equal(get('G.gold'),before+30);assert.equal(get('G.scoutQuest.status'),'completed');assert.equal(get('G.guildPoints'),20)});
 test('town keeps all choices including west forest',()=>{exec("move('브렌 마을')");assert(context.actions.children.length>5);assert(context.actions.children.some(b=>b.innerHTML.includes('서쪽 숲으로 간다')))});
@@ -34,4 +35,45 @@ test('equipment, level, proficiency, conditions affect combat',()=>{exec("G.comb
 test('armor mitigates scaled enemy attack and defeat returns safely',()=>{exec("G.hp=100;G.combat={atk:15,guard:false};G.equipment.armor='옷';enemyDamage(10,'공격');var unarmored=100-G.hp;G.hp=100;G.equipment.armor={def:12};enemyDamage(10,'공격');var armored=100-G.hp");assert(get('armored<unarmored'));exec("G.hp=1;G.combat={atk:999,hp:50,maxHp:50,turn:1,intent:'강한 공격',type:'goblin'};enemyTurn()");assert.equal(get('G.combat'),null);assert.equal(get('G.location'),'브렌 마을');assert.equal(get('G.hp'),1)});
 test('magic gains mastery and special skill has a cooldown',()=>{exec("G.combat={type:'goblin',hp:999,maxHp:999,atk:1,def:0,intent:'방어 자세',turn:1};G.hp=G.maxHp;G.mp=G.maxMp;G.companion=null;var fireBefore=G.fire;castSpell(0)");assert.equal(get('G.fire'),get('fireBefore+1'));exec("G.equipment.weapon={...WEAPONS.sword};specialSkill();var enemyAfter=G.combat.hp;specialSkill()");assert.equal(get('G.combat.hp'),get('enemyAfter'))});
 test('saved combat reopens safely and legacy survival values migrate',()=>{exec('saveGame();G.combat=null;loadGame()');assert(get('!!G.combat'));assert(!context.combatModal.classList.contains('hidden'));exec('var oldNeeds={...G};delete oldNeeds.hunger;delete oldNeeds.hydration;var needs=migrateState(oldNeeds)');assert.equal(get('needs.hunger'),20);assert.equal(get('needs.hydration'),85)});
+
+// v0.5.6 career-system regression checks
+const resetCareer=()=>exec("G=migrateState(JSON.parse(JSON.stringify(INITIAL_STATE)));G.name='';G.aptitudeApplied=false;G.unlockedCareers=[];G.career=null");
+test('all five starting aptitudes apply only their small bonus',()=>{
+ const cases=[['none','G.sword',3],['sword','G.sword',5],['mana','G.manaControl',12],['outdoors','G.bow',3],['dexterity','G.dagger',4]];
+ for(const [aptitude,field,expected] of cases){resetCareer();context.traitInput.value=aptitude;exec('startGame()');assert.equal(get('G.aptitude'),aptitude);assert.equal(get(field),expected);if(aptitude==='sword'){exec('startGame()');assert.equal(get(field),expected);}}
+});
+test('no aptitude leaves base proficiencies unchanged',()=>{resetCareer();context.traitInput.value='none';exec('startGame()');assert.equal(get('G.sword'),3);assert.equal(get('G.maxMp'),16);assert.equal(get('G.career'),null)});
+test('aptitude does not block growth or another career route',()=>{
+ resetCareer();context.traitInput.value='sword';exec("startGame();G.combat={type:'goblin',hp:999,maxHp:999,atk:0,def:0,intent:'방어 자세',turn:1};G.mp=G.maxMp;for(var i=0;i<5;i++)castSpell(0);checkCareerUnlocks(G,{notify:false})");
+ assert(get("G.unlockedCareers.includes('apprentice_mage')"));
+});
+test('first careers unlock from existing proficiency values',()=>{
+ resetCareer();exec("Object.assign(G,{sword:8,manaControl:12,fire:12,bow:7,dagger:7,gathering:6,alchemy:4});checkCareerUnlocks(G,{notify:false})");
+ for(const key of ['apprentice_swordsman','apprentice_mage','hunter','scout','apprentice_alchemist'])assert(get(`G.unlockedCareers.includes('${key}')`),key);
+});
+test('career cannot be selected below requirements',()=>{resetCareer();assert.equal(get("selectCareer('swordsman')"),false);assert.equal(get('G.career'),null)});
+test('unlocked career can be selected and removed voluntarily',()=>{resetCareer();exec("G.sword=8;checkCareerUnlocks(G,{notify:false})");assert.equal(get("selectCareer('apprentice_swordsman')"),true);assert.equal(get('G.career'),'apprentice_swordsman');assert.equal(get('selectCareer(null)'),true);assert.equal(get('G.career'),null)});
+test('guild rank stays independent from career changes',()=>{resetCareer();exec("G.guildRank='D급';G.rank='D급';G.sword=8;checkCareerUnlocks(G,{notify:false});selectCareer('apprentice_swordsman')");assert.equal(get('G.guildRank'),'D급');assert.equal(get('G.rank'),'D급')});
+test('legacy traits migrate without applying bonuses twice',()=>{
+ resetCareer();exec("var legacyCareer={...G,name:'기존용사',trait:'검술경험',sword:10};delete legacyCareer.aptitude;delete legacyCareer.career;delete legacyCareer.unlockedCareers;delete legacyCareer.aptitudeApplied;var migratedCareer=migrateState(legacyCareer)");
+ assert.equal(get('migratedCareer.aptitude'),'sword');assert.equal(get('migratedCareer.career'),null);assert.equal(get('migratedCareer.sword'),10);assert.equal(get('migratedCareer.aptitudeApplied'),true);
+});
+test('career fields survive save and load',()=>{
+ resetCareer();exec("G.name='저장검사';G.sword=8;checkCareerUnlocks(G,{notify:false});selectCareer('apprentice_swordsman');saveGame();G.career=null;G.unlockedCareers=[];loadGame()");
+ assert.equal(get('G.career'),'apprentice_swordsman');assert(get("G.unlockedCareers.includes('apprentice_swordsman')"));
+});
+test('advanced and hybrid careers use centralized data requirements',()=>{
+ assert.equal(get("CAREERS.swordsman.requiresCareers[0]"),'apprentice_swordsman');
+ assert.deepEqual(Array.from(get("CAREERS.spellblade.requiresCareers")),['apprentice_swordsman','apprentice_mage']);
+ assert.equal(get("CAREERS.ranger.requirements.some(x=>x.skill==='bow')"),true);
+});
+test('career panel separates career guild rank and title',()=>{
+ resetCareer();exec("G.guildRank='F급';G.activeTitle='고블린 사냥꾼';renderCareerSummary();openCareerMenu()");
+ assert(context.careerSummary.innerHTML.includes('직업'));assert(context.careerSummary.innerHTML.includes('모험가 등급'));assert(context.careerCurrent.innerHTML.includes('서로 독립'));
+});
+test('career UI includes responsive phone and tablet layouts',()=>{
+ const css=fs.readFileSync(root+'/css/career-system.css','utf8');
+ assert(css.includes('@media(max-width:620px)'));assert(css.includes('@media(min-width:700px) and (max-width:1180px)'));
+ assert(html.includes('id="careerSummary"'));assert(html.includes('id="careerModal"'));
+});
 console.log(`${tests} regression checks passed.`);
