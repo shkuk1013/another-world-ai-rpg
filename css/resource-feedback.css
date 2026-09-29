@@ -1,0 +1,53 @@
+/* v0.5.3 local draft — visual item acquisition feedback */
+.loot-toast-layer{
+  position:fixed;inset:0;z-index:120;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.loot-toast-card{
+  --loot-accent:#d9e3ee;
+  width:min(390px,82vw);min-height:138px;
+  display:grid;grid-template-columns:112px 1fr;gap:16px;align-items:center;
+  padding:14px 20px 14px 14px;border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--loot-accent) 48%,transparent);
+  background:linear-gradient(135deg,#101923f2,#0a1018f7);
+  box-shadow:0 26px 70px #000c,0 0 38px color-mix(in srgb,var(--loot-accent) 17%,transparent);
+  opacity:0;transform:translateY(24px) scale(.92);
+  transition:opacity .22s ease,transform .34s cubic-bezier(.2,.8,.2,1);
+  position:relative;overflow:hidden;backdrop-filter:blur(12px);
+}
+.loot-toast-card.show{opacity:1;transform:translateY(0) scale(1)}
+.loot-toast-card.leave{opacity:0;transform:translateY(-14px) scale(.97)}
+.loot-toast-card.rarity-rare{--loot-accent:#83bfff}
+.loot-toast-card.rarity-epic{--loot-accent:#c399ff}
+.loot-toast-card.rarity-legend{--loot-accent:#ffd36e}
+.loot-glow{position:absolute;inset:auto -20% -75% -20%;height:120%;background:radial-gradient(circle,var(--loot-accent),transparent 62%);opacity:.12}
+.loot-icon-wrap{
+  width:108px;height:108px;border-radius:16px;overflow:hidden;position:relative;
+  border:1px solid color-mix(in srgb,var(--loot-accent) 38%,#263544);
+  background:#080d13;box-shadow:inset 0 0 22px #0009;
+}
+.loot-icon{display:block;width:100%;height:100%;object-fit:cover}
+.loot-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:42px;color:var(--loot-accent);background:radial-gradient(circle,#24384d,#080d13 70%)}
+.loot-copy{position:relative;min-width:0}.loot-copy span{display:block;color:#aebccc;font-size:11px;font-weight:800;letter-spacing:.12em}
+.loot-copy b{display:block;margin-top:4px;color:#fff;font-size:21px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loot-copy strong{display:block;margin-top:3px;color:var(--loot-accent);font-size:18px}
+.loot-copy small{display:inline-block;margin-top:7px;padding:3px 7px;border-radius:999px;background:#ffffff0d;color:#bdc8d4;font-size:10px}
+@media(max-width:620px){
+  .loot-toast-layer{align-items:42%}
+  .loot-toast-card{width:min(350px,90vw);grid-template-columns:86px 1fr;min-height:112px;padding:11px 14px 11px 11px;border-radius:15px}
+  .loot-icon-wrap{width:84px;height:84px;border-radius:13px}
+  .loot-copy b{font-size:18px}.loot-copy strong{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .loot-toast-card{transition:opacity .15s linear;transform:none!important}
+}
+.material span,.market-row span{display:flex;align-items:center;gap:7px;min-width:0}
+.material-mini-icon{
+  width:30px;height:30px;flex:0 0 30px;object-fit:cover;border-radius:7px;
+  border:1px solid #4b5e73;background:#080d13;box-shadow:0 4px 12px #0007
+}
+@media(max-width:620px){.material-mini-icon{width:34px;height:34px;flex-basis:34px}}
+
+.item-atlas-icon{display:block;background-repeat:no-repeat!important;background-color:#080d13}
+.loot-icon.item-atlas-icon{width:100%;height:100%}
+.material-mini-icon.item-atlas-icon{display:inline-block}

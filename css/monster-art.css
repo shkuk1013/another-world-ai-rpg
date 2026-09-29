@@ -1,0 +1,30 @@
+/* v0.5.5 local draft — monster art presentation */
+.enemy-art{
+  background:
+    radial-gradient(circle at 50% 34%,#263b52 0,#101923 50%,#080d13 100%);
+  box-shadow:inset 0 0 34px #000b,0 12px 32px #0008;
+}
+.enemy-art[data-monster-type="mana_goblin"],
+.enemy-art[data-monster-type="ancient_golem"]{
+  box-shadow:inset 0 0 34px #000b,0 0 24px #5aa9ff33,0 12px 32px #0008;
+}
+.enemy-art[data-monster-type="fire_drake"],
+.enemy-art[data-monster-type="ancient_dragon"]{
+  box-shadow:inset 0 0 34px #000b,0 0 28px #ff663833,0 12px 32px #0008;
+}
+.enemy-art[data-monster-type="spirit_beast"]{
+  box-shadow:inset 0 0 34px #000b,0 0 28px #79e9aa2f,0 12px 32px #0008;
+}
+.codex-entry{overflow:hidden}
+.codex-monster-art{
+  display:block;width:100%;height:148px;object-fit:cover;object-position:center 42%;
+  margin:-2px 0 9px;border-radius:9px;border:1px solid #ffffff16;
+  background:#091019;box-shadow:inset 0 0 22px #0008
+}
+@media(max-width:620px){
+  .codex-monster-art{height:128px}
+  .enemy-art{max-height:230px!important}
+}
+
+.monster-atlas-art{background-repeat:no-repeat!important;background-color:#091019!important}
+.monster-atlas-thumb{display:block;background-repeat:no-repeat!important}
