@@ -1,17 +1,20 @@
 /* v0.5.3 local draft — finite gathering nodes + visual loot feedback */
 (()=>{
   const ITEM_ATLAS='assets/atlases/items.webp',ITEM_COLS=8,ITEM_ROWS=5;
+  const ITEM_ATLASES={default:{src:ITEM_ATLAS,cols:ITEM_COLS,rows:ITEM_ROWS},bren:{src:'assets/atlases/bren-materials-v1.webp',cols:2,rows:2}};
   window.ITEM_ART={"달빛꽃":26,"붉은 약초":30,"푸른 약초":5,"해독초":3,"철광석":19,"구리광석":7,"은광석":31,"수정 조각":8,"마정석":22,"참나무":27,"단풍나무":23,"마력목":20,"고블린 송곳니":17,"송곳니":17,"서리 송곳니":14,"고블린 발톱":16,"고블린 가죽":18,"질긴 가죽":18,"가죽":18,"트롤 가죽":34,"짐승 고기":4,"마력 찌꺼기":21,"독낭":29,"습지 점액":33,"빙결 가죽":15,"광산 핵석":24,"청동 광편":6,"오우거 힘줄":28,"와이번 비늘":37,"바람결정":36,"정령 잎":32,"고대 수액":2,"고대 핵":1,"언데드 뼛조각":35,"저주받은 천":9,"화염석":13,"미스릴 조각":25,"용염 비늘":11,"드래곤 파편":12,"아다만티움 조각":0,"용의 심장 파편":10,"족장 금속 조각":19};
   const ITEM_ART=window.ITEM_ART;
-  function atlasStyle(index,cols=ITEM_COLS,rows=ITEM_ROWS){
+  function atlasStyle(entry){
+    const spec=typeof entry==='number'?{index:entry}:entry,atlas=ITEM_ATLASES[spec.atlas||'default'],index=spec.index,cols=atlas.cols,rows=atlas.rows;
     const c=index%cols,r=Math.floor(index/cols);
     const x=cols>1?c/(cols-1)*100:0,y=rows>1?r/(rows-1)*100:0;
-    return `background-image:url("${ITEM_ATLAS}");background-size:${cols*100}% ${rows*100}%;background-position:${x}% ${y}%`;
+    return `background-image:url("${atlas.src}");background-size:${cols*100}% ${rows*100}%;background-position:${x}% ${y}%`;
   }
   function itemArtMarkup(name,cls="loot-icon"){
-    const idx=ITEM_ART[name];
-    return idx===undefined?`<div class="loot-fallback">✦</div>`:`<span class="${cls} item-atlas-icon" style='${atlasStyle(idx)}'></span>`;
+    const entry=ITEM_ART[name],special=entry&&typeof entry==='object'&&entry.atlas!=='default'?` item-atlas-${entry.atlas}`:'';
+    return entry===undefined?`<span class="${cls} item-fallback-icon" aria-hidden="true">✦</span>`:`<span class="${cls} item-atlas-icon${special}" aria-hidden="true" style='${atlasStyle(entry)}'></span>`;
   }
+  window.itemInlineMarkup=(name,cls='item-inline-icon')=>itemArtMarkup(name,cls);
   const RARITY_KO={common:"일반",rare:"희귀",epic:"영웅",legend:"전설"};
   const lootQueue=[];
   let lootBusy=false;
@@ -330,9 +333,10 @@
     return null;
   }
   function miniAtlasIcon(name){
-    const idx=ITEM_ART[name];if(idx===undefined)return null;
+    const entry=ITEM_ART[name];if(entry===undefined)return null;
     const el=document.createElement("span");el.className="material-mini-icon item-atlas-icon";
-    el.setAttribute("aria-hidden","true");el.style.cssText=atlasStyle(idx);
+    if(typeof entry==='object'&&entry.atlas!=='default')el.classList.add(`item-atlas-${entry.atlas}`);
+    el.setAttribute("aria-hidden","true");el.style.cssText=atlasStyle(entry);
     return el;
   }
   function decorateMaterialList(){

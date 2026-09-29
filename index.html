@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Another World v0.5.6 Career</title>
+<title>Another World v0.5.7 Bren Bestiary</title>
 <style>
 :root{
  --bg:#090d13;--panel:#111925;--panel2:#172231;--line:#314157;--text:#eef4fb;--muted:#99a9bb;
@@ -147,7 +147,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <body>
 <div id="app">
   <header class="topbar">
-    <div class="brand"><b>Another World</b><span>v0.5.6 · CAREER</span></div>
+    <div class="brand"><b>Another World</b><span>v0.5.7 · BREN BESTIARY</span></div>
     <div class="hud">
       <div class="hud-chip"><strong id="pname">이름 없음</strong> <span id="badges"></span><span id="activeTitleBox"></span></div>
       <div class="hud-chip">Lv.<strong id="level">1</strong> · <span id="rank">미등록</span> · XP <b id="hudXp">0/100</b></div>
@@ -915,7 +915,7 @@ function hasNeeds(recipe){
  return Object.entries(recipe.needs).every(([k,v])=>(G.materials[k]||0)>=v);
 }
 function needsText(recipe){
- return Object.entries(recipe.needs).map(([k,v])=>`${k} ${v}`).join(" + ");
+ return Object.entries(recipe.needs).map(([k,v])=>`${typeof itemInlineMarkup==="function"?itemInlineMarkup(k):""}${k} ${v}`).join(" + ");
 }
 function renderRecipes(){
  recipeList.innerHTML=RECIPES.map((r,i)=>G.discoveredRecipes.includes(r.name)?`<div class="recipe"><b>${r.name}</b><br><span class="small">${r.desc}<br>필요: ${needsText(r)} · 권장 연금술 ${r.skill}</span><br><button ${hasNeeds(r)?"":"disabled"} onclick="craftRecipe(${i})">제작</button></div>`:"").join("")||"아직 배운 레시피가 없다.";
@@ -1393,9 +1393,9 @@ function victory(txt){let type=G.combat?.type;combatModal.classList.add("hidden"
  let mr=MONSTERS[type]?.rank||"F";
  let rewardXP=({F:18,E:24,"E+":28,D:35,C:50,"C+":58,B:75,"B+":85,"A-":105,A:120,"A+":145,S:220}[mr]||22);
  let rewardGold=Math.max(6,Math.round(rewardXP*.45));
- G.gold+=rewardGold;G.rep+=rewardXP>=75?2:1;gainXP(rewardXP);let drops=rollDrops(type);checkTitles();let dropText=drops.length?drops.map(d=>`<span class="drop-${d.rarity}">${d.name}${d.qty>1?` ×${d.qty}`:""}</span>`).join(", "):"특별한 전리품 없음";if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔",`“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요.”<br>전리품: ${dropText}`);return}if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}add("system",txt+`<br>전리품: ${dropText}`);}
+ G.gold+=rewardGold;G.rep+=rewardXP>=75?2:1;gainXP(rewardXP);let drops=rollDrops(type);checkTitles();let dropText=drops.length?drops.map(d=>`<span class="drop-${d.rarity}">${typeof itemInlineMarkup==="function"?itemInlineMarkup(d.name):""}${d.name}${d.qty>1?` ×${d.qty}`:""}</span>`).join(", "):"특별한 전리품 없음";if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔",`“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요.”<br>전리품: ${dropText}`);return}if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}add("system",txt+`<br>전리품: ${dropText}`);}
 function codexLevel(k){return k>=30?5:k>=20?4:k>=10?3:k>=5?2:k>=1?1:0}
-function openCodex(){ensureProgress();codexList.innerHTML=Object.entries(MONSTERS).map(([id,m])=>{let seen=G.discoveredMonsters[id],kills=G.monsterKills[id]||0,l=codexLevel(kills);if(!seen)return`<div class="codex-entry codex-lock"><b>???</b><br>아직 발견하지 못한 몬스터</div>`;let drops=m.drops.map(d=>l>=2||d.rarity==="common"?`<span class="drop-${d.rarity}">${d.name}${l>=5?` (${Math.round(d.chance*100)}%)`:""}</span>`:`<span class="codex-lock">???</span>`).join(", ");return`<div class="codex-entry"><b>${m.name}</b> <span class="badge">${m.rank}급</span><br><span class="small">처치 ${kills}회 · 출현: ${l>=1?m.region:"???"}</span><br>${l>=2?`HP ${m.hp[0]}~${m.hp[1]} · 공격 ${m.atk[0]}~${m.atk[1]} · 방어 ${m.def}<br>`:""}${l>=3?`약점: ${m.weak} · 저항: ${m.resist}<br>`:""}${l>=2?`드랍: ${drops}`:"드랍: ???"}</div>`}).join("");codexModal.classList.remove("hidden")}
+function openCodex(){ensureProgress();codexList.innerHTML=Object.entries(MONSTERS).map(([id,m])=>{let seen=G.discoveredMonsters[id],kills=G.monsterKills[id]||0,l=codexLevel(kills);if(!seen)return`<div class="codex-entry codex-lock"><b>???</b><br>아직 발견하지 못한 몬스터</div>`;let drops=m.drops.map(d=>l>=2||d.rarity==="common"?`<span class="drop-${d.rarity}">${typeof itemInlineMarkup==="function"?itemInlineMarkup(d.name):""}${d.name}${l>=5?` (${Math.round(d.chance*100)}%)`:""}</span>`:`<span class="codex-lock">???</span>`).join(", ");return`<div class="codex-entry"><b>${m.name}</b> <span class="badge">${m.rank}급</span><br><span class="small">처치 ${kills}회 · 출현: ${l>=1?m.region:"???"}</span><br>${l>=2?`HP ${m.hp[0]}~${m.hp[1]} · 공격 ${m.atk[0]}~${m.atk[1]} · 방어 ${m.def}<br>`:""}${l>=3?`약점: ${m.weak} · 저항: ${m.resist}<br>`:""}${l>=2?`드랍: ${drops}`:"드랍: ???"}</div>`}).join("");codexModal.classList.remove("hidden")}
 function closeCodex(){codexModal.classList.add("hidden")}
 function openTitles(){ensureProgress();titleList.innerHTML=TITLE_RULES.map(t=>{let u=G.titles.includes(t.name),cur=G.monsterKills[t.monster]||0;return`<div class="codex-entry ${u?"":"codex-lock"}"><b>${u?t.name:"???"}</b><br><span class="small">${cur}/${t.kills} 처치${u?`<br>${t.effect}`:""}</span>${u?`<br><button onclick="equipTitle('${t.name}')">칭호 장착</button>`:""}</div>`}).join("");titleModal.classList.remove("hidden")}
 function closeTitles(){titleModal.classList.add("hidden")}
@@ -1454,7 +1454,7 @@ const GEAR_TIERS_V047={
   {tier:5,name:"아다만티움 갑옷",def:29,lv:11,needs:{"아다만티움 조각":6,"용염 비늘":2},gold:160}
  ]
 };
-function tierGearNeeds(it){return Object.entries(it.needs).map(([k,v])=>`${k} ${v}`).join(" + ")}
+function tierGearNeeds(it){return Object.entries(it.needs).map(([k,v])=>`${typeof itemInlineMarkup==="function"?itemInlineMarkup(k):""}${k} ${v}`).join(" + ")}
 function canTierCraft(it){return G.level>=it.lv&&Object.entries(it.needs).every(([k,v])=>(G.materials[k]||0)>=v)&&G.gold>=it.gold}
 function craftTierGearV047(type,tier){
  const it=GEAR_TIERS_V047[type].find(x=>x.tier===tier);if(!it||!canTierCraft(it))return;
@@ -2139,8 +2139,8 @@ function v05Render(){
  relations.innerHTML=Object.entries(G.relations||{}).map(([k,v])=>`<div class="journal-entry"><b>${k}</b> · 신뢰 ${v.aff}<br><span class="small">${v.note||""}</span></div>`).join("")||"아직 특별한 인연이 없다.";
  toolsBox.innerHTML=`<span class="tool-pill">${G.tools.gatherKnife?"✅":"❌"} 채집칼</span><span class="tool-pill">${G.tools.axe?"✅":"❌"} 벌목도끼</span><span class="tool-pill">${G.tools.pickaxe?"✅":"❌"} 곡괭이</span>`;
  materialsBox.innerHTML=Object.entries(G.materials||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="material"><span>${k}</span><b>${v}/999</b></div>`).join("")||"모은 재료가 없다.";
- consumablesBox.innerHTML=Object.entries(G.consumables||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="inv-item"><b>${k}</b> × ${v}<br><button onclick="useConsumable('${k}')">사용</button></div>`).join("")||"보유한 소모품이 없다.";
- equipmentInvBox.innerHTML=(G.equipmentInventory||[]).length?G.equipmentInventory.map((it,i)=>`<div class="inv-item"><b>${it.name}</b> ${it.enhance?`+${it.enhance}`:""}<br><span class="small">공격 ${it.atk||0} · 방어 ${it.def||0}${it.magic?` · 마법 ${it.magic}`:""}</span><br><button onclick="equipCrafted(${i})">장착</button></div>`).join(""):"보유 장비가 없다.";
+ consumablesBox.innerHTML=Object.entries(G.consumables||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="inv-item">${typeof itemInlineMarkup==="function"?itemInlineMarkup(k):""}<b>${k}</b> × ${v}<br><button onclick="useConsumable('${k}')">사용</button></div>`).join("")||"보유한 소모품이 없다.";
+ equipmentInvBox.innerHTML=(G.equipmentInventory||[]).length?G.equipmentInventory.map((it,i)=>`<div class="inv-item">${typeof itemInlineMarkup==="function"?itemInlineMarkup(it.name):""}<b>${it.name}</b> ${it.enhance?`+${it.enhance}`:""}<br><span class="small">공격 ${it.atk||0} · 방어 ${it.def||0}${it.magic?` · 마법 ${it.magic}`:""}</span><br><button onclick="equipCrafted(${i})">장착</button></div>`).join(""):"보유 장비가 없다.";
  if(G.companion){
    companionBox.innerHTML=`<div class="companion-box"><b>${G.companion.name}</b><br>HP ${G.companion.hp}/${G.companion.maxHp} · MP ${G.companion.mp}/${G.companion.maxMp}<br><span class="small">전술 ${G.companion.tactic||"균형"}</span></div>`;
  }else companionBox.textContent="아직 함께 다니는 동료가 없다.";
@@ -2375,6 +2375,7 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 <script src="js/resource-feedback.js?v=0.5.5"></script>
 <script src="js/mobile-ui.js?v=0.5.5"></script>
 <script src="js/monster-art.js?v=0.5.5"></script>
+<script src="js/bren-monsters.js?v=0.5.7"></script>
 <script src="js/career-system.js?v=0.5.6"></script>
 </body>
 </html>

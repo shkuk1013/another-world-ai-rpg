@@ -4,20 +4,23 @@ const root=path.resolve(__dirname,'..'),html=fs.readFileSync(root+'/index.html',
 class Element{
  constructor(){this.children=[];this.style={};this.dataset={};this.attrs={};this.textContent='';this._html='';this.value='';this.classes=new Set(['hidden']);this.classList={contains:k=>this.classes.has(k),add:k=>this.classes.add(k),remove:k=>this.classes.delete(k),toggle:(k,on)=>on?this.classes.add(k):this.classes.delete(k)};}
  set innerHTML(s){this._html=s;this.children=[];}get innerHTML(){return this._html;}
- appendChild(e){this.children.push(e);return e;}prepend(e){this.children.unshift(e);}setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k]??null;}removeAttribute(k){delete this.attrs[k];}querySelector(){return new Element();}querySelectorAll(){return [];}addEventListener(){}
+ appendChild(e){this.children.push(e);return e;}prepend(e){this.children.unshift(e);}remove(){}setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k]??null;}removeAttribute(k){delete this.attrs[k];}querySelector(){return new Element();}querySelectorAll(){return [];}addEventListener(){}
 }
 const elements={};for(const m of html.matchAll(/id="([^"]+)"/g))elements[m[1]]=new Element();
-const storage=new Map(),timers=[];const context={console,Math:Object.create(Math),JSON,Number,String,Array,Object,Set,Map,Date,HTMLImageElement:Element,alert:()=>{},localStorage:{setItem:(k,v)=>storage.set(k,v),getItem:k=>storage.get(k)||null},setTimeout:fn=>{timers.push(fn)},clearTimeout:()=>{},...elements};
+const storage=new Map(),timers=[];const context={console,Math:Object.create(Math),JSON,Number,String,Array,Object,Set,Map,Date,HTMLImageElement:Element,alert:()=>{},localStorage:{setItem:(k,v)=>storage.set(k,v),getItem:k=>storage.get(k)||null},setTimeout:fn=>{timers.push(fn)},clearTimeout:()=>{},requestAnimationFrame:fn=>fn(),...elements};
 context.window=context;context.location={textContent:''};
-context.document={getElementById:id=>elements[id]||(elements[id]=new Element()),createElement:()=>new Element(),querySelector:()=>new Element(),querySelectorAll:()=>[],addEventListener:()=>{},activeElement:null};
+context.document={getElementById:id=>elements[id]||(elements[id]=new Element()),createElement:()=>new Element(),querySelector:()=>new Element(),querySelectorAll:()=>[],addEventListener:()=>{},activeElement:null,body:new Element()};
 vm.createContext(context);const exec=s=>vm.runInContext(s,context);
 for(const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g))exec(m[1]);
 exec(fs.readFileSync(root+'/js/playability.js','utf8'));
+exec(fs.readFileSync(root+'/js/resource-feedback.js','utf8'));
+exec(fs.readFileSync(root+'/js/monster-art.js','utf8'));
+exec(fs.readFileSync(root+'/js/bren-monsters.js','utf8'));
 exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
-test('boot renders without exceptions',()=>assert.equal(get('G.schemaVersion'),'0.5.6'));
+test('boot renders without exceptions',()=>assert.equal(get('G.schemaVersion'),'0.5.7'));
 test('registration and first quest available',()=>{exec("G.name='테스터';goVillage();move('모험가 길드');register();acceptQuest()");assert.equal(get('G.guildRank'),'F급');assert.equal(get('G.scoutQuest.status'),'accepted');assert(context.actions.children.some(b=>b.innerHTML.includes('서쪽 숲으로 출발')))});
 test('safe scouting and exactly one guild reward',()=>{const before=get('G.gold');exec("move('서쪽 숲');scoutForest()");assert.equal(get('G.scoutQuest.status'),'scouted');assert.equal(get('G.gold'),before);exec("move('모험가 길드');reportScoutQuest();reportScoutQuest();acceptQuest()");assert.equal(get('G.gold'),before+30);assert.equal(get('G.scoutQuest.status'),'completed');assert.equal(get('G.guildPoints'),20)});
 test('town keeps all choices including west forest',()=>{exec("move('브렌 마을')");assert(context.actions.children.length>5);assert(context.actions.children.some(b=>b.innerHTML.includes('서쪽 숲으로 간다')))});
@@ -75,5 +78,43 @@ test('career UI includes responsive phone and tablet layouts',()=>{
  const css=fs.readFileSync(root+'/css/career-system.css','utf8');
  assert(css.includes('@media(max-width:620px)'));assert(css.includes('@media(min-width:700px) and (max-width:1180px)'));
  assert(html.includes('id="careerSummary"'));assert(html.includes('id="careerModal"'));
+});
+
+// v0.5.7 Bren low-level monster regression checks
+test('Bren adds four balanced F-rank monsters',()=>{
+ assert.equal(get('Object.keys(BREN_MONSTERS).length'),4);
+ assert(get("Object.values(BREN_MONSTERS).every(m=>m.rank==='F'&&m.hp[1]<=34&&m.atk[1]<=7)"));
+});
+test('every Bren encounter table has three valid monster candidates',()=>{
+ assert(get('Object.values(BREN_ENCOUNTERS).every(table=>table.length===3&&table.every(([id,weight])=>MONSTERS[id]&&weight>0))'));
+});
+test('weighted Bren encounter selection is deterministic at boundaries',()=>{
+ assert.equal(get("pickBrenEncounter('강변 부두',0)"),'river_frog');
+ assert.equal(get("pickBrenEncounter('강변 부두',.99)"),'young_wolf');
+ assert.equal(get("pickBrenEncounter('브렌 마을',.5)"),null);
+});
+test('diverse forest hunting appears only after the safe scout tutorial',()=>{
+ resetCareer();exec("G.name='사냥꾼';G.rank='F급';G.guildRank='F급';G.location='서쪽 숲';G.scoutQuest={status:'accepted'};render()");
+ assert(!context.actions.children.some(b=>b.innerHTML.includes('숲 가장자리 수색')));
+ exec("G.scoutQuest={status:'completed'};render()");
+ assert(context.actions.children.some(b=>b.innerHTML.includes('숲 가장자리 수색')));
+});
+test('new monster combat records codex kill and drops',()=>{
+ resetCareer();exec("G.name='도감검사';G.rank='F급';G.guildRank='F급';startCombat('forest_slime');victory('승리')");
+ assert.equal(get('G.monsterKills.forest_slime'),1);assert.equal(get('G.discoveredMonsters.forest_slime'),true);assert(get("G.materials['맑은 점액']>=1"));
+});
+test('new monsters reuse matching existing atlas entries',()=>{
+ assert.equal(get('MONSTER_ART.forest_slime'),9);assert.equal(get('MONSTER_ART.river_frog'),12);assert.equal(get('MONSTER_ART.young_wolf'),5);assert.equal(get('MONSTER_ART.dust_bat'),3);
+ resetCareer();exec("G.name='원화검사';startCombat('young_wolf')");assert.equal(context.enemyArt.dataset.monsterType,'young_wolf');
+});
+test('Bren drop materials use the generated item atlas and inline UI markup',()=>{
+ assert.equal(get("ITEM_ART['맑은 점액'].atlas"),'bren');assert.equal(get("ITEM_ART['박쥐 가죽'].index"),2);
+ assert(get("itemInlineMarkup('맑은 점액')").includes('bren-materials-v1.webp'));
+ assert(get("itemInlineMarkup('없는 재료')").includes('item-fallback-icon'));
+});
+test('drop log, codex and crafting requirements render item icons',()=>{
+ resetCareer();exec("G.name='아이콘검사';G.rank='F급';G.guildRank='F급';G.discoveredMonsters.forest_slime=true;G.monsterKills.forest_slime=5;G.combat={type:'forest_slime'};victory('승리');openCodex();renderRecipes();renderTierForgeV047()");
+ assert(get("G.log.at(-1).text").includes('item-inline-icon'));assert(context.codexList.innerHTML.includes('item-inline-icon'));
+ assert(context.forgeList.innerHTML.includes('item-inline-icon'));
 });
 console.log(`${tests} regression checks passed.`);

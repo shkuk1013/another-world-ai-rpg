@@ -1,11 +1,10 @@
 # WORK_PROGRESS.md
 
 ## 현재 버전 / 마지막 커밋
-- 작업 버전: v0.5.6 CAREER
+- 작업 버전: v0.5.7 BREN BESTIARY + DROP ICONS (Work 로컬 변경, 미커밋·미푸시)
 - 기준 브랜치: `main`
-- GitHub `origin/main` 기준 커밋: `93152e8` (`hotfix: restore full v0.5.5 page and fix mobile new-game start`)
+- GitHub `origin/main` 기준 커밋: `c7cee48` (`fix: restore complete career update page`)
 - 작업 시작 시 상태: 로컬 변경 없음, `main`과 `origin/main` 동일
-- 반영 상태: 직업 시스템 개편 커밋으로 `main` 반영
 
 ## 완료된 작업
 - 시작 선택을 `특별한 소질 없음 / 검술 / 마나 / 야외생활 / 손재주`의 작은 보너스로 개편
@@ -16,7 +15,12 @@
 - 해금된 직업만 선택 가능, 무직 복귀 및 직업 미선택 진행 가능
 - 기존 `trait` 값을 새 `aptitude`로 변환하고 직업 필드가 없는 v0.5.x 저장을 `직업 없음`으로 마이그레이션
 - 직업 전용 회귀 검사 12개 및 휴대폰/태블릿 브라우저 검사 스크립트 추가
-- 이미지·NPC·몬스터·재료·무기·지역·스토리 리소스 변경 없음
+- 브렌 초반권 F급 몬스터 4종 추가: 이끼 슬라임, 강변 큰개구리, 어린 회색늑대, 먼지날개 박쥐
+- 브렌 주변 7개 지역에 각기 다른 3종 혼합 출현표 연결
+- 새 몬스터의 전투 수치, 약점, 드랍, 도감, 처치 기록, 시장 판매가 연결
+- 안전 정찰 튜토리얼 완료 전 서쪽 숲 추가 사냥을 숨겨 기존 초반 흐름 유지
+- 기존 몬스터 아틀라스의 대응 종 이미지를 재사용
+- 브렌 신규 드랍 재료 4종 전용 아이콘 아틀라스(`맑은 점액 / 개구리 가죽 / 박쥐 가죽 / 푸른 약초`)를 경량 WebP로 추가하고, 전리품 알림·인벤토리·시장·도감·제작 재료 표시에 연결
 
 ## 일부 완료된 작업
 - 휴대폰/태블릿 반응형 CSS 및 정적 넘침 조건 검사는 반영됨
@@ -24,25 +28,30 @@
 
 ## 미완료 작업
 - 실제 모바일/태블릿 브라우저에서 `tests/career-browser.cjs` 최종 실행
+- 새 몬스터 4종의 전용 원화 제작(현재는 기존 종별 아틀라스 재사용)
 - 직업별 고유 능력·보정 콘텐츠(이번 범위에서는 의도적으로 제외)
 - 향후 신성 숙련이 추가된 뒤 성기사 계열 연결
 
 ## 현재 변경된 파일
 - `index.html`
-- `css/career-system.css`
 - `js/career-system.js`
+- `js/bren-monsters.js`
+- `js/resource-feedback.js`
+- `css/resource-feedback.css`
+- `assets/atlases/bren-materials-v1.webp`
 - `tests/regression.cjs`
-- `tests/career-browser.cjs`
 - `WORK_PROGRESS.md`
 
 ## 테스트 결과
-- `node tests/regression.cjs`: 30/30 통과
+- `node tests/regression.cjs`: 38/38 통과
   - 기존 회귀 18개 유지
   - 직업 시스템 전용 12개 통과
+  - 브렌 저레벨 몬스터 전용 6개 통과
+  - 신규 드랍 이미지/표시 전용 2개 통과
 - `git diff --check`: 통과
 - `tests/career-browser.cjs`: Chromium 실행 바이너리 부재로 미실행
 
 ## 다음 작업 순서
-1. Chromium이 준비된 환경에서 휴대폰 390×844, 태블릿 900×1180 브라우저 회귀 실행
-2. 실기기에서 캐릭터 시트와 직업 모달 터치·스크롤 확인
-3. 실기기 피드백에서 확인된 직업 UI 문제만 후속 수정
+1. 브렌 지역별 몬스터 출현 빈도와 F급 보상 실기기 플레이 확인
+2. Chromium이 준비된 환경에서 휴대폰 390×844, 태블릿 900×1180 브라우저 회귀 실행
+3. 필요 시 새 몬스터 전용 원화를 별도 이미지 작업으로 진행

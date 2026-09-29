@@ -48,7 +48,7 @@ function normalizeCareerState(state,source=state){
   state.unlockedCareers=Array.isArray(source?.unlockedCareers)?source.unlockedCareers.filter(key=>CAREERS[key]):[];
   if(state.career&&!state.unlockedCareers.includes(state.career))state.unlockedCareers.push(state.career);
   state.aptitudeApplied=Boolean(source?.aptitudeApplied||legacyTrait||source?.name);
-  state.schemaVersion="0.5.6";
+  state.schemaVersion="0.5.7";
   return state;
 }
 function applyAptitude(key){
