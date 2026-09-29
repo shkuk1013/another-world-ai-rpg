@@ -117,4 +117,16 @@ test('drop log, codex and crafting requirements render item icons',()=>{
  assert(get("G.log.at(-1).text").includes('item-inline-icon'));assert(context.codexList.innerHTML.includes('item-inline-icon'));
  assert(context.forgeList.innerHTML.includes('item-inline-icon'));
 });
+
+test('goblin family battle art is clean and has no baked combat HUD',()=>{
+ resetCareer();exec("G.name='고블린원화검사';startCombat('goblin')");
+ assert.equal(get("MONSTER_DIRECT.goblin"),'assets/enemies/clean/goblin.svg');
+ assert.equal(context.enemyArt.src,'assets/enemies/clean/goblin.svg');
+ assert(!context.enemyArt.classList.contains('monster-atlas-art'));
+ for(const file of ['goblin.svg','mana-goblin.svg','goblin-chief.svg']){
+  const svg=fs.readFileSync(root+'/assets/enemies/clean/'+file,'utf8');
+  assert(svg.includes('viewBox='));
+  assert(!/(>HP<|공격|스킬|아이템|도망)/.test(svg));
+ }
+});
 console.log(`${tests} regression checks passed.`);
