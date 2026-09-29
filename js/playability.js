@@ -178,7 +178,7 @@ loadGame=function(){
  catch(e){alert('저장 데이터를 읽지 못했습니다. 기존 저장은 변경하지 않았습니다.');}
 };
 const originalStart=startGame;
-startGame=function(){nameInput.value=(nameInput.value||'이방인').replace(/[<>"'&]/g,'').slice(0,20);originalStart();};
+startGame=function(){const nameEl=document.getElementById('nameInput');if(nameEl)nameEl.value=(nameEl.value||'이방인').replace(/[<>"'&]/g,'').slice(0,20);originalStart();};
 document.addEventListener('keydown',e=>{
  if(e.ctrlKey||e.metaKey||e.altKey||['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;
  if(e.key.toLowerCase()==='m'&&startModal.classList.contains('hidden')&&!G.combat){e.preventDefault();worldMapModal.classList.contains('hidden')?openWorldMap('bren'):closeWorldMap();}
