@@ -250,7 +250,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <select id="traitInput" style="width:100%;padding:9px;margin:6px 0 12px;background:#0d141d;border:1px solid #3a4a61;border-radius:8px;color:white">
 <option>마력감응</option><option>검술경험</option><option>사냥경험</option><option>도적감각</option>
 </select>
-<button class="primary" onclick="startGame()">새 모험 시작</button> <button onclick="loadGame()">저장한 모험 이어하기</button>
+<button id="startGameBtn" type="button" class="primary" onclick="startGame()">새 모험 시작</button> <button onclick="loadGame()">저장한 모험 이어하기</button>
 </div></div>
 
 <div id="combatModal" class="modal hidden"><div>
@@ -785,11 +785,16 @@ function startBossByRoute(id){
 }
 
 function startGame(){
- G.name=nameInput.value||"이방인";G.trait=traitInput.value;
+ const nameEl=document.getElementById("nameInput");
+ const traitEl=document.getElementById("traitInput");
+ const modalEl=document.getElementById("startModal");
+ G.name=(nameEl?.value||"이방인");
+ G.trait=(traitEl?.value||"");
  if(G.trait==="마력감응"){G.manaControl+=6;G.fire+=4;G.maxMp+=5;G.mp=G.maxMp}
  if(G.trait==="검술경험"){G.sword+=7;G.maxHp+=5;G.hp=G.maxHp}
  if(G.trait==="사냥경험")G.bow+=6;if(G.trait==="도적감각")G.dagger+=6;
- startModal.classList.add("hidden");add("system","눈을 뜨자 흙냄새가 났다. 영웅의 검도, 신의 목소리도 없었다. 멀리 사람 사는 마을의 연기만 보인다.");
+ modalEl?.classList.add("hidden");
+ add("system","눈을 뜨자 흙냄새가 났다. 영웅의 검도, 신의 목소리도 없었다. 멀리 사람 사는 마을의 연기만 보인다.");
 }
 function goVillage(){G.stage=1;G.location="브렌 마을";G.hour++;G.quest={title:"이 세계에서 첫날",desc:"길드에 등록하고, 오늘 밤을 버틸 방법을 찾자."};add("system","브렌의 성문을 통과한다. 장터의 소리와 빵 굽는 냄새가 낯설게 안심된다.")}
 function move(x){
