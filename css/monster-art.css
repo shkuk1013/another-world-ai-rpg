@@ -28,3 +28,24 @@
 
 .monster-atlas-art{background-repeat:no-repeat!important;background-color:#091019!important}
 .monster-atlas-thumb{display:block;background-repeat:no-repeat!important}
+
+/* Goblin clean battle crops: show only creature artwork, never baked HP/command UI. */
+.enemy-art.monster-clean-crop{
+  display:block;
+  width:100%;
+  height:260px;
+  max-height:260px!important;
+  object-fit:cover;
+  background-color:#091019!important;
+}
+.monster-clean-thumb{
+  display:block;
+  background-repeat:no-repeat!important;
+  background-color:#091019!important;
+}
+@media(max-width:620px){
+  .enemy-art.monster-clean-crop{
+    height:210px;
+    max-height:210px!important;
+  }
+}
