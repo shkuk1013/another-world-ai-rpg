@@ -161,4 +161,10 @@ test('daily board refresh keeps accepted requests and rotates postings',()=>{
  resetCareer();exec("G.name='갱신검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.day=4;G.guildBoard={day:0,ids:[]};ensureGuildQuestState();var day4=G.guildBoard.ids.join(',');acceptGuildQuest(G.guildBoard.ids[0]);var active=G.guildRequests[0].id;G.day=5;ensureGuildQuestState();var day5=G.guildBoard.ids.join(',')");
  assert.equal(get('G.guildRequests[0].id'),get('active'));assert.notEqual(get('day4'),get('day5'));assert.equal(get('G.guildBoard.ids.length'),5);
 });
+
+test('completed request cannot be farmed again on the same day',()=>{
+ resetCareer();exec("G.name='반복방지';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=10;ensureGuildQuestState();acceptGuildQuest('herb_red');turnInGuildQuest('herb_red')");
+ assert.equal(get("acceptGuildQuest('herb_red')"),false);
+ assert.equal(get("G.materials['붉은 약초']"),5);
+});
 console.log(`${tests} regression checks passed.`);
