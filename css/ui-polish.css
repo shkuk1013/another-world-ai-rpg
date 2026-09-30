@@ -224,3 +224,19 @@
 }
 .icon-menu-rune:before{top:27%}
 .icon-menu-rune:after{display:none}
+
+
+/* ---------- Repeated-tap bottom navigation ---------- */
+@media(max-width:1180px){
+  /* Keep the bottom navigation physically tappable while its own map/menu surface is open. */
+  .mobile-menu-overlay{
+    bottom:calc(var(--mobile-nav-h) + env(safe-area-inset-bottom,0px))!important;
+  }
+  #worldMapModal{
+    bottom:calc(var(--mobile-nav-h) + env(safe-area-inset-bottom,0px))!important;
+    padding-bottom:8px!important;
+  }
+  .mobile-bottom-nav button.active{
+    transform:translateY(-1px);
+  }
+}
