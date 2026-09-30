@@ -95,8 +95,13 @@
       b.classList.toggle("active",!!on);
     });
   }
+  function closeMapIfOpen(){
+    const map=document.getElementById("worldMapModal");
+    if(map&&!map.classList.contains("hidden")&&typeof window.closeWorldMap==="function")window.closeWorldMap();
+  }
   function openSide(tab){
     if(!mobileMode())return;
+    closeMapIfOpen();
     closeMenu();
     switchSideTab(tab);
     side.classList.add("mobile-sheet-open");
@@ -112,6 +117,7 @@
   }
   function openMenu(){
     if(!mobileMode())return;
+    closeMapIfOpen();
     closeSide();
     menu.classList.add("open");
     markActive(null,"menu");
