@@ -251,4 +251,29 @@ test('HUD visibility stylesheet loads after the guild UI styles',()=>{
  const hud=html.indexOf('css/hud-visibility.css?v=0.5.8-hud1');
  assert(guild>=0&&hud>guild);
 });
+
+test('fantasy icon atlas is wired to all eight generated UI roles',()=>{
+ const css=fs.readFileSync(root+'/css/fantasy-ui-icons.css','utf8');
+ assert(fs.existsSync(root+'/assets/ui/ui-nav-icons.webp'));
+ for(const name of ['quest','bag','map','character','guild','forge','inn','magic'])assert(css.includes('.icon-'+name));
+});
+test('mobile navigation uses generated fantasy icons instead of emoji-only buttons',()=>{
+ const js=fs.readFileSync(root+'/js/mobile-ui.js','utf8');
+ assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-quest'));
+ assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-bag'));
+ assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-map'));
+ assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-character'));
+ assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-magic'));
+ assert(js.includes('decorateFantasyActions'));
+ assert(js.includes('icon-forge'));
+ assert(js.includes('icon-inn'));
+ assert(js.includes('icon-guild'));
+});
+test('fantasy icon stylesheet and refreshed mobile UI load after core styles',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ const hud=html.indexOf('css/hud-visibility.css');
+ const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.8-icons1');
+ assert(hud>=0&&icons>hud);
+ assert(html.includes('js/mobile-ui.js?v=0.5.8-icons1'));
+});
 console.log(`${tests} regression checks passed.`);
