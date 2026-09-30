@@ -110,9 +110,40 @@
 
   nav.addEventListener("click",e=>{
     const b=e.target.closest("button");if(!b)return;
-    if(b.dataset.tab)return openSide(b.dataset.tab);
-    if(b.dataset.action==="map"){closeSide();openWorldMap("bren");}
-    if(b.dataset.action==="menu")openMenu();
+
+    if(b.dataset.tab){
+      // Tapping the currently open bottom tab again closes the side sheet.
+      if(side.classList.contains("mobile-sheet-open")&&b.classList.contains("active")){
+        closeSide();
+        return;
+      }
+      closeMenu();
+      openSide(b.dataset.tab);
+      return;
+    }
+
+    if(b.dataset.action==="map"){
+      const map=document.getElementById("worldMapModal");
+      // The map button is a true toggle: tap once to open, tap again to close.
+      if(map&&!map.classList.contains("hidden")){
+        closeWorldMap();
+        return;
+      }
+      closeSide();
+      closeMenu();
+      openWorldMap("bren");
+      return;
+    }
+
+    if(b.dataset.action==="menu"){
+      // Same toggle behavior for the bottom menu button.
+      if(menu.classList.contains("open")){
+        closeMenu();
+        return;
+      }
+      closeSide();
+      openMenu();
+    }
   });
   close.onclick=closeSide;
   menu.addEventListener("click",e=>{
