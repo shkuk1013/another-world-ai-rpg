@@ -7,11 +7,11 @@
   nav.className="mobile-bottom-nav";
   nav.setAttribute("aria-label","모바일 게임 메뉴");
   nav.innerHTML=`
-    <button data-tab="quest"><span class="mobile-nav-icon">📜</span><span>퀘스트</span></button>
-    <button data-tab="inventory"><span class="mobile-nav-icon">🎒</span><span>가방</span></button>
-    <button data-action="map"><span class="mobile-nav-icon">🗺️</span><span>지도</span></button>
-    <button data-tab="character"><span class="mobile-nav-icon">⚔️</span><span>캐릭터</span></button>
-    <button data-action="menu"><span class="mobile-nav-icon">☰</span><span>메뉴</span></button>`;
+    <button data-tab="quest"><span class="mobile-nav-icon fantasy-ui-icon icon-quest" aria-hidden="true"></span><span>퀘스트</span></button>
+    <button data-tab="inventory"><span class="mobile-nav-icon fantasy-ui-icon icon-bag" aria-hidden="true"></span><span>가방</span></button>
+    <button data-action="map"><span class="mobile-nav-icon fantasy-ui-icon icon-map" aria-hidden="true"></span><span>지도</span></button>
+    <button data-tab="character"><span class="mobile-nav-icon fantasy-ui-icon icon-character" aria-hidden="true"></span><span>캐릭터</span></button>
+    <button data-action="menu"><span class="mobile-nav-icon fantasy-ui-icon icon-magic" aria-hidden="true"></span><span>메뉴</span></button>`;
   document.body.appendChild(nav);
 
   const close=document.createElement("button");
@@ -25,16 +25,68 @@
   menu.innerHTML=`<section class="mobile-menu-card" role="dialog" aria-modal="true" aria-label="게임 메뉴">
     <div class="mobile-menu-head"><h3>게임 메뉴</h3><button type="button" class="mobile-menu-home" aria-label="게임 화면으로 돌아가기">⌂</button><button type="button" class="mobile-menu-x" aria-label="메뉴 닫기">✕</button></div>
     <div class="mobile-menu-grid">
-      <button data-menu="social">🤝 동료 / 관계</button>
-      <button data-menu="codex">👹 몬스터 도감</button>
-      <button data-menu="collection">📚 수집 도감</button>
-      <button data-menu="titles">🏅 칭호</button>
+      <button class="fantasy-decorated" data-menu="social"><span class="fantasy-ui-icon menu-fantasy-icon icon-guild" aria-hidden="true"></span><span>동료 / 관계</span></button>
+      <button class="fantasy-decorated" data-menu="codex"><span class="fantasy-ui-icon menu-fantasy-icon icon-magic" aria-hidden="true"></span><span>몬스터 도감</span></button>
+      <button class="fantasy-decorated" data-menu="collection"><span class="fantasy-ui-icon menu-fantasy-icon icon-quest" aria-hidden="true"></span><span>수집 도감</span></button>
+      <button class="fantasy-decorated" data-menu="titles"><span class="fantasy-ui-icon menu-fantasy-icon icon-character" aria-hidden="true"></span><span>칭호</span></button>
       <button data-menu="save">💾 저장</button>
       <button data-menu="load">↩ 불러오기</button>
     </div>
     <button class="mobile-menu-close">닫기</button>
   </section>`;
   document.body.appendChild(menu);
+
+  function makeFantasyIcon(iconClass,sizeClass){
+    const icon=document.createElement("span");
+    icon.className=`fantasy-ui-icon ${sizeClass||""} ${iconClass}`;
+    icon.setAttribute("aria-hidden","true");
+    return icon;
+  }
+  function decorateButton(button,iconClass,sizeClass){
+    if(!button||button.classList.contains("fantasy-decorated"))return;
+    button.classList.add("fantasy-decorated");
+    button.prepend(makeFantasyIcon(iconClass,sizeClass));
+  }
+  function decorateStaticFantasyUI(){
+    const tabIcons={
+      tabQuest:"icon-quest",
+      tabInventory:"icon-bag",
+      tabCharacter:"icon-character",
+      tabSocial:"icon-guild"
+    };
+    for(const [id,icon] of Object.entries(tabIcons)){
+      decorateButton(document.getElementById(id),icon,"tab-fantasy-icon");
+    }
+    document.querySelectorAll(".side-actions button").forEach(button=>{
+      const text=(button.textContent||"").trim();
+      const icon=/길드/.test(text)?"icon-guild":
+        /칭호/.test(text)?"icon-character":
+        /제작|연금/.test(text)?"icon-forge":
+        /지도/.test(text)?"icon-map":null;
+      if(icon)decorateButton(button,icon,"action-fantasy-icon");
+    });
+  }
+  function fantasyChoiceClass(text){
+    if(/대장간|장비 제작|강화|제련/.test(text))return "icon-forge";
+    if(/여관|숙박|식사|휴식|잠/.test(text))return "icon-inn";
+    if(/모험가 길드|길드 등급|길드 등록/.test(text))return "icon-guild";
+    if(/마법|리엔|주문|연금|마나/.test(text))return "icon-magic";
+    if(/지도|주변 지역 이동|이동/.test(text))return "icon-map";
+    if(/의뢰|정찰|보고|흔적 추적/.test(text))return "icon-quest";
+    if(/인벤|가방/.test(text))return "icon-bag";
+    if(/캐릭터|칭호|숙련/.test(text))return "icon-character";
+    return null;
+  }
+  function decorateFantasyActions(){
+    document.querySelectorAll("#actions .choice-btn").forEach(button=>{
+      const iconClass=fantasyChoiceClass(button.textContent||"");
+      if(!iconClass)return;
+      const icon=button.querySelector(".choice-icon");
+      if(!icon)return;
+      icon.textContent="";
+      icon.className="choice-icon fantasy-choice-icon "+iconClass;
+    });
+  }
 
   function mobileMode(){return matchMedia("(max-width:1180px)").matches}
   function markActive(tab){
@@ -92,6 +144,8 @@
     window.render=function(){
       const out=baseRender.apply(this,arguments);
       refreshConditionHud();
+      decorateStaticFantasyUI();
+      decorateFantasyActions();
       return out;
     };
   }
@@ -102,6 +156,8 @@
     closeSide();
   });
   addEventListener("keydown",e=>{if(e.key==="Escape"){closeSide();closeMenu();}});
+  decorateStaticFantasyUI();
+  decorateFantasyActions();
   refreshConditionHud();
 })();
 
