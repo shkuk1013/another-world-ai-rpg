@@ -235,4 +235,20 @@ test('quarry mining odds keep coal and clay in meaningful F-rank ranges',()=>{
  const src=fs.readFileSync(root+'/js/resource-feedback.js','utf8');
  assert(src.includes('r<.4?"철광석":r<.68?"구리광석":r<.88?"석탄":"점토"'));
 });
+
+test('HUD visibility CSS keeps HP red and stat bars readable',()=>{
+ const css=fs.readFileSync(root+'/css/hud-visibility.css','utf8');
+ assert(css.includes('nth-child(1) .mini-bar i'));
+ assert(css.includes('#ef3d4c'));
+ assert(css.includes('height:11px'));
+ assert(css.includes('font-size:12px'));
+ assert(css.includes('@media(max-width:620px)'));
+ assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr))'));
+});
+test('HUD visibility stylesheet loads after the guild UI styles',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ const guild=html.indexOf('css/guild-quests.css');
+ const hud=html.indexOf('css/hud-visibility.css?v=0.5.8-hud1');
+ assert(guild>=0&&hud>guild);
+});
 console.log(`${tests} regression checks passed.`);
