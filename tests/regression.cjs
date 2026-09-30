@@ -167,4 +167,21 @@ test('completed request cannot be farmed again on the same day',()=>{
  assert.equal(get("acceptGuildQuest('herb_red')"),false);
  assert.equal(get("G.materials['붉은 약초']"),5);
 });
+
+test('F-rank requests point players to valid destination regions',()=>{
+ assert(get("Object.values(F_RANK_QUESTS).every(q=>q.place&&LOCATIONS[q.place])"));
+ assert(get("Object.values(F_RANK_QUESTS).filter(q=>q.type==='collect').every(q=>q.method)"));
+});
+test('F-rank hunt targets actually spawn in their recommended regions',()=>{
+ assert(get("Object.values(F_RANK_QUESTS).filter(q=>q.type==='hunt').every(q=>BREN_ENCOUNTERS[q.place]?.some(([id])=>id===q.target))"));
+});
+test('guild request cards show destination method and map guidance',()=>{
+ resetCareer();exec("G.name='길찾기검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.guildBoard={day:G.day,ids:['bat_hide','hunt_bat']};ensureGuildQuestState();renderGuildQuestBoard()");
+ const board=get("document.getElementById('guildQuestAvailable').innerHTML");
+ assert(board.includes('권장 획득 지역'));assert(board.includes('북쪽 채석장'));assert(board.includes('먼지날개 박쥐 처치'));assert(board.includes('지도에서 보기'));
+});
+test('accepted guild request can navigate directly to its destination',()=>{
+ resetCareer();exec("G.name='이동검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['hunt_bat']};ensureGuildQuestState();acceptGuildQuest('hunt_bat');var oldTravelTo=travelTo;var questNavPlace='';travelTo=(p)=>{questNavPlace=p};goToGuildQuestPlace('hunt_bat');travelTo=oldTravelTo");
+ assert.equal(get('questNavPlace'),'북쪽 채석장');
+});
 console.log(`${tests} regression checks passed.`);
