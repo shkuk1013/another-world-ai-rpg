@@ -276,7 +276,7 @@ test('fantasy icon stylesheet and refreshed mobile UI load after core styles',()
  const hud=html.indexOf('css/hud-visibility.css');
  const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.8-icons1');
  assert(hud>=0&&icons>hud);
- assert(html.includes('js/mobile-ui.js?v=0.5.8-equip1'));
+ assert(html.includes('js/mobile-ui.js?v=0.5.9-toggle1'));
 });
 
 test('blacksmith sells four starter armors without replacing crafted tiers',()=>{
@@ -351,7 +351,24 @@ test('bottom menu uses a dedicated rune glyph instead of the magic icon',()=>{
 });
 test('UI polish assets load after equipment UI',()=>{
  const html=fs.readFileSync(root+'/index.html','utf8');
- assert(html.indexOf('css/ui-polish.css?v=0.5.9-ui1')>html.indexOf('css/equipment-ui.css?v=0.5.8-equip1'));
+ assert(html.indexOf('css/ui-polish.css?v=0.5.9-toggle1')>html.indexOf('css/equipment-ui.css?v=0.5.8-equip1'));
  assert(html.indexOf('js/ui-polish.js?v=0.5.9-ui1')>html.indexOf('js/equipment-ui.js?v=0.5.8-equip1'));
+});
+
+test('mobile bottom side tabs close when the active button is tapped again',()=>{
+ const js=fs.readFileSync(root+'/js/mobile-ui.js','utf8');
+ assert(js.includes('const sameOpen=side.classList.contains("mobile-sheet-open")&&b.classList.contains("active")'));
+ assert(js.includes('if(sameOpen)return closeSide()'));
+});
+test('map and menu bottom buttons also support repeated-tap close',()=>{
+ const js=fs.readFileSync(root+'/js/mobile-ui.js','utf8');
+ const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
+ assert(js.includes('if(mapOpen)return closeWorldMap()'));
+ assert(js.includes('if(menu.classList.contains("open"))return closeMenu()'));
+ assert(js.includes('markActive(null,"map")'));
+ assert(js.includes('markActive(null,"menu")'));
+ assert(css.includes('#worldMapModal'));
+ assert(css.includes('.mobile-menu-overlay'));
+ assert(css.includes('bottom:calc(var(--mobile-nav-h) + env(safe-area-inset-bottom,0px))!important'));
 });
 console.log(`${tests} regression checks passed.`);
