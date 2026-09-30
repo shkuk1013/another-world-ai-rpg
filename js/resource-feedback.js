@@ -186,7 +186,7 @@
     if(!consumeNode("mining"))return;
     spendAction(1,7);G.mining++;
     if(Math.random()<.12)return discoveryMiss("몇 번 내려쳤지만 겉돌만 떨어져 나왔다. 쓸 만한 광맥은 아니었다.","mining");
-    const r=Math.random(),found=r<.5?"철광석":r<.82?"구리광석":r<.95?"석탄":"점토";
+    const r=Math.random(),found=r<.4?"철광석":r<.68?"구리광석":r<.88?"석탄":"점토";
     const qty=1+(Math.random()<Math.min(.35,G.mining/50)?1:0);
     addMaterial(found,qty);
     add("system",`암벽의 색이 다른 층을 따라 쪼개 <b>${found} ${qty}개</b>를 캐냈다.<br><span class="small">${remainingText("mining")}</span>`);
