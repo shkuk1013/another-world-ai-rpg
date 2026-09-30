@@ -19,6 +19,7 @@ exec(fs.readFileSync(root+'/js/bren-monsters.js','utf8'));
 exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
 exec(fs.readFileSync(root+'/js/guild-quests.js','utf8'));
 exec(fs.readFileSync(root+'/js/equipment-ui.js','utf8'));
+exec(fs.readFileSync(root+'/js/ui-polish.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
@@ -275,7 +276,7 @@ test('fantasy icon stylesheet and refreshed mobile UI load after core styles',()
  const hud=html.indexOf('css/hud-visibility.css');
  const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.8-icons1');
  assert(hud>=0&&icons>hud);
- assert(html.includes('js/mobile-ui.js?v=0.5.8-icons1'));
+ assert(html.includes('js/mobile-ui.js?v=0.5.8-equip1'));
 });
 
 test('blacksmith sells four starter armors without replacing crafted tiers',()=>{
@@ -306,5 +307,51 @@ test('equipment UI exposes equip buttons and equipped status in inventory',()=>{
  exec("var it=G.equipmentInventory.find(x=>x.name==='가죽 조끼');equipInventoryItem(it.uid);render()");
  assert(context.equipmentInvBox.innerHTML.includes('✅ 장착 중'));
  assert(context.equip.innerHTML.includes('방어 2'));
+});
+
+test('UI polish resolves the mobile HUD to five equal stat cells',()=>{
+ const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
+ assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr))!important'));
+ assert(css.includes('.hud-bars .mini-bar{'));
+ assert(css.includes('height:8px!important'));
+});
+test('combat UI uses distinct HP MP and enemy HP visual channels',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
+ assert(html.includes('combat-hp-bar'));
+ assert(html.includes('combat-mp-bar'));
+ assert(html.includes('combat-enemy-bar'));
+ assert(html.includes('<b>공격</b>'));
+ assert(html.includes('<b>마법</b>'));
+ assert(css.includes('.combat-hp-bar i'));
+ assert(css.includes('.combat-mp-bar i'));
+ assert(css.includes('.combat-enemy-bar i'));
+ assert(css.includes('position:fixed'));
+});
+test('inventory is split into equipment consumables materials and tools tabs',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ for(const tab of ['equipment','consumables','materials','tools'])assert(html.includes('data-inventory-tab="'+tab+'"'));
+ assert.equal(get('getInventoryTab()'),'equipment');
+ exec("switchInventoryTab('materials')");
+ assert.equal(get('getInventoryTab()'),'materials');
+});
+test('character stats are grouped into readable RPG cards',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ assert(html.includes('character-card-head"><span>⚔️</span><b>전투 숙련'));
+ assert(html.includes('character-card-head"><span>✨</span><b>마법 숙련'));
+ assert(html.includes('character-card-head"><span>🌿</span><b>생활 숙련'));
+ assert(html.includes('character-stat-grid'));
+});
+test('bottom menu uses a dedicated rune glyph instead of the magic icon',()=>{
+ const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
+ const js=fs.readFileSync(root+'/js/ui-polish.js','utf8');
+ assert(css.includes('.icon-menu-rune'));
+ assert(js.includes('classList.remove("icon-magic")'));
+ assert(js.includes('classList.add("icon-menu-rune")'));
+});
+test('UI polish assets load after equipment UI',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ assert(html.indexOf('css/ui-polish.css?v=0.5.9-ui1')>html.indexOf('css/equipment-ui.css?v=0.5.8-equip1'));
+ assert(html.indexOf('js/ui-polish.js?v=0.5.9-ui1')>html.indexOf('js/equipment-ui.js?v=0.5.8-equip1'));
 });
 console.log(`${tests} regression checks passed.`);
