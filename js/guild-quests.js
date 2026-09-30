@@ -3,18 +3,18 @@
   const MAX_ACTIVE=3,BOARD_SIZE=5;
   let boardTab="available";
   const F_QUESTS={
-    herb_red:{title:"붉은 약초 납품",type:"collect",target:"붉은 약초",qty:5,difficulty:"쉬움",place:"서쪽 숲",method:"야외 약초 채집",desc:"초보 치료약에 쓸 붉은 약초를 길드에 납품한다.",reward:{gold:14,gp:3}},
-    herb_blue:{title:"푸른 약초 납품",type:"collect",target:"푸른 약초",qty:4,difficulty:"쉬움",place:"서쪽 숲",method:"야외 약초 채집",desc:"마나 회복약 재료로 쓰이는 푸른 약초를 모은다.",reward:{gold:15,gp:3,relation:{npc:"리엔",aff:1}}},
+    herb_red:{title:"붉은 약초 납품",type:"collect",target:"붉은 약초",qty:3,difficulty:"쉬움",place:"서쪽 숲",method:"야외 약초 채집",desc:"초보 치료약에 쓸 붉은 약초를 길드에 납품한다.",reward:{gold:14,gp:3}},
+    herb_blue:{title:"푸른 약초 납품",type:"collect",target:"푸른 약초",qty:2,difficulty:"쉬움",place:"서쪽 숲",method:"야외 약초 채집",desc:"마나 회복약 재료로 쓰이는 푸른 약초를 모은다.",reward:{gold:15,gp:3,relation:{npc:"리엔",aff:1}}},
     antidote_herb:{title:"해독초 비축",type:"collect",target:"해독초",qty:2,difficulty:"쉬움",place:"안개 습지",minLevel:2,minRep:2,method:"습지 채집·탐색",desc:"습지 의뢰에 대비해 해독초를 비축한다.",reward:{gold:19,gp:4,item:{name:"해독제",qty:1}}},
-    clear_slime:{title:"맑은 점액 납품",type:"collect",target:"맑은 점액",qty:3,difficulty:"보통",place:"강변 부두",method:"이끼 슬라임 처치",desc:"연금술 길드에서 슬라임 점액을 구하고 있다.",reward:{gold:18,gp:4}},
+    clear_slime:{title:"맑은 점액 납품",type:"collect",target:"맑은 점액",qty:2,difficulty:"보통",place:"강변 부두",method:"이끼 슬라임 처치",desc:"연금술 길드에서 슬라임 점액을 구하고 있다.",reward:{gold:18,gp:4}},
     frog_hide:{title:"개구리 가죽 납품",type:"collect",target:"개구리 가죽",qty:2,difficulty:"보통",place:"강변 부두",method:"강변 큰개구리 처치",desc:"방수 가공 시험용 개구리 가죽을 납품한다.",reward:{gold:20,gp:4}},
-    bat_hide:{title:"박쥐 가죽 납품",type:"collect",target:"박쥐 가죽",qty:3,difficulty:"보통",place:"북쪽 채석장",method:"먼지날개 박쥐 처치",desc:"가벼운 가죽 장비 시험용 박쥐 가죽을 모은다.",reward:{gold:22,gp:4}},
-    coal_supply:{title:"대장간 석탄 조달",type:"collect",target:"석탄",qty:4,difficulty:"쉬움",place:"북쪽 채석장",method:"채광",desc:"브람의 대장간에 급하게 필요한 석탄을 조달한다.",reward:{gold:20,gp:4,relation:{npc:"브람",aff:1}}},
-    clay_supply:{title:"성벽 보수용 점토",type:"collect",target:"점토",qty:3,difficulty:"쉬움",place:"북쪽 채석장",method:"채광",desc:"마을 외벽 보수에 쓸 점토를 납품한다.",reward:{gold:16,gp:3}},
-    hunt_slime:{title:"이끼 슬라임 정리",type:"hunt",target:"forest_slime",qty:3,difficulty:"보통",place:"서쪽 숲",desc:"길가까지 내려온 이끼 슬라임을 세 마리 처치한다.",reward:{gold:23,gp:4}},
+    bat_hide:{title:"박쥐 가죽 납품",type:"collect",target:"박쥐 가죽",qty:2,difficulty:"보통",place:"북쪽 채석장",method:"먼지날개 박쥐 처치",desc:"가벼운 가죽 장비 시험용 박쥐 가죽을 모은다.",reward:{gold:22,gp:4}},
+    coal_supply:{title:"대장간 석탄 조달",type:"collect",target:"석탄",qty:2,difficulty:"쉬움",place:"북쪽 채석장",method:"채광",desc:"브람의 대장간에 급하게 필요한 석탄을 조달한다.",reward:{gold:20,gp:4,relation:{npc:"브람",aff:1}}},
+    clay_supply:{title:"성벽 보수용 점토",type:"collect",target:"점토",qty:1,difficulty:"쉬움",place:"북쪽 채석장",method:"채광",desc:"마을 외벽 보수에 쓸 점토를 납품한다.",reward:{gold:16,gp:3}},
+    hunt_slime:{title:"이끼 슬라임 정리",type:"hunt",target:"forest_slime",qty:2,difficulty:"보통",place:"서쪽 숲",desc:"길가까지 내려온 이끼 슬라임을 세 마리 처치한다.",reward:{gold:23,gp:4}},
     hunt_frog:{title:"농장 큰개구리 퇴치",type:"hunt",target:"river_frog",qty:2,difficulty:"보통",place:"남쪽 농장",desc:"농작물을 망치는 강변 큰개구리를 두 마리 처치한다.",reward:{gold:24,gp:4,rep:1}},
     hunt_wolf:{title:"어린 회색늑대 견제",type:"hunt",target:"young_wolf",qty:2,difficulty:"위험",place:"옛 왕도길",desc:"행상인을 따라붙는 어린 회색늑대 두 마리를 처치한다.",reward:{gold:27,gp:5}},
-    hunt_bat:{title:"채석장 박쥐 퇴치",type:"hunt",target:"dust_bat",qty:3,difficulty:"보통",place:"북쪽 채석장",desc:"작업을 방해하는 먼지날개 박쥐 세 마리를 처치한다.",reward:{gold:28,gp:5}},
+    hunt_bat:{title:"채석장 박쥐 퇴치",type:"hunt",target:"dust_bat",qty:2,difficulty:"보통",place:"북쪽 채석장",desc:"작업을 방해하는 먼지날개 박쥐 세 마리를 처치한다.",reward:{gold:28,gp:5}},
     hunt_goblin:{title:"고블린 정찰병 퇴치",type:"hunt",target:"goblin",qty:2,difficulty:"위험",place:"서쪽 숲",desc:"서쪽 숲 길목을 맴도는 고블린 정찰병 두 마리를 처치한다.",reward:{gold:32,gp:5,rep:1}},
     visit_farm:{title:"남쪽 농장 피해 조사",type:"visit",target:"남쪽 농장",qty:1,difficulty:"쉬움",place:"남쪽 농장",desc:"남쪽 농장을 직접 방문해 울타리와 작물 피해를 확인한다.",reward:{gold:13,gp:3}},
     visit_dock:{title:"강변 부두 순찰",type:"visit",target:"강변 부두",qty:1,difficulty:"쉬움",place:"강변 부두",desc:"부두 주변을 한 차례 순찰하고 길드에 상황을 보고한다.",reward:{gold:13,gp:3}},
@@ -277,6 +277,25 @@
     }
     box.appendChild(wrap);
   }
+  function activeHuntRequestHere(){
+    return G.guildRequests
+      .filter(r=>{
+        const q=F_QUESTS[r.id];
+        return q?.type==="hunt"&&q.place===G.location&&!questComplete(r);
+      })
+      .sort((a,b)=>progressOf(a)/F_QUESTS[a.id].qty-progressOf(b)/F_QUESTS[b.id].qty)[0]||null;
+  }
+  function startTrackedGuildHunt(){
+    if(G.combat)return false;
+    const req=activeHuntRequestHere();if(!req)return false;
+    const q=F_QUESTS[req.id],targetName=MONSTERS[q.target]?.name||q.target;
+    const hit=Math.random()<.75;
+    const type=hit?q.target:(typeof pickBrenEncounter==="function"?pickBrenEncounter(G.location):q.target);
+    add("system",hit
+      ?`의뢰서의 흔적과 주변 발자국을 대조했다. <b>${targetName}</b>의 흔적이 선명하다.`
+      :`흔적을 따라갔지만 다른 몬스터의 영역으로 이어졌다. 의뢰 대상은 이 근처에 있는 듯하다.`);
+    startCombat(type||q.target);return type||q.target;
+  }
   function appendLocalQuestHint(){
     if(!boardUnlocked()||!G.guildRequests.length)return;
     const root=document.getElementById("actions");if(!root||root.querySelector(".guild-local-quest-banner"))return;
@@ -288,6 +307,13 @@
       return `<span class="${done?"complete":""}">${done?"✅":"•"} ${q.title} <strong>${p}/${q.qty}</strong></span>`;
     }).join("");
     root.prepend(banner);
+    const hunt=activeHuntRequestHere();
+    if(hunt&&!root.querySelector(".guild-quest-track")){
+      const q=F_QUESTS[hunt.id],b=document.createElement("button");
+      b.className="choice-btn warn guild-quest-track";
+      b.innerHTML=`<span class="choice-icon">🧭</span>의뢰 흔적 추적<span class="choice-sub">${MONSTERS[q.target]?.name||q.target} 집중 추적 · 대상 출현 75%</span>`;
+      b.onclick=startTrackedGuildHunt;root.appendChild(b);
+    }
   }
   function recordQuestVisit(place,before){
     if(G.location===before||G.location!==place)return;
@@ -342,6 +368,8 @@
   window.openGuildQuestMap=openQuestMap;
   window.setGuildQuestTab=setBoardTab;
   window.goToGuildForQuest=goToGuild;
+  window.startTrackedGuildHunt=startTrackedGuildHunt;
+  window.activeHuntRequestHere=activeHuntRequestHere;
   window.guildQuestProgress=progressOf;
   window.guildQuestComplete=questComplete;
   ensureState();render();
