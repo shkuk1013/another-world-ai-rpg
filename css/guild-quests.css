@@ -29,4 +29,27 @@
   #guildQuestActive,#guildQuestAvailable{grid-template-columns:1fr}
   .guild-quest-title h2{font-size:18px}
   .guild-quest-card{padding:10px}
+  .guild-quest-nav{display:grid;grid-template-columns:1fr 1fr}
+  .guild-quest-nav button{width:100%}
+}
+
+.guild-quest-place{
+  margin-top:8px;padding:7px 9px;border-radius:8px;background:#0b1721;border:1px solid #2f455d;
+  font-size:11px;color:#d9e8f6
+}
+.guild-quest-place b{color:#9fc8ff}
+.guild-quest-method{margin-top:5px;font-size:11px;color:#b8c7d6}
+.guild-quest-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.guild-quest-nav button{font-size:11px;padding:7px 9px}
+.guild-quest-map{background:#1e3348;border-color:#476985}
+.guild-quest-travel{background:#294d3e;border-color:#497461}
+.map-place.guild-quest-map-target{
+  outline:2px solid #e8bd67!important;
+  box-shadow:0 0 0 3px #e8bd6722,0 0 22px #e8bd6730;
+  position:relative
+}
+.map-place.guild-quest-map-target:after{
+  content:"📜 의뢰 목적지";
+  display:inline-block;margin-top:6px;padding:3px 7px;border-radius:999px;
+  background:#654d1f;color:#ffe3a1;font-size:10px;font-weight:800
 }
