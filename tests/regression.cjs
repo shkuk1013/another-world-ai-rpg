@@ -178,10 +178,32 @@ test('F-rank hunt targets actually spawn in their recommended regions',()=>{
 test('guild request cards show destination method and map guidance',()=>{
  resetCareer();exec("G.name='길찾기검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.guildBoard={day:G.day,ids:['bat_hide','hunt_bat']};ensureGuildQuestState();renderGuildQuestBoard()");
  const board=get("document.getElementById('guildQuestAvailable').innerHTML");
- assert(board.includes('권장 획득 지역'));assert(board.includes('북쪽 채석장'));assert(board.includes('먼지날개 박쥐 처치'));assert(board.includes('지도에서 보기'));
+ assert(board.includes('권장 획득 지역'));assert(board.includes('북쪽 채석장'));assert(board.includes('먼지날개 박쥐 처치'));assert(board.includes('지도 ›'));assert(board.includes('상세 보기'));
 });
 test('accepted guild request can navigate directly to its destination',()=>{
  resetCareer();exec("G.name='이동검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['hunt_bat']};ensureGuildQuestState();acceptGuildQuest('hunt_bat');var oldTravelTo=travelTo;var questNavPlace='';travelTo=(p)=>{questNavPlace=p};goToGuildQuestPlace('hunt_bat');travelTo=oldTravelTo");
  assert.equal(get('questNavPlace'),'북쪽 채석장');
+});
+
+test('guild board uses active and available tabs with compact cards',()=>{
+ resetCareer();exec("G.name='UI검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.guildBoard={day:G.day,ids:['herb_red','hunt_bat']};ensureGuildQuestState();renderGuildQuestBoard();setGuildQuestTab('available')");
+ assert(get("document.getElementById('guildQuestPanelAvailable').classList.contains('active')"));
+ assert(!get("document.getElementById('guildQuestPanelActive').classList.contains('active')"));
+ const board=get("document.getElementById('guildQuestAvailable').innerHTML");
+ assert(board.includes('guild-quest-place-link'));assert(board.includes('상세 보기'));assert(board.includes('의뢰 수락'));
+});
+test('completed active request gets a clear completion state and one report action',()=>{
+ resetCareer();exec("G.name='완료UI';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=5;ensureGuildQuestState();acceptGuildQuest('herb_red');renderGuildQuestBoard()");
+ const activeHtml=get("document.getElementById('guildQuestActive').innerHTML");
+ assert(activeHtml.includes('완료 가능'));assert(activeHtml.includes('완료 보고'));assert(!activeHtml.includes('해당 지역으로 이동'));
+});
+test('visit request progress updates when using map-style travelTo navigation',()=>{
+ resetCareer();exec("G.name='방문검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['visit_farm']};ensureGuildQuestState();acceptGuildQuest('visit_farm');travelTo('남쪽 농장')");
+ assert.equal(get("guildQuestProgress(G.guildRequests[0])"),1);
+ assert.equal(get("guildQuestComplete(G.guildRequests[0])"),true);
+});
+test('guild quest CSS includes mobile compact board and local quest banner',()=>{
+ const css=fs.readFileSync(root+'/css/guild-quests.css','utf8');
+ assert(css.includes('.guild-board-tabs'));assert(css.includes('.guild-local-quest-banner'));assert(css.includes('@media(max-width:700px)'));
 });
 console.log(`${tests} regression checks passed.`);
