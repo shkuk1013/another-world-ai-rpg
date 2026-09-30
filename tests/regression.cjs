@@ -354,4 +354,21 @@ test('UI polish assets load after equipment UI',()=>{
  assert(html.indexOf('css/ui-polish.css?v=0.5.9-ui1')>html.indexOf('css/equipment-ui.css?v=0.5.8-equip1'));
  assert(html.indexOf('js/ui-polish.js?v=0.5.9-ui1')>html.indexOf('js/equipment-ui.js?v=0.5.8-equip1'));
 });
+
+test('bottom navigation closes the same side sheet on second tap',()=>{
+ const js=fs.readFileSync(root+'/js/mobile-ui.js','utf8');
+ assert(js.includes('side.classList.contains("mobile-sheet-open")&&b.classList.contains("active")'));
+ assert(js.includes('closeSide();'));
+});
+test('bottom map and menu buttons toggle their own open layers',()=>{
+ const js=fs.readFileSync(root+'/js/mobile-ui.js','utf8');
+ assert(js.includes('map&&!map.classList.contains("hidden")'));
+ assert(js.includes('closeWorldMap();'));
+ assert(js.includes('menu.classList.contains("open")'));
+ assert(js.includes('closeMenu();'));
+});
+test('bottom navigation toggle script uses a fresh cache key',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ assert(html.includes('js/mobile-ui.js?v=0.5.9-toggle1'));
+});
 console.log(`${tests} regression checks passed.`);
