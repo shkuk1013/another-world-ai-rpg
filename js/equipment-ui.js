@@ -218,32 +218,8 @@
     }
   }
 
-  // Armor now matters in combat. 45% of DEF is converted to flat mitigation,
-  // capped at 60% of the attack's base power so armor never trivializes content.
+  // Armor DEF is consumed by the existing playability combat formula.
   function armorDefense(){ensureEquipmentState();return Number(G.equipment.armor?.def||0);}
-  const baseEnemyDamage=window.enemyDamage;
-  window.enemyDamage=function(base,name){
-    let targetComp=G.companion&&G.companion.tactic==="보호"&&Math.random()<.35;
-    if(targetComp){
-      let d=Math.max(1,base+Math.floor(Math.random()*4)-2);
-      G.companion.hp=Math.max(0,G.companion.hp-d);
-      if(G.companion.hp<=0&&G.relations?.["리엔"])G.relations["리엔"].aff-=1;
-      return `${name}! 리엔 HP <b>-${d}</b>`;
-    }
-    const raw=base+Math.floor(Math.random()*4)-(G.combat?.guard?5:0);
-    const mitigation=Math.min(Math.floor(base*.6),Math.floor(armorDefense()*.45));
-    const d=Math.max(1,raw-mitigation);G.hp-=d;
-    if(G.hp<=0){
-      G.hp=1;
-      document.getElementById("combatModal")?.classList.add("hidden");
-      document.getElementById("combatMagicModal")?.classList.add("hidden");
-      document.getElementById("combatItemModal")?.classList.add("hidden");
-      G.combat=null;G.location="브렌 마을";
-      add("미라","정신을 차렸을 때 길드 휴게실이었다.<br>“살아서 돌아오라고 했죠?”");
-      return `${name}에 맞아 쓰러졌다.`;
-    }
-    return `${name}! 내 HP <b>-${d}</b>${mitigation?` <span class="small">🛡️ 방어구로 ${mitigation} 감소</span>`:""}`;
-  };
 
   // Keep compatibility with existing crafting/drop equip buttons.
   window.equipCrafted=function(index){
