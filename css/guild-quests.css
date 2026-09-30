@@ -1,0 +1,32 @@
+/* v0.5.8 — F-rank guild board */
+.guild-quest-modal{width:min(880px,96vw)!important}
+.guild-quest-title{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.guild-quest-title h2{margin:0 0 5px}
+.guild-quest-title>button{flex:0 0 auto}
+.guild-board-meta,.guild-board-lock{
+  padding:10px 12px;border:1px solid #3b4d66;border-radius:10px;background:#0e1722;margin:8px 0 14px;
+  color:#dce7f5;font-size:12px
+}
+.guild-board-lock{border-color:#6a5531;background:#211b11;color:#f2d18e}
+#guildQuestActive,#guildQuestAvailable{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.guild-quest-card{padding:11px;border:1px solid #40526a;border-left:4px solid #6f8ba8;border-radius:11px;background:#101923}
+.guild-quest-card.easy{border-left-color:#69c590}.guild-quest-card.normal{border-left-color:#e2b75f}.guild-quest-card.risk{border-left-color:#e27777}
+.guild-quest-card.complete{box-shadow:0 0 0 1px #79d9a244 inset;background:#112018}
+.guild-quest-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:5px}
+.guild-quest-head>b{font-size:14px}.guild-quest-head>span{font-size:10px;padding:3px 7px;border-radius:999px;background:#26364b;color:#cfd9e4;white-space:nowrap}
+.guild-quest-objective,.guild-quest-reward{font-size:11px;margin-top:7px;color:#cbd7e4}
+.guild-quest-reward{color:#f2ce86}
+.guild-quest-buttons{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap}
+.guild-quest-buttons button{font-size:11px;padding:7px 9px}
+.guild-quest-abandon{background:#322129;border-color:#67414c}
+.guild-empty{padding:10px;border:1px dashed #3a4a61;border-radius:9px}
+.guild-request-summary{border-top:1px solid #34465c;margin-top:9px;padding-top:9px}
+.guild-request-line{display:flex;justify-content:space-between;gap:8px;margin-top:5px;font-size:11px}
+.guild-request-line span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guild-request-line b{color:#f0ce82}
+@media(max-width:700px){
+  .guild-quest-modal{width:96vw!important;padding:13px!important}
+  #guildQuestActive,#guildQuestAvailable{grid-template-columns:1fr}
+  .guild-quest-title h2{font-size:18px}
+  .guild-quest-card{padding:10px}
+}
