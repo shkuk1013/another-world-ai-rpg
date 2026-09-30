@@ -1,6 +1,7 @@
 /* v0.5.8 — F-rank guild request board */
 (()=>{
   const MAX_ACTIVE=3,BOARD_SIZE=5;
+  let boardTab="available";
   const F_QUESTS={
     herb_red:{title:"붉은 약초 납품",type:"collect",target:"붉은 약초",qty:5,difficulty:"쉬움",place:"서쪽 숲",method:"야외 약초 채집",desc:"초보 치료약에 쓸 붉은 약초를 길드에 납품한다.",reward:{gold:14,gp:3}},
     herb_blue:{title:"푸른 약초 납품",type:"collect",target:"푸른 약초",qty:4,difficulty:"쉬움",place:"서쪽 숲",method:"야외 약초 채집",desc:"마나 회복약 재료로 쓰이는 푸른 약초를 모은다.",reward:{gold:15,gp:3,relation:{npc:"리엔",aff:1}}},
@@ -165,35 +166,43 @@
     window.guildQuestMapTarget=q.place;closeBoard();openWorldMap("bren");
     setTimeout(()=>highlightQuestMapTarget(q.place),0);return true;
   }
+  function goToGuild(){
+    if(G.combat)return false;
+    closeBoard();
+    if(G.location==="모험가 길드"){openBoard();setBoardTab("active");return true;}
+    if(typeof travelTo==="function"){travelTo("모험가 길드");return true;}
+    if(typeof move==="function"){move("모험가 길드");return true;}
+    return false;
+  }
   function questCard(id,active=false){
     const q=F_QUESTS[id];if(!q)return "";
-    const req=G.guildRequests.find(r=>r.id===id),progress=req?progressOf(req):0,done=req&&questComplete(req);
+    const req=G.guildRequests.find(r=>r.id===id),progress=req?progressOf(req):0,done=!!(req&&questComplete(req));
     const diffClass=q.difficulty==="위험"?"risk":q.difficulty==="보통"?"normal":"easy";
-    let button="";
-    if(active){
-      button=done&&G.location==="모험가 길드"
-        ?`<button class="good" onclick="turnInGuildQuest('${id}')">완료 보고</button>`
-        :`<button disabled>${done?"길드에서 보고 가능":`진행 ${progress}/${q.qty}`}</button>`;
-      button+=` <button class="guild-quest-abandon" onclick="abandonGuildQuest('${id}')">포기</button>`;
-    }else{
-      const accepted=!!req,full=G.guildRequests.length>=MAX_ACTIVE;
-      button=`<button class="primary" ${accepted||full?"disabled":""} onclick="acceptGuildQuest('${id}')">${accepted?"수락 중":full?"동시 3건 한도":"수락"}</button>`;
-    }
     const objective=q.type==="hunt"?(MONSTERS[q.target]?.name||q.target):q.target;
+    const unit=q.type==="hunt"?"마리":q.type==="visit"?"회":"개";
     const atPlace=G.location===q.place;
-    const travelButton=active
-      ?`<button class="guild-quest-travel" ${atPlace?"disabled":""} onclick="goToGuildQuestPlace('${id}')">${atPlace?"현재 위치":"📍 해당 지역으로 이동"}</button>`
-      :"";
-    const mapButton=`<button class="guild-quest-map" onclick="openGuildQuestMap('${id}')">🗺️ 지도에서 보기</button>`;
+    let action="";
+    if(!active){
+      const full=G.guildRequests.length>=MAX_ACTIVE;
+      action=`<button class="primary guild-quest-primary" ${full?"disabled":""} onclick="acceptGuildQuest('${id}')">${full?"동시 3건 한도":"의뢰 수락"}</button>`;
+    }else if(done){
+      action=G.location==="모험가 길드"
+        ?`<button class="good guild-quest-primary" onclick="turnInGuildQuest('${id}')">✅ 완료 보고</button>`
+        :`<button class="good guild-quest-primary" onclick="goToGuildForQuest()">🏛️ 길드로 돌아가 보고</button>`;
+    }else{
+      action=`<button class="guild-quest-travel guild-quest-primary" ${atPlace?"disabled":""} onclick="goToGuildQuestPlace('${id}')">${atPlace?"📍 현재 의뢰 지역":"📍 해당 지역으로 이동"}</button>
+      <button class="guild-quest-abandon guild-quest-text-btn" onclick="abandonGuildQuest('${id}')">포기</button>`;
+    }
+    const status=done?'<span class="guild-quest-status complete">✅ 완료 가능</span>':active?'<span class="guild-quest-status active">진행 중</span>':"";
+    const details=(q.desc||q.method)?`<details class="guild-quest-details"><summary>상세 보기</summary><div>${q.desc||""}</div>${q.method?`<div>획득 방법 · <b>${q.method}</b></div>`:""}</details>`:"";
     return `<div class="guild-quest-card ${diffClass} ${done?"complete":""}">
-      <div class="guild-quest-head"><b>${q.title}</b><span>${q.difficulty} · ${typeLabel(q.type)}</span></div>
-      <div class="small">${q.desc}</div>
-      <div class="guild-quest-place">📍 <b>${placeLabel(q)}</b> · ${q.place}</div>
-      ${q.method?`<div class="guild-quest-method">획득 방법 · ${q.method}</div>`:""}
-      <div class="guild-quest-objective">목표 · ${objective} ${q.qty}${q.type==="hunt"?"마리":q.type==="visit"?"회":"개"}${active?` · <b>${progress}/${q.qty}</b>`:""}</div>
-      <div class="guild-quest-reward">보상 · ${rewardText(q)}</div>
-      <div class="guild-quest-nav">${mapButton}${travelButton}</div>
-      <div class="guild-quest-buttons">${button}</div>
+      <div class="guild-quest-head"><b>${q.title}</b><div class="guild-quest-badges">${status}<span>${q.difficulty} · ${typeLabel(q.type)}</span></div></div>
+      <button class="guild-quest-place-link" onclick="openGuildQuestMap('${id}')">📍 ${placeLabel(q)} · <b>${q.place}</b> <span>지도 ›</span></button>
+      <div class="guild-quest-objective"><span>목표 · ${objective}</span><b>${active?`${progress}/${q.qty}`:`${q.qty}${unit}`}</b></div>
+      ${active?`<div class="guild-quest-progress"><i style="width:${Math.min(100,Math.round(progress/q.qty*100))}%"></i></div>`:""}
+      <div class="guild-quest-reward">💰 ${rewardText(q)}</div>
+      ${details}
+      <div class="guild-quest-buttons">${action}</div>
     </div>`;
   }
 
@@ -201,13 +210,25 @@
     if(document.getElementById("guildQuestModal"))return;
     const modal=document.createElement("div");modal.id="guildQuestModal";modal.className="modal hidden";
     modal.innerHTML=`<div class="guild-quest-modal">
-      <div class="guild-quest-title"><div><h2>📜 브렌 길드 · F급 의뢰 게시판</h2><p class="small">첫 정찰을 마친 F급 모험가에게 공개됩니다. 게시 의뢰는 매일 일부 교체되며 동시에 3건까지 받을 수 있습니다.</p></div><button type="button" aria-label="의뢰 게시판 닫기" onclick="closeGuildQuestBoard()">✕</button></div>
+      <div class="guild-quest-title"><div><h2>📜 브렌 길드 · F급 의뢰</h2><p class="small">오늘 게시된 의뢰 중 최대 3건을 선택할 수 있습니다.</p></div><button type="button" aria-label="의뢰 게시판 닫기" onclick="closeGuildQuestBoard()">✕</button></div>
       <div id="guildQuestBoardInfo"></div>
-      <h3>수락 중인 의뢰</h3><div id="guildQuestActive"></div>
-      <h3>오늘의 게시 의뢰</h3><div id="guildQuestAvailable"></div>
+      <div class="guild-board-tabs">
+        <button id="guildQuestTabActive" onclick="setGuildQuestTab('active')">수락 중 <b id="guildQuestActiveCount">0/3</b></button>
+        <button id="guildQuestTabAvailable" onclick="setGuildQuestTab('available')">오늘의 의뢰 <b id="guildQuestAvailableCount">0</b></button>
+      </div>
+      <section id="guildQuestPanelActive" class="guild-board-panel"><div id="guildQuestActive"></div></section>
+      <section id="guildQuestPanelAvailable" class="guild-board-panel"><div id="guildQuestAvailable"></div></section>
     </div>`;
     modal.addEventListener("click",e=>{if(e.target===modal)closeGuildQuestBoard();});
     document.body.appendChild(modal);
+  }
+  function setBoardTab(tab){
+    boardTab=tab==="active"?"active":"available";
+    const active=boardTab==="active";
+    document.getElementById("guildQuestTabActive")?.classList.toggle("active",active);
+    document.getElementById("guildQuestTabAvailable")?.classList.toggle("active",!active);
+    document.getElementById("guildQuestPanelActive")?.classList.toggle("active",active);
+    document.getElementById("guildQuestPanelAvailable")?.classList.toggle("active",!active);
   }
   function renderGuildQuestBoard(){
     ensureState();ensureModal();
@@ -215,16 +236,24 @@
     const info=document.getElementById("guildQuestBoardInfo"),active=document.getElementById("guildQuestActive"),available=document.getElementById("guildQuestAvailable");
     if(!boardUnlocked()){
       info.innerHTML='<div class="guild-board-lock">🔒 첫 번째 「서쪽 숲 정찰」을 완료하면 F급 게시판이 열린다.</div>';
-      active.innerHTML="";available.innerHTML="";return;
+      active.innerHTML="";available.innerHTML="";setBoardTab("available");return;
     }
-    info.innerHTML=`<div class="guild-board-meta">제 ${G.day}일 게시판 · 오늘 ${G.guildBoard.ids.length}건 · 수락 ${G.guildRequests.length}/${MAX_ACTIVE} · 누적 완료 ${G.guildQuestStats.completed||0}건</div>`;
-    active.innerHTML=G.guildRequests.length?G.guildRequests.map(r=>questCard(r.id,true)).join(""):'<div class="small guild-empty">현재 수락한 F급 의뢰가 없다.</div>';
     const completedToday=new Set(G.guildQuestHistory.filter(h=>h.day===G.day).map(h=>h.id));
     const ids=G.guildBoard.ids.filter(id=>!G.guildRequests.some(r=>r.id===id)&&!completedToday.has(id));
+    info.innerHTML=`<div class="guild-board-meta">제 ${G.day}일 · 게시 ${G.guildBoard.ids.length}건 · 누적 완료 ${G.guildQuestStats.completed||0}건</div>`;
+    active.innerHTML=G.guildRequests.length?G.guildRequests.map(r=>questCard(r.id,true)).join(""):'<div class="small guild-empty">현재 수락한 F급 의뢰가 없다.</div>';
     available.innerHTML=ids.length?ids.map(id=>questCard(id,false)).join(""):'<div class="small guild-empty">오늘 남은 게시 의뢰가 없다. 내일 다시 확인해보자.</div>';
+    const activeCount=document.getElementById("guildQuestActiveCount"),availableCount=document.getElementById("guildQuestAvailableCount");
+    if(activeCount)activeCount.textContent=`${G.guildRequests.length}/${MAX_ACTIVE}`;
+    if(availableCount)availableCount.textContent=String(ids.length);
+    setBoardTab(boardTab);
     if(!modal.classList.contains("hidden"))modal.scrollTop=0;
   }
-  function openBoard(){ensureModal();renderGuildQuestBoard();document.getElementById("guildQuestModal").classList.remove("hidden");}
+  function openBoard(){
+    ensureModal();ensureState();
+    if(G.guildRequests.some(r=>questComplete(r)))boardTab="active";
+    renderGuildQuestBoard();document.getElementById("guildQuestModal").classList.remove("hidden");
+  }
   function closeBoard(){document.getElementById("guildQuestModal")?.classList.add("hidden");}
 
   function appendGuildBoardAction(){
@@ -242,22 +271,46 @@
       wrap.innerHTML='<b>📜 F급 의뢰</b><br><span class="small">길드 게시판에서 오늘의 의뢰를 받을 수 있다.</span>';
     }else{
       wrap.innerHTML='<b>📜 수락한 F급 의뢰</b>'+G.guildRequests.map(r=>{
-        const q=F_QUESTS[r.id],p=progressOf(r);return `<div class="guild-request-line"><span>${q.title}</span><b>${p}/${q.qty}</b></div>`;
+        const q=F_QUESTS[r.id],p=progressOf(r),done=questComplete(r);
+        return `<div class="guild-request-line ${done?"complete":""}"><span>${done?"✅ ":""}${q.title}</span><b>${p}/${q.qty}</b></div>`;
       }).join("");
     }
     box.appendChild(wrap);
   }
+  function appendLocalQuestHint(){
+    if(!boardUnlocked()||!G.guildRequests.length)return;
+    const root=document.getElementById("actions");if(!root||root.querySelector(".guild-local-quest-banner"))return;
+    const local=G.guildRequests.filter(r=>F_QUESTS[r.id]?.place===G.location);
+    if(!local.length)return;
+    const banner=document.createElement("div");banner.className="guild-local-quest-banner";
+    banner.innerHTML='<b>📜 이 지역 의뢰</b>'+local.map(r=>{
+      const q=F_QUESTS[r.id],p=progressOf(r),done=questComplete(r);
+      return `<span class="${done?"complete":""}">${done?"✅":"•"} ${q.title} <strong>${p}/${q.qty}</strong></span>`;
+    }).join("");
+    root.prepend(banner);
+  }
+  function recordQuestVisit(place,before){
+    if(G.location===before||G.location!==place)return;
+    G.guildQuestCounters.visits[place]=(G.guildQuestCounters.visits[place]||0)+1;
+    render();
+  }
 
   const baseRender=window.render;
   window.render=function(){
-    ensureState();const out=baseRender.apply(this,arguments);appendGuildBoardAction();appendQuestSummary();return out;
+    ensureState();const out=baseRender.apply(this,arguments);appendGuildBoardAction();appendQuestSummary();appendLocalQuestHint();return out;
   };
   const baseMove=window.move;
   window.move=function(place){
     ensureState();const before=G.location,out=baseMove.apply(this,arguments);
-    if(G.location!==before&&G.location===place)G.guildQuestCounters.visits[place]=(G.guildQuestCounters.visits[place]||0)+1;
-    return out;
+    recordQuestVisit(place,before);return out;
   };
+  if(typeof window.travelTo==="function"){
+    const baseTravelTo=window.travelTo;
+    window.travelTo=function(place){
+      ensureState();const before=G.location,out=baseTravelTo.apply(this,arguments);
+      recordQuestVisit(place,before);return out;
+    };
+  }
   if(typeof window.renderMapTab==="function"){
     const baseRenderMapTab=window.renderMapTab;
     window.renderMapTab=function(tab){
@@ -287,6 +340,8 @@
   window.turnInGuildQuest=turnInQuest;
   window.goToGuildQuestPlace=goToQuestPlace;
   window.openGuildQuestMap=openQuestMap;
+  window.setGuildQuestTab=setBoardTab;
+  window.goToGuildForQuest=goToGuild;
   window.guildQuestProgress=progressOf;
   window.guildQuestComplete=questComplete;
   ensureState();render();
