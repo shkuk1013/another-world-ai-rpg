@@ -90,6 +90,7 @@
   function acceptQuest(id){
     ensureState();if(!boardUnlocked())return false;
     if(!G.guildBoard.ids.includes(id)||!F_QUESTS[id])return false;
+    if(G.guildQuestHistory.some(h=>h.id===id&&h.day===G.day))return false;
     if(G.guildRequests.some(r=>r.id===id))return false;
     if(G.guildRequests.length>=MAX_ACTIVE){add("미라","“동시에 맡을 수 있는 F급 의뢰는 세 건까지예요. 먼저 하나를 마치고 와주세요.”");return false;}
     const q=F_QUESTS[id];
@@ -181,7 +182,8 @@
     }
     info.innerHTML=`<div class="guild-board-meta">제 ${G.day}일 게시판 · 오늘 ${G.guildBoard.ids.length}건 · 수락 ${G.guildRequests.length}/${MAX_ACTIVE} · 누적 완료 ${G.guildQuestStats.completed||0}건</div>`;
     active.innerHTML=G.guildRequests.length?G.guildRequests.map(r=>questCard(r.id,true)).join(""):'<div class="small guild-empty">현재 수락한 F급 의뢰가 없다.</div>';
-    const ids=G.guildBoard.ids.filter(id=>!G.guildRequests.some(r=>r.id===id));
+    const completedToday=new Set(G.guildQuestHistory.filter(h=>h.day===G.day).map(h=>h.id));
+    const ids=G.guildBoard.ids.filter(id=>!G.guildRequests.some(r=>r.id===id)&&!completedToday.has(id));
     available.innerHTML=ids.length?ids.map(id=>questCard(id,false)).join(""):'<div class="small guild-empty">오늘 남은 게시 의뢰가 없다. 내일 다시 확인해보자.</div>';
     if(!modal.classList.contains("hidden"))modal.scrollTop=0;
   }
