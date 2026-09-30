@@ -1534,7 +1534,7 @@ ensureV048State();
 
 const GUILD_RANKS=[
  {rank:"F급",needLevel:1,needRep:0,needPoints:0,reward:"기본 의뢰"},
- {rank:"E급",needLevel:3,needRep:3,needPoints:40,reward:"지역 의뢰 / 북부 추천서"},
+ {rank:"E급",needLevel:3,needRep:3,needPoints:60,needQuests:5,reward:"지역 의뢰 / 북부 추천서"},
  {rank:"D급",needLevel:5,needRep:7,needPoints:110,reward:"중형 보스 의뢰 / 카르문 추천서"},
  {rank:"C급",needLevel:7,needRep:11,needPoints:220,reward:"고급 지역 의뢰 / 파티 등록"},
  {rank:"B급",needLevel:9,needRep:15,needPoints:380,reward:"왕도권 의뢰 / 특수 제작 허가"},
@@ -1549,10 +1549,13 @@ function openGuild(){
  guildInfo.innerHTML=`<div class="quest"><b>${G.name}</b> · ${G.guildRank}<br>길드 공헌 ${G.guildPoints} · 평판 ${G.rep} · Lv.${G.level}<br><span class="small">${cur.reward}</span></div>`;
  if(!next)guildPromotion.innerHTML='<div class="quest">최고 등급에 도달했다.</div>';
  else{
-  let ok=G.level>=next.needLevel&&G.rep>=next.needRep&&G.guildPoints>=next.needPoints;
+  let completed=G.guildQuestStats?.completed||0;
+  let questOk=!next.needQuests||completed>=next.needQuests;
+  let ok=G.level>=next.needLevel&&G.rep>=next.needRep&&G.guildPoints>=next.needPoints&&questOk;
   let pct=Math.min(100,Math.round(G.guildPoints/next.needPoints*100));
+  let questLine=next.needQuests?`<br>F급 의뢰 완료 ${completed}/${next.needQuests}`:"";
   guildPromotion.innerHTML=`<div class="quest"><b>다음 승급: ${next.rank}</b><br>
-  Lv.${next.needLevel} / 평판 ${next.needRep} / 공헌 ${next.needPoints}<br>
+  Lv.${next.needLevel} / 평판 ${next.needRep} / 공헌 ${next.needPoints}${questLine}<br>
   <div class="progress-line"><i style="width:${pct}%"></i></div>
   <button ${ok?"":"disabled"} onclick="promoteGuild()">${ok?"승급 심사":"조건 미달"}</button></div>`;
  }
@@ -1561,7 +1564,8 @@ function openGuild(){
 function closeGuild(){guildModal.classList.add("hidden")}
 function promoteGuild(){
  let next=GUILD_RANKS[guildIndex()+1];if(!next)return;
- if(G.level<next.needLevel||G.rep<next.needRep||G.guildPoints<next.needPoints)return;
+ let completed=G.guildQuestStats?.completed||0;
+ if(G.level<next.needLevel||G.rep<next.needRep||G.guildPoints<next.needPoints||(next.needQuests&&completed<next.needQuests))return;
  G.guildRank=next.rank;G.rank=next.rank;
  add("미라",`“축하해요. 오늘부터 <b>${next.rank}</b> 모험가예요. 등급보다 중요한 건... 계속 살아 돌아오는 거예요.”`);
  openGuild();render();
@@ -1573,15 +1577,15 @@ victory=function(txt){
  let beforeInv=(G.equipmentInventory||[]).map(x=>x.name);
  let beforeKills=JSON.stringify(G.monsterKills||{});
  victoryBaseV048(txt);
- let gained=6;
- let ranks={F:5,E:7,"E+":8,D:11,C:15,"C+":17,B:22,"B+":25,"A-":30,A:34,"A+":40,S:65};
+ let gained=2;
+ let ranks={F:1,E:3,"E+":4,D:6,C:8,"C+":9,B:12,"B+":14,"A-":16,A:18,"A+":22,S:35};
  // combat is already cleared, infer latest kill by delta
  let type=null;
  try{
   let old=JSON.parse(beforeKills);
   for(let k of Object.keys(G.monsterKills||{}))if((G.monsterKills[k]||0)>(old[k]||0)){type=k;break}
  }catch(e){}
- if(type)gained=ranks[MONSTERS[type]?.rank]||6;
+ if(type)gained=ranks[MONSTERS[type]?.rank]||2;
  addGuildPoints(gained);
  let afterInv=(G.equipmentInventory||[]).map(x=>x.name);
  afterInv.filter(n=>!beforeInv.includes(n)).forEach(n=>{if(!G.uniqueFound.includes(n))G.uniqueFound.push(n);});
