@@ -146,7 +146,7 @@ test('at most three F-rank requests can be active at once',()=>{
  assert.equal(get("acceptGuildQuest('frog_hide')"),false);assert.equal(get('G.guildRequests.length'),3);
 });
 test('collection request consumes materials and pays exactly once at guild',()=>{
- resetCareer();exec("G.name='납품검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=5;ensureGuildQuestState();acceptGuildQuest('herb_red');var beforeGold=G.gold;var beforeGp=G.guildPoints||0");
+ resetCareer();exec("G.name='납품검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=3;ensureGuildQuestState();acceptGuildQuest('herb_red');var beforeGold=G.gold;var beforeGp=G.guildPoints||0");
  assert.equal(get("turnInGuildQuest('herb_red')"),true);
  assert.equal(get("G.materials['붉은 약초']"),0);assert.equal(get('G.gold'),get('beforeGold+14'));assert.equal(get('G.guildPoints'),get('beforeGp+3'));
  assert.equal(get("turnInGuildQuest('herb_red')"),false);
@@ -154,8 +154,8 @@ test('collection request consumes materials and pays exactly once at guild',()=>
 test('hunt request counts only kills made after accepting it',()=>{
  resetCareer();exec("G.name='사냥검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.monsterKills.forest_slime=5;G.guildBoard={day:G.day,ids:['hunt_slime']};ensureGuildQuestState();acceptGuildQuest('hunt_slime')");
  assert.equal(get("guildQuestProgress(G.guildRequests[0])"),0);
- exec("G.monsterKills.forest_slime+=3");
- assert.equal(get("guildQuestProgress(G.guildRequests[0])"),3);assert.equal(get("guildQuestComplete(G.guildRequests[0])"),true);
+ exec("G.monsterKills.forest_slime+=2");
+ assert.equal(get("guildQuestProgress(G.guildRequests[0])"),2);assert.equal(get("guildQuestComplete(G.guildRequests[0])"),true);
 });
 test('daily board refresh keeps accepted requests and rotates postings',()=>{
  resetCareer();exec("G.name='갱신검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.day=4;G.guildBoard={day:0,ids:[]};ensureGuildQuestState();var day4=G.guildBoard.ids.join(',');acceptGuildQuest(G.guildBoard.ids[0]);var active=G.guildRequests[0].id;G.day=5;ensureGuildQuestState();var day5=G.guildBoard.ids.join(',')");
@@ -163,9 +163,9 @@ test('daily board refresh keeps accepted requests and rotates postings',()=>{
 });
 
 test('completed request cannot be farmed again on the same day',()=>{
- resetCareer();exec("G.name='반복방지';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=10;ensureGuildQuestState();acceptGuildQuest('herb_red');turnInGuildQuest('herb_red')");
+ resetCareer();exec("G.name='반복방지';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=6;ensureGuildQuestState();acceptGuildQuest('herb_red');turnInGuildQuest('herb_red')");
  assert.equal(get("acceptGuildQuest('herb_red')"),false);
- assert.equal(get("G.materials['붉은 약초']"),5);
+ assert.equal(get("G.materials['붉은 약초']"),3);
 });
 
 test('F-rank requests point players to valid destination regions',()=>{
@@ -205,5 +205,34 @@ test('visit request progress updates when using map-style travelTo navigation',(
 test('guild quest CSS includes mobile compact board and local quest banner',()=>{
  const css=fs.readFileSync(root+'/css/guild-quests.css','utf8');
  assert(css.includes('.guild-board-tabs'));assert(css.includes('.guild-local-quest-banner'));assert(css.includes('@media(max-width:700px)'));
+});
+
+test('F-rank request quantities are tuned for short early loops',()=>{
+ assert.equal(get("F_RANK_QUESTS.herb_red.qty"),3);
+ assert.equal(get("F_RANK_QUESTS.herb_blue.qty"),2);
+ assert.equal(get("F_RANK_QUESTS.coal_supply.qty"),2);
+ assert.equal(get("F_RANK_QUESTS.clay_supply.qty"),1);
+ assert.equal(get("F_RANK_QUESTS.hunt_slime.qty"),2);
+ assert.equal(get("F_RANK_QUESTS.hunt_bat.qty"),2);
+});
+test('tracked guild hunt targets the active quest monster at 75 percent roll',()=>{
+ resetCareer();exec("G.name='추적검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='북쪽 채석장';G.guildBoard={day:G.day,ids:['hunt_bat']};ensureGuildQuestState();acceptGuildQuest('hunt_bat');var savedStartCombat=startCombat;var trackedType='';startCombat=(t)=>{trackedType=t};Math.random=()=>.1;startTrackedGuildHunt();startCombat=savedStartCombat;Math.random=()=>.9");
+ assert.equal(get('trackedType'),'dust_bat');
+});
+test('F-rank field kills give low guild contribution compared with quests',()=>{
+ resetCareer();exec("G.name='공헌검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};var gpBefore=G.guildPoints||0;startCombat('forest_slime');victory('승리');var gpGain=(G.guildPoints||0)-gpBefore");
+ assert.equal(get('gpGain'),1);
+});
+test('E-rank promotion requires five F-rank requests and 60 contribution',()=>{
+ resetCareer();exec("G.name='승급검사';G.rank='F급';G.guildRank='F급';G.level=3;G.rep=3;G.guildPoints=60;G.guildQuestStats={completed:4};promoteGuild()");
+ assert.equal(get('G.guildRank'),'F급');
+ exec("G.guildQuestStats.completed=5;promoteGuild()");
+ assert.equal(get('G.guildRank'),'E급');
+ assert.equal(get("GUILD_RANKS.find(x=>x.rank==='E급').needPoints"),60);
+ assert.equal(get("GUILD_RANKS.find(x=>x.rank==='E급').needQuests"),5);
+});
+test('quarry mining odds keep coal and clay in meaningful F-rank ranges',()=>{
+ const src=fs.readFileSync(root+'/js/resource-feedback.js','utf8');
+ assert(src.includes('r<.4?"철광석":r<.68?"구리광석":r<.88?"석탄":"점토"'));
 });
 console.log(`${tests} regression checks passed.`);
