@@ -89,30 +89,77 @@
   }
 
   function mobileMode(){return matchMedia("(max-width:1180px)").matches}
-  function markActive(tab){
-    nav.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  function markActive(tab=null,action=null){
+    nav.querySelectorAll("button").forEach(b=>{
+      const on=(tab&&b.dataset.tab===tab)||(action&&b.dataset.action===action);
+      b.classList.toggle("active",!!on);
+    });
   }
   function openSide(tab){
     if(!mobileMode())return;
+    closeMenu();
     switchSideTab(tab);
     side.classList.add("mobile-sheet-open");
     close.style.display="grid";
-    markActive(tab);
+    markActive(tab,null);
     requestAnimationFrame(()=>side.querySelector(".side-content")?.scrollTo?.(0,0));
   }
   function closeSide(){
     side.classList.remove("mobile-sheet-open");
     close.style.display="none";
-    markActive(null);
+    const active=nav.querySelector("button.active");
+    if(active?.dataset.tab)markActive(null,null);
   }
-  function openMenu(){if(!mobileMode())return;closeSide();menu.classList.add("open")}
-  function closeMenu(){menu.classList.remove("open")}
+  function openMenu(){
+    if(!mobileMode())return;
+    closeSide();
+    menu.classList.add("open");
+    markActive(null,"menu");
+  }
+  function closeMenu(){
+    menu.classList.remove("open");
+    const active=nav.querySelector('button.active[data-action="menu"]');
+    if(active)markActive(null,null);
+  }
+
+  const baseOpenWorldMap=window.openWorldMap;
+  const baseCloseWorldMap=window.closeWorldMap;
+  if(typeof baseOpenWorldMap==="function"){
+    window.openWorldMap=function(){
+      const out=baseOpenWorldMap.apply(this,arguments);
+      if(mobileMode())markActive(null,"map");
+      return out;
+    };
+  }
+  if(typeof baseCloseWorldMap==="function"){
+    window.closeWorldMap=function(){
+      const out=baseCloseWorldMap.apply(this,arguments);
+      const active=nav.querySelector('button.active[data-action="map"]');
+      if(active)markActive(null,null);
+      return out;
+    };
+  }
 
   nav.addEventListener("click",e=>{
     const b=e.target.closest("button");if(!b)return;
-    if(b.dataset.tab)return openSide(b.dataset.tab);
-    if(b.dataset.action==="map"){closeSide();openWorldMap("bren");}
-    if(b.dataset.action==="menu")openMenu();
+
+    if(b.dataset.tab){
+      const sameOpen=side.classList.contains("mobile-sheet-open")&&b.classList.contains("active");
+      if(sameOpen)return closeSide();
+      return openSide(b.dataset.tab);
+    }
+
+    if(b.dataset.action==="map"){
+      const map=document.getElementById("worldMapModal");
+      const mapOpen=map&&!map.classList.contains("hidden");
+      if(mapOpen)return closeWorldMap();
+      closeSide();closeMenu();return openWorldMap("bren");
+    }
+
+    if(b.dataset.action==="menu"){
+      if(menu.classList.contains("open"))return closeMenu();
+      return openMenu();
+    }
   });
   close.onclick=closeSide;
   menu.addEventListener("click",e=>{
