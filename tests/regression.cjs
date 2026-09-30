@@ -18,6 +18,7 @@ exec(fs.readFileSync(root+'/js/monster-art.js','utf8'));
 exec(fs.readFileSync(root+'/js/bren-monsters.js','utf8'));
 exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
 exec(fs.readFileSync(root+'/js/guild-quests.js','utf8'));
+exec(fs.readFileSync(root+'/js/equipment-ui.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
@@ -34,7 +35,7 @@ test('day rollover on travel',()=>{exec("G.hour=23;var dayBefore=G.day;move('서
 test('all current scene portrait and map paths exist',()=>{const paths=get("[...Object.values(V05_SCENES),...Object.values(V05_PORTRAITS),v05MapImage('world'),v05MapImage('bren'),v05MapImage('hunt'),ASSET.goblin,ASSET.rien]");for(const file of paths)assert(fs.existsSync(root+'/'+file),'Missing '+file)});
 test('quest combat records scouting but does not pay before report',()=>{exec("G.scoutQuest={status:'accepted'};G.quest={type:'goblin'};G.flags.rienJoined=false;G.combat={type:'goblin'};var goldBefore=G.gold;victory('승리')");assert.equal(get('G.scoutQuest.status'),'scouted');assert(get('G.gold-goldBefore')<30)});
 test('inn meal, sleep and free recovery change real resources',()=>{exec("G.combat=null;G.location='황금사슴 여관';G.gold=30;G.fatigue=80;G.hunger=80;G.hydration=20;v05InnMeal()");assert.equal(get('G.gold'),24);assert.equal(get('G.fatigue'),66);assert.equal(get('G.hunger'),20);exec('v05InnSleep()');assert.equal(get('G.gold'),12);assert.equal(get('G.fatigue'),0);assert.equal(get('G.hp'),get('G.maxHp'));exec("G.location='브렌 마을';G.gold=0;G.fatigue=90;G.hp=1;restAtWell()");assert.equal(get('G.gold'),0);assert.equal(get('G.hydration'),100);assert(get('G.hp')>1)});
-test('shop marks owned weapon and prevents duplicate tools',()=>{exec("G.gold=100;G.tools.axe=false;buyTool('axe',14,'벌목도끼');var toolGold=G.gold;buyTool('axe',14,'벌목도끼');v05BlacksmithShop()");assert.equal(get('G.gold'),get('toolGold'));assert(context.moreActionsList.children.some(x=>x.innerHTML.includes('보유 중')||x.innerHTML.includes('장착 중')))});
+test('shop marks owned weapon and prevents duplicate tools',()=>{exec("G.gold=100;G.tools.axe=false;buyTool('axe',14,'벌목도끼');var toolGold=G.gold;buyTool('axe',14,'벌목도끼');openBlacksmithShop('weapon')");assert.equal(get('G.gold'),get('toolGold'));assert(context.blacksmithShopList.innerHTML.includes('보유 중')||context.blacksmithShopList.innerHTML.includes('장착 중')||context.blacksmithShopList.innerHTML.includes('구매'))});
 test('equipment, level, proficiency, conditions affect combat',()=>{exec("G.combat={type:'goblin',def:0};G.level=1;G.fatigue=0;G.hunger=0;G.hydration=100");const low=get('attackDamage(5)');exec('G.level=8');assert(get('attackDamage(5)')>low);const strong=get('attackDamage(25)');exec('G.fatigue=100;G.hunger=100;G.hydration=0');assert(get('attackDamage(25)')<strong);exec('G.level=1;G.fatigue=0;G.hunger=0;G.hydration=100');assert(get('attackDamage(25)')>low)});
 test('armor mitigates scaled enemy attack and defeat returns safely',()=>{exec("G.hp=100;G.combat={atk:15,guard:false};G.equipment.armor='옷';enemyDamage(10,'공격');var unarmored=100-G.hp;G.hp=100;G.equipment.armor={def:12};enemyDamage(10,'공격');var armored=100-G.hp");assert(get('armored<unarmored'));exec("G.hp=1;G.combat={atk:999,hp:50,maxHp:50,turn:1,intent:'강한 공격',type:'goblin'};enemyTurn()");assert.equal(get('G.combat'),null);assert.equal(get('G.location'),'브렌 마을');assert.equal(get('G.hp'),1)});
 test('magic gains mastery and special skill has a cooldown',()=>{exec("G.combat={type:'goblin',hp:999,maxHp:999,atk:1,def:0,intent:'방어 자세',turn:1};G.hp=G.maxHp;G.mp=G.maxMp;G.companion=null;var fireBefore=G.fire;castSpell(0)");assert.equal(get('G.fire'),get('fireBefore+1'));exec("G.equipment.weapon={...WEAPONS.sword};specialSkill();var enemyAfter=G.combat.hp;specialSkill()");assert.equal(get('G.combat.hp'),get('enemyAfter'))});
@@ -275,5 +276,35 @@ test('fantasy icon stylesheet and refreshed mobile UI load after core styles',()
  const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.8-icons1');
  assert(hud>=0&&icons>hud);
  assert(html.includes('js/mobile-ui.js?v=0.5.8-icons1'));
+});
+
+test('blacksmith sells four starter armors without replacing crafted tiers',()=>{
+ assert.equal(get('blacksmithArmorShop.length'),4);
+ assert.deepEqual(Array.from(get('blacksmithArmorShop.map(x=>x.def)')),[1,2,3,4]);
+ assert(get("GEAR_TIERS_V047.armor.some(x=>x.name==='철제 흉갑'&&x.def===8)"));
+});
+test('buying armor stores it before equipping and blocks duplicates',()=>{
+ resetCareer();exec("G.gold=100;G.location='대장간';ensureEquipmentState?.();var oldArmor=G.equipment.armor.name;buyBlacksmithGear('armor',1);var afterBuyArmor=G.equipment.armor.name;var goldAfter=G.gold;buyBlacksmithGear('armor',1)");
+ assert.equal(get('afterBuyArmor'),get('oldArmor'));
+ assert(get("G.equipmentInventory.some(x=>x.name==='가죽 조끼')"));
+ assert.equal(get('G.gold'),get('goldAfter'));
+});
+test('equipment manager changes armor and marks the inventory item equipped',()=>{
+ resetCareer();exec("G.gold=100;buyBlacksmithGear('armor',1);var item=G.equipmentInventory.find(x=>x.name==='가죽 조끼');equipInventoryItem(item.uid);renderEquipmentManager()");
+ assert.equal(get('G.equipment.armor.name'),'가죽 조끼');
+ assert.equal(get('G.equipment.armor.def'),2);
+ assert(context.equipmentManagerList.innerHTML.includes('장착 중'));
+});
+test('equipping new gear preserves the previously equipped item in inventory',()=>{
+ resetCareer();exec("G.gold=200;buyBlacksmithGear('armor',0);buyBlacksmithGear('armor',1);var first=G.equipmentInventory.find(x=>x.name==='두꺼운 여행복');var second=G.equipmentInventory.find(x=>x.name==='가죽 조끼');equipInventoryItem(first.uid);equipInventoryItem(second.uid)");
+ assert(get("G.equipmentInventory.some(x=>x.name==='두꺼운 여행복')"));
+ assert.equal(get('G.equipment.armor.name'),'가죽 조끼');
+});
+test('equipment UI exposes equip buttons and equipped status in inventory',()=>{
+ resetCareer();exec("G.gold=100;buyBlacksmithGear('armor',1);render()");
+ assert(context.equipmentInvBox.innerHTML.includes('장착'));
+ exec("var it=G.equipmentInventory.find(x=>x.name==='가죽 조끼');equipInventoryItem(it.uid);render()");
+ assert(context.equipmentInvBox.innerHTML.includes('✅ 장착 중'));
+ assert(context.equip.innerHTML.includes('방어 2'));
 });
 console.log(`${tests} regression checks passed.`);
