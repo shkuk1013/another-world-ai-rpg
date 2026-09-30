@@ -16,7 +16,7 @@ exec(fs.readFileSync(root+'/js/playability.js','utf8'));
 exec(fs.readFileSync(root+'/js/resource-feedback.js','utf8'));
 exec(fs.readFileSync(root+'/js/monster-art.js','utf8'));
 exec(fs.readFileSync(root+'/js/bren-monsters.js','utf8'));
-exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
+exec(fs.readFileSync(root+'/js/career-system.js','utf8'));\nexec(fs.readFileSync(root+'/js/guild-quests.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
@@ -125,5 +125,39 @@ test('goblin family battle art crops out baked combat HUD',()=>{
  assert.equal(context.enemyArt.src,'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
  assert(context.enemyArt.classList.contains('monster-clean-crop'));
  assert(context.enemyArt.style.backgroundImage.includes('monsters.webp'));
+});
+
+test('F-rank board exposes a large request pool and five daily postings',()=>{
+ resetCareer();exec("G.name='의뢰검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.day=3;G.guildBoard={day:0,ids:[]};ensureGuildQuestState()");
+ assert(Object.keys(get('F_RANK_QUESTS')).length>=15);
+ assert.equal(get('G.guildBoard.ids.length'),5);
+ assert(get("new Set(G.guildBoard.ids.map(id=>F_RANK_QUESTS[id].type)).size")>=2);
+});
+test('F-rank board stays locked until the first safe scout is completed',()=>{
+ resetCareer();exec("G.name='잠금검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'accepted'};G.guildBoard={day:G.day,ids:['herb_red']};ensureGuildQuestState()");
+ assert.equal(get("acceptGuildQuest('herb_red')"),false);
+ exec("G.scoutQuest.status='completed'");
+ assert.equal(get("acceptGuildQuest('herb_red')"),true);
+});
+test('at most three F-rank requests can be active at once',()=>{
+ resetCareer();exec("G.name='세건검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.guildBoard={day:G.day,ids:['herb_red','herb_blue','clear_slime','frog_hide','coal_supply']};ensureGuildQuestState()");
+ assert.equal(get("acceptGuildQuest('herb_red')"),true);assert.equal(get("acceptGuildQuest('herb_blue')"),true);assert.equal(get("acceptGuildQuest('clear_slime')"),true);
+ assert.equal(get("acceptGuildQuest('frog_hide')"),false);assert.equal(get('G.guildRequests.length'),3);
+});
+test('collection request consumes materials and pays exactly once at guild',()=>{
+ resetCareer();exec("G.name='납품검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.guildBoard={day:G.day,ids:['herb_red']};G.materials['붉은 약초']=5;ensureGuildQuestState();acceptGuildQuest('herb_red');var beforeGold=G.gold;var beforeGp=G.guildPoints||0");
+ assert.equal(get("turnInGuildQuest('herb_red')"),true);
+ assert.equal(get("G.materials['붉은 약초']"),0);assert.equal(get('G.gold'),get('beforeGold+14'));assert.equal(get('G.guildPoints'),get('beforeGp+3'));
+ assert.equal(get("turnInGuildQuest('herb_red')"),false);
+});
+test('hunt request counts only kills made after accepting it',()=>{
+ resetCareer();exec("G.name='사냥검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.location='모험가 길드';G.monsterKills.forest_slime=5;G.guildBoard={day:G.day,ids:['hunt_slime']};ensureGuildQuestState();acceptGuildQuest('hunt_slime')");
+ assert.equal(get("guildQuestProgress(G.guildRequests[0])"),0);
+ exec("G.monsterKills.forest_slime+=3");
+ assert.equal(get("guildQuestProgress(G.guildRequests[0])"),3);assert.equal(get("guildQuestComplete(G.guildRequests[0])"),true);
+});
+test('daily board refresh keeps accepted requests and rotates postings',()=>{
+ resetCareer();exec("G.name='갱신검사';G.rank='F급';G.guildRank='F급';G.scoutQuest={status:'completed'};G.day=4;G.guildBoard={day:0,ids:[]};ensureGuildQuestState();var day4=G.guildBoard.ids.join(',');acceptGuildQuest(G.guildBoard.ids[0]);var active=G.guildRequests[0].id;G.day=5;ensureGuildQuestState();var day5=G.guildBoard.ids.join(',')");
+ assert.equal(get('G.guildRequests[0].id'),get('active'));assert.notEqual(get('day4'),get('day5'));assert.equal(get('G.guildBoard.ids.length'),5);
 });
 console.log(`${tests} regression checks passed.`);
