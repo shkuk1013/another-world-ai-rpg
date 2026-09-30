@@ -1,0 +1,60 @@
+/* v0.5.8 — armor shop + equipment manager */
+.equipment-modal{width:min(820px,96vw)!important}
+.equipment-modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.equipment-modal-head h2{margin:0 0 4px}
+.equipment-modal-head>button{flex:0 0 auto;width:36px;height:36px;padding:0;border-radius:50%}
+.equipment-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 12px}
+.equipment-tabs button{min-height:42px;background:#172536;border-color:#38516d}
+.equipment-tabs button.active{background:#3d5f85;border-color:#d5ad5b;box-shadow:inset 0 0 0 1px #f0cf7a33}
+.equipment-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.equipment-card{
+  padding:11px;border:1px solid #3b4f67;border-radius:11px;background:#101923;
+  box-shadow:inset 0 1px 0 #ffffff08
+}
+.equipment-card.owned{border-color:#596979}
+.equipment-card.equipped{border-color:#d4ab58;background:#172118;box-shadow:inset 0 0 0 1px #e9c66b22}
+.equipment-card-title{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.equipment-card-title>b{font-size:14px;color:#f2f5f9}
+.equip-badge{
+  display:inline-block;padding:3px 6px;border-radius:999px;background:#254c39;color:#9ee0b8;
+  font-size:9px;font-weight:800;white-space:nowrap
+}
+.equipment-card-stat{margin-top:7px;font-size:12px;font-weight:800;color:#d8e6f5}
+.equipment-card-compare{margin-top:4px;font-size:10px;color:#9fc2e7}
+.equipment-desc{margin-top:6px;line-height:1.45;color:#aebdcb}
+.equipment-card-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:9px}
+.equipment-card-bottom strong{color:#f1cb72}
+.equipment-card-bottom button,.equipment-equip-btn{min-height:34px;padding:7px 11px}
+.equipment-equip-btn{width:100%;margin-top:9px}
+.equipment-equip-btn.equipped{background:#244635;border-color:#3b6a50;color:#9ee0b8}
+
+.equipped-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.equipped-summary>div{
+  display:grid;gap:3px;padding:10px;border:1px solid #3b4e64;border-radius:10px;background:#0d1620
+}
+.equipped-summary span{font-size:10px;color:#9fb1c4}
+.equipped-summary b{font-size:14px}
+.equipped-summary small{font-size:10px;color:#d0d9e3}
+
+.equipped-slot{display:grid!important;grid-template-columns:auto 1fr;gap:3px 8px;align-items:center}
+.equipped-slot>span{font-size:10px;color:#9fb1c4}
+.equipped-slot>b{text-align:right}
+.equipped-slot>small{grid-column:1/-1;color:#c0ccd8;text-align:right}
+.equipment-manage-inline,.equipment-manage-top{
+  width:100%;margin-top:7px;min-height:38px;border-color:#775f34!important;background:#2d281c!important;color:#f0d18a!important
+}
+.equipment-manage-top{margin:8px 0}
+
+.equipment-inv-row{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center
+}
+.equipment-inv-row>button{min-width:66px}
+.equipment-inv-row .equip-badge{margin-left:4px}
+
+@media(max-width:700px){
+  .equipment-modal{width:96vw!important;padding:12px!important}
+  .equipment-grid,.equipped-summary{grid-template-columns:1fr}
+  .equipment-card{padding:10px}
+  .equipment-card-title>b{font-size:13px}
+  .equipment-tabs{position:sticky;top:-12px;z-index:3;padding:6px 0;background:#111b28}
+}
