@@ -147,6 +147,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <link rel="stylesheet" href="css/hud-visibility.css?v=0.5.8-hud1">
 <link rel="stylesheet" href="css/fantasy-ui-icons.css?v=0.5.8-icons1">
 <link rel="stylesheet" href="css/equipment-ui.css?v=0.5.8-equip1">
+<link rel="stylesheet" href="css/ui-polish.css?v=0.5.9-ui1">
 </head>
 <body>
 <div id="app">
@@ -211,32 +212,63 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
         </div>
 
         <div id="paneInventory" class="side-pane">
-          <div class="side-title">소모품</div><div id="consumablesBox" class="small"></div>
-          <div class="side-title">재료</div><div id="materialsBox" class="small"></div>
-          <div class="side-title">도구</div><div id="toolsBox" class="small"></div>
-          <div class="side-title">제작 장비</div><div id="equipmentInvBox" class="small"></div>
+          <div class="inventory-tabs" role="tablist" aria-label="가방 분류">
+            <button class="active" data-inventory-tab="equipment" onclick="switchInventoryTab('equipment')">🛡️ 장비</button>
+            <button data-inventory-tab="consumables" onclick="switchInventoryTab('consumables')">🧪 소모품</button>
+            <button data-inventory-tab="materials" onclick="switchInventoryTab('materials')">🪨 재료</button>
+            <button data-inventory-tab="tools" onclick="switchInventoryTab('tools')">🪓 도구</button>
+          </div>
+          <section class="inventory-section active" data-inventory-panel="equipment">
+            <div class="side-title">현재 / 보유 장비</div><div id="equipmentInvBox" class="small"></div>
+          </section>
+          <section class="inventory-section" data-inventory-panel="consumables">
+            <div class="side-title">소모품</div><div id="consumablesBox" class="small"></div>
+          </section>
+          <section class="inventory-section" data-inventory-panel="materials">
+            <div class="side-title">재료</div><div id="materialsBox" class="small"></div>
+          </section>
+          <section class="inventory-section" data-inventory-panel="tools">
+            <div class="side-title">도구</div><div id="toolsBox" class="small"></div>
+          </section>
         </div>
 
         <div id="paneCharacter" class="side-pane">
-          <div class="side-title">기본 정보</div>
-          <div id="careerSummary" class="career-summary"></div>
-          <div class="stat"><span>XP</span><b id="xp"></b></div>
-          <div class="stat"><span>평판</span><b id="rep"></b></div>
-          <div class="side-title">전투 숙련</div>
-          <div class="stat"><span>검술</span><b id="sword"></b></div>
-          <div class="stat"><span>단검술</span><b id="dagger"></b></div>
-          <div class="stat"><span>궁술</span><b id="bow"></b></div>
-          <div class="stat"><span>지팡이</span><b id="staff"></b></div>
-          <div class="stat"><span>마나 제어</span><b id="manaControl"></b></div>
-          <div class="stat"><span>화염</span><b id="fire"></b></div>
-          <div class="stat"><span>냉기</span><b id="ice"></b></div>
-          <div class="stat"><span>번개</span><b id="lightning"></b></div>
-          <div class="side-title">생활 숙련</div>
-          <div class="stat"><span>채집</span><b id="gathering"></b></div>
-          <div class="stat"><span>벌목</span><b id="logging"></b></div>
-          <div class="stat"><span>채광</span><b id="mining"></b></div>
-          <div class="stat"><span>연금술</span><b id="alchemy"></b></div>
-          <div class="side-title">마법</div><div id="spells"></div>
+          <div class="character-card character-overview">
+            <div class="character-card-head"><span>🧭</span><b>모험가 정보</b></div>
+            <div id="careerSummary" class="career-summary"></div>
+            <div class="character-stat-grid compact">
+              <div class="stat"><span>XP</span><b id="xp"></b></div>
+              <div class="stat"><span>평판</span><b id="rep"></b></div>
+            </div>
+          </div>
+          <div class="character-card">
+            <div class="character-card-head"><span>⚔️</span><b>전투 숙련</b></div>
+            <div class="character-stat-grid">
+              <div class="stat"><span>검술</span><b id="sword"></b></div>
+              <div class="stat"><span>단검술</span><b id="dagger"></b></div>
+              <div class="stat"><span>궁술</span><b id="bow"></b></div>
+              <div class="stat"><span>지팡이</span><b id="staff"></b></div>
+            </div>
+          </div>
+          <div class="character-card">
+            <div class="character-card-head"><span>✨</span><b>마법 숙련</b></div>
+            <div class="character-stat-grid">
+              <div class="stat"><span>마나 제어</span><b id="manaControl"></b></div>
+              <div class="stat element-fire"><span>🔥 화염</span><b id="fire"></b></div>
+              <div class="stat element-ice"><span>❄️ 냉기</span><b id="ice"></b></div>
+              <div class="stat element-lightning"><span>⚡ 번개</span><b id="lightning"></b></div>
+            </div>
+            <div class="character-spells"><div class="side-title">배운 마법</div><div id="spells"></div></div>
+          </div>
+          <div class="character-card">
+            <div class="character-card-head"><span>🌿</span><b>생활 숙련</b></div>
+            <div class="character-stat-grid">
+              <div class="stat"><span>채집</span><b id="gathering"></b></div>
+              <div class="stat"><span>벌목</span><b id="logging"></b></div>
+              <div class="stat"><span>채광</span><b id="mining"></b></div>
+              <div class="stat"><span>연금술</span><b id="alchemy"></b></div>
+            </div>
+          </div>
         </div>
 
         <div id="paneSocial" class="side-pane">
@@ -264,37 +296,38 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <button id="startGameBtn" type="button" class="primary" onclick="startGame()">새 모험 시작</button> <button onclick="loadGame()">저장한 모험 이어하기</button>
 </div></div>
 
-<div id="combatModal" class="modal hidden"><div>
-<h2>전투</h2>
-<div class="dual">
-<div class="player-panel">
+<div id="combatModal" class="modal hidden"><div class="combat-modal-card">
+<div class="combat-title-row"><h2>⚔️ 전투</h2><span class="combat-turn-hint">적의 행동을 보고 선택하세요</span></div>
+<div class="dual combat-party-status">
+<div class="player-panel combat-status-card">
  <h3 id="combatPlayerName"></h3>
- <div class="stat"><span>내 HP</span><b id="combatPlayerHp"></b></div><div class="bar"><i id="combatPlayerHpBar"></i></div>
- <div class="stat"><span>내 MP</span><b id="combatPlayerMp"></b></div><div class="bar"><i id="combatPlayerMpBar"></i></div>
+ <div class="stat combat-stat"><span>❤️ 내 HP</span><b id="combatPlayerHp"></b></div><div class="bar combat-hp-bar"><i id="combatPlayerHpBar"></i></div>
+ <div class="stat combat-stat"><span>🔷 MP</span><b id="combatPlayerMp"></b></div><div class="bar combat-mp-bar"><i id="combatPlayerMpBar"></i></div>
 </div>
-<div id="companionCombatPanel" class="player-panel hidden">
+<div id="companionCombatPanel" class="player-panel combat-status-card hidden">
  <h3 id="combatCompanionName"></h3>
- <div class="stat"><span>동료 HP</span><b id="combatCompanionHp"></b></div><div class="bar"><i id="combatCompanionHpBar"></i></div>
- <div class="stat"><span>동료 MP</span><b id="combatCompanionMp"></b></div><div class="bar"><i id="combatCompanionMpBar"></i></div>
+ <div class="stat combat-stat"><span>❤️ 동료 HP</span><b id="combatCompanionHp"></b></div><div class="bar combat-hp-bar"><i id="combatCompanionHpBar"></i></div>
+ <div class="stat combat-stat"><span>🔷 동료 MP</span><b id="combatCompanionMp"></b></div><div class="bar combat-mp-bar"><i id="combatCompanionMpBar"></i></div>
 </div>
 </div>
 <div class="combat-grid">
  <img id="enemyArt" class="enemy-art">
- <div>
+ <div class="combat-enemy-info">
   <h3 id="enemyName"></h3>
-  <div class="stat"><span>적 HP</span><b id="enemyHp"></b></div><div class="bar"><i id="enemyBar"></i></div>
-  <div id="enemyIntent" class="intent"></div>
+  <div class="stat combat-stat enemy-stat"><span>🩸 적 HP</span><b id="enemyHp"></b></div><div class="bar combat-enemy-bar"><i id="enemyBar"></i></div>
+  <div id="enemyIntent" class="intent combat-intent"></div>
   <div id="combatStatus"></div>
-  <div id="combatLog" class="quest small"></div>
+  <div id="combatLog" class="quest small combat-log"></div>
  </div>
 </div>
 <div class="combat-actions">
- <button class="primary" onclick="weaponAttack()">무기 공격</button>
- <button class="magic" onclick="openCombatMagic()">마법 선택</button>
- <button class="good" onclick="defend()">방어</button>
- <button class="warn" onclick="specialSkill()">전술 스킬</button>
- <button onclick="openCombatItems()">아이템 사용</button><button onclick="changeCompanionTactic()">동료 전술 변경</button>
- <button class="bad" onclick="flee()">도망</button>
+ <button class="primary" onclick="weaponAttack()"><span>⚔️</span><b>공격</b></button>
+ <button class="magic" onclick="openCombatMagic()"><span>✨</span><b>마법</b></button>
+ <button class="good" onclick="defend()"><span>🛡️</span><b>방어</b></button>
+ <button class="warn" onclick="specialSkill()"><span>🎯</span><b>전술</b></button>
+ <button onclick="openCombatItems()"><span>🧪</span><b>아이템</b></button>
+ <button onclick="changeCompanionTactic()"><span>🤝</span><b>동료</b></button>
+ <button class="bad" onclick="flee()"><span>🏃</span><b>도망</b></button>
 </div>
 </div></div>
 
@@ -2387,5 +2420,6 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 <script src="js/career-system.js?v=0.5.7-audit1"></script>
 <script src="js/guild-quests.js?v=0.5.8-balance1"></script>
 <script src="js/equipment-ui.js?v=0.5.8-equip1"></script>
+<script src="js/ui-polish.js?v=0.5.9-ui1"></script>
 </body>
 </html>
