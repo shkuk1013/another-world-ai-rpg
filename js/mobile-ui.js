@@ -89,60 +89,82 @@
   }
 
   function mobileMode(){return matchMedia("(max-width:1180px)").matches}
-  function markActive(tab){
-    nav.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  function markActive(tab=null,action=null){
+    nav.querySelectorAll("button").forEach(b=>{
+      const on=(tab&&b.dataset.tab===tab)||(action&&b.dataset.action===action);
+      b.classList.toggle("active",!!on);
+    });
+  }
+  function closeMapIfOpen(){
+    const map=document.getElementById("worldMapModal");
+    if(map&&!map.classList.contains("hidden")&&typeof window.closeWorldMap==="function")window.closeWorldMap();
   }
   function openSide(tab){
     if(!mobileMode())return;
+    closeMapIfOpen();
+    closeMenu();
     switchSideTab(tab);
     side.classList.add("mobile-sheet-open");
     close.style.display="grid";
-    markActive(tab);
+    markActive(tab,null);
     requestAnimationFrame(()=>side.querySelector(".side-content")?.scrollTo?.(0,0));
   }
   function closeSide(){
     side.classList.remove("mobile-sheet-open");
     close.style.display="none";
-    markActive(null);
+    const active=nav.querySelector("button.active");
+    if(active?.dataset.tab)markActive(null,null);
   }
-  function openMenu(){if(!mobileMode())return;closeSide();menu.classList.add("open")}
-  function closeMenu(){menu.classList.remove("open")}
+  function openMenu(){
+    if(!mobileMode())return;
+    closeMapIfOpen();
+    closeSide();
+    menu.classList.add("open");
+    markActive(null,"menu");
+  }
+  function closeMenu(){
+    menu.classList.remove("open");
+    const active=nav.querySelector('button.active[data-action="menu"]');
+    if(active)markActive(null,null);
+  }
+
+  const baseOpenWorldMap=window.openWorldMap;
+  const baseCloseWorldMap=window.closeWorldMap;
+  if(typeof baseOpenWorldMap==="function"){
+    window.openWorldMap=function(){
+      const out=baseOpenWorldMap.apply(this,arguments);
+      if(mobileMode())markActive(null,"map");
+      return out;
+    };
+  }
+  if(typeof baseCloseWorldMap==="function"){
+    window.closeWorldMap=function(){
+      const out=baseCloseWorldMap.apply(this,arguments);
+      const active=nav.querySelector('button.active[data-action="map"]');
+      if(active)markActive(null,null);
+      return out;
+    };
+  }
 
   nav.addEventListener("click",e=>{
     const b=e.target.closest("button");if(!b)return;
 
     if(b.dataset.tab){
-      // Tapping the currently open bottom tab again closes the side sheet.
-      if(side.classList.contains("mobile-sheet-open")&&b.classList.contains("active")){
-        closeSide();
-        return;
-      }
-      closeMenu();
-      openSide(b.dataset.tab);
-      return;
+      const sameOpen=side.classList.contains("mobile-sheet-open")&&b.classList.contains("active");
+      if(sameOpen)return closeSide();
+      return openSide(b.dataset.tab);
     }
 
     if(b.dataset.action==="map"){
       const map=document.getElementById("worldMapModal");
-      // The map button is a true toggle: tap once to open, tap again to close.
-      if(map&&!map.classList.contains("hidden")){
-        closeWorldMap();
-        return;
-      }
-      closeSide();
-      closeMenu();
-      openWorldMap("bren");
-      return;
+      const mapOpen=map&&!map.classList.contains("hidden");
+      if(mapOpen)return closeWorldMap();
+      closeSide();closeMenu();return openWorldMap("bren");
     }
 
     if(b.dataset.action==="menu"){
-      // Same toggle behavior for the bottom menu button.
-      if(menu.classList.contains("open")){
-        closeMenu();
-        return;
-      }
-      closeSide();
-      openMenu();
+      if(menu.classList.contains("open"))return closeMenu();
+      return openMenu();
     }
   });
   close.onclick=closeSide;
