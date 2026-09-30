@@ -1,0 +1,219 @@
+/* v0.5.9 — UI polish pass
+   Resolves mobile HUD conflicts and modernizes combat/inventory/character surfaces. */
+
+/* ---------- HUD: one authoritative mobile layout ---------- */
+@media(max-width:1180px){
+  .hud-bars{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  .hud-bars .mini-stat,
+  .hud-bars .mini-stat:nth-child(1),
+  .hud-bars .mini-stat:nth-child(2),
+  .hud-bars .mini-stat:nth-child(3),
+  .hud-bars .mini-stat:nth-child(4),
+  .hud-bars .mini-stat:nth-child(5){
+    grid-column:span 1!important;
+    min-width:0!important;
+  }
+  .hud-bars .mini-stat{
+    padding:5px 5px!important;
+    background:#0d1722!important;
+    border:1px solid #ffffff14!important;
+    border-radius:9px!important;
+  }
+  .hud-bars .mini-stat label{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:1px!important;
+    margin:0 0 4px!important;
+    text-align:center!important;
+    font-size:10.5px!important;
+    line-height:1.15!important;
+  }
+  .hud-bars .mini-stat label span,
+  .hud-bars .mini-stat label b{
+    display:block!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    text-align:center!important;
+    font-size:10.5px!important;
+    white-space:nowrap!important;
+  }
+  .hud-bars .mini-bar{
+    height:9px!important;
+    margin-top:2px!important;
+  }
+}
+@media(max-width:430px){
+  .hud-bars{gap:4px!important}
+  .hud-bars .mini-stat{padding:4px 2px!important}
+  .hud-bars .mini-stat label,
+  .hud-bars .mini-stat label span,
+  .hud-bars .mini-stat label b{font-size:9.5px!important}
+  .hud-bars .mini-bar{height:8px!important}
+}
+@media(max-width:360px){
+  .hud-bars .mini-stat label span{font-size:9px!important}
+  .hud-bars .mini-stat label b{font-size:9px!important}
+}
+
+/* ---------- Combat ---------- */
+.combat-modal-card{
+  width:min(820px,96vw)!important;
+  overflow:auto;
+}
+.combat-title-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px
+}
+.combat-title-row h2{margin:0!important}
+.combat-turn-hint{font-size:10px;color:#9eadbd}
+.combat-party-status{margin-bottom:10px}
+.combat-status-card{
+  padding:10px;border:1px solid #34485f;border-radius:11px;background:#0d1722
+}
+.combat-status-card h3{margin:0 0 7px!important;font-size:13px}
+.combat-stat{margin:4px 0 3px!important;font-size:12px}
+.combat-stat b{font-size:13px;font-variant-numeric:tabular-nums}
+.combat-modal-card .bar{
+  height:11px;border:1px solid #ffffff18;background:#070c12;box-shadow:inset 0 1px 3px #000a
+}
+.combat-modal-card .bar i{border-radius:99px}
+.combat-hp-bar i{
+  background:linear-gradient(90deg,#a91d29,#e93b49 55%,#ff6a72)!important;
+  box-shadow:0 0 8px #e93b4950
+}
+.combat-mp-bar i{
+  background:linear-gradient(90deg,#3c4ec0,#6870e8 55%,#9787ff)!important;
+  box-shadow:0 0 8px #6870e840
+}
+.combat-enemy-bar i{
+  background:linear-gradient(90deg,#711421,#b42131 55%,#df3947)!important;
+  box-shadow:0 0 10px #b4213155
+}
+.combat-enemy-info{
+  padding:10px;border:1px solid #3c4654;border-radius:11px;background:#0d141d
+}
+.combat-enemy-info h3{font-size:17px;color:#f3d9d9;margin-bottom:8px!important}
+.combat-intent{
+  position:relative;padding:9px 10px 9px 34px!important;font-weight:800
+}
+.combat-intent:before{
+  content:"⚠️";position:absolute;left:9px;top:8px
+}
+.combat-log{min-height:52px;line-height:1.55}
+.combat-actions{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important
+}
+.combat-actions button{
+  min-height:50px;padding:7px 5px!important;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:11px
+}
+.combat-actions button span{font-size:18px;line-height:1}
+.combat-actions button b{font-size:11px}
+.combat-actions .bad{grid-column:auto}
+
+@media(max-width:700px){
+  #combatModal{align-items:flex-start!important}
+  #combatModal>.combat-modal-card{
+    width:100%!important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    padding:12px 12px calc(82px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .combat-title-row{margin-bottom:8px}
+  .combat-turn-hint{display:none}
+  .combat-party-status{grid-template-columns:1fr 1fr!important;gap:6px!important}
+  .combat-status-card{padding:8px}
+  .combat-status-card h3{font-size:11px}
+  .combat-modal-card .bar{height:9px}
+  .combat-grid{grid-template-columns:1fr!important;gap:7px!important}
+  .combat-grid .enemy-art{max-height:180px!important}
+  .combat-enemy-info{padding:8px}
+  .combat-actions{
+    position:fixed;z-index:112;left:8px;right:8px;
+    bottom:max(8px,env(safe-area-inset-bottom,0px));
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:3px!important;padding:5px;
+    border:1px solid #43546a;border-radius:12px;
+    background:#09111af4;backdrop-filter:blur(14px);box-shadow:0 -8px 24px #0009
+  }
+  .combat-actions button{
+    min-width:0;min-height:54px;padding:4px 1px!important;border-radius:8px!important;font-size:9px
+  }
+  .combat-actions button span{font-size:18px}
+  .combat-actions button b{font-size:8.5px;white-space:nowrap}
+}
+@media(max-width:390px){
+  .combat-actions button span{font-size:16px}
+  .combat-actions button b{font-size:8px}
+}
+
+/* ---------- Inventory category tabs ---------- */
+.inventory-tabs{
+  position:sticky;top:0;z-index:4;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+  margin:-4px 0 10px;padding:4px;
+  border:1px solid #31445a;border-radius:11px;background:#0d1621ed;backdrop-filter:blur(10px)
+}
+.inventory-tabs button{
+  min-width:0;min-height:38px;padding:5px 3px;font-size:10px;background:#172334;border-color:#2d4157
+}
+.inventory-tabs button.active{
+  background:#315d98;border-color:#6c96c8;color:#fff;
+  box-shadow:inset 0 0 0 1px #a9ccf022
+}
+.inventory-section{display:none}
+.inventory-section.active{display:block}
+.inventory-section .side-title{margin-top:4px}
+
+/* ---------- Character cards ---------- */
+.character-card{
+  margin:7px 0;padding:10px;border:1px solid #35485f;border-radius:11px;
+  background:linear-gradient(180deg,#111c29,#0d151f)
+}
+.character-card-head{
+  display:flex;align-items:center;gap:7px;margin-bottom:8px;color:#f1dfba
+}
+.character-card-head>span{font-size:18px}.character-card-head>b{font-size:13px}
+.character-stat-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:5px
+}
+.character-stat-grid.compact{margin-top:7px}
+.character-stat-grid .stat{
+  margin:0!important;padding:7px 8px;border:1px solid #2b3c50;border-radius:8px;background:#0c141e
+}
+.character-stat-grid .stat span{font-size:10px;color:#aebdca}
+.character-stat-grid .stat b{font-size:13px}
+.character-stat-grid .element-fire b{color:#ff9b83}
+.character-stat-grid .element-ice b{color:#91d8ff}
+.character-stat-grid .element-lightning b{color:#dec2ff}
+.character-spells{margin-top:9px;border-top:1px solid #29394c;padding-top:7px}
+.character-spells .side-title{font-size:11px;margin:0 0 5px}
+
+/* ---------- Mobile side sheet: keep tabs usable beside home/close ---------- */
+@media(max-width:1180px){
+  .side-tabs{
+    padding:7px 82px 7px 7px!important;
+    gap:3px!important
+  }
+  .side-tabs button.fantasy-decorated{
+    min-height:46px!important;padding:3px 1px!important;font-size:9.5px!important
+  }
+  .side-tabs .tab-fantasy-icon{width:23px!important;height:23px!important}
+}
+
+/* ---------- Dedicated menu glyph (not the magic-book icon) ---------- */
+.icon-menu-rune{
+  position:relative;background-image:none!important;border:1px solid #b9934a!important;
+  border-radius:9px!important;background:linear-gradient(180deg,#2d2519,#17130f)!important;
+  box-shadow:inset 0 0 0 1px #f2d58a1c!important
+}
+.icon-menu-rune:before,
+.icon-menu-rune:after{
+  content:"";position:absolute;left:20%;right:20%;height:2px;background:#f2d083;border-radius:99px;
+  box-shadow:0 6px 0 #f2d083,0 12px 0 #f2d083
+}
+.icon-menu-rune:before{top:27%}
+.icon-menu-rune:after{display:none}
