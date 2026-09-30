@@ -205,7 +205,7 @@
     const buttons=[...root.querySelectorAll(".choice-btn")];
     const shop=buttons.find(b=>(b.textContent||"").includes("무기 둘러보기"));
     if(shop){
-      shop.childNodes.forEach(n=>{if(n.nodeType===Node.TEXT_NODE&&n.textContent.includes("무기 둘러보기"))n.textContent=n.textContent.replace("무기 둘러보기","무기 / 방어구 구매")});
+      shop.childNodes.forEach(n=>{if(n.nodeType===3&&n.textContent.includes("무기 둘러보기"))n.textContent=n.textContent.replace("무기 둘러보기","무기 / 방어구 구매")});
       const sub=shop.querySelector(".choice-sub");if(sub)sub.textContent="초급 무기 · 방어구";
       shop.onclick=()=>openBlacksmithShop("weapon");
     }
