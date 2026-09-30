@@ -29,7 +29,7 @@
   #guildQuestActive,#guildQuestAvailable{grid-template-columns:1fr}
   .guild-quest-title h2{font-size:18px}
   .guild-quest-card{padding:10px}
-  .guild-quest-nav{display:grid;grid-template-columns:1fr 1fr}
+  .guild-quest-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
   .guild-quest-nav button{width:100%}
 }
 
