@@ -1,0 +1,110 @@
+/* v0.5.8 — generated fantasy UI icon atlas
+   Atlas order: quest, bag, map, character / guild, forge, inn, magic */
+.fantasy-ui-icon{
+  display:inline-block;
+  flex:0 0 auto;
+  width:32px;
+  height:32px;
+  background-image:url("../assets/ui/ui-nav-icons.webp?v=0.5.8-icons1");
+  background-repeat:no-repeat;
+  background-size:400% 200%;
+  background-color:transparent;
+  border:0;
+  filter:drop-shadow(0 2px 4px #0009);
+  vertical-align:middle;
+  pointer-events:none;
+}
+.icon-quest{background-position:0% 0%}
+.icon-bag{background-position:33.333% 0%}
+.icon-map{background-position:66.667% 0%}
+.icon-character{background-position:100% 0%}
+.icon-guild{background-position:0% 100%}
+.icon-forge{background-position:33.333% 100%}
+.icon-inn{background-position:66.667% 100%}
+.icon-magic{background-position:100% 100%}
+
+/* Mobile bottom navigation */
+.mobile-bottom-nav .mobile-nav-icon.fantasy-ui-icon{
+  width:36px!important;
+  height:36px!important;
+  font-size:0!important;
+  margin-top:-2px;
+  transition:transform .16s ease,filter .16s ease;
+}
+.mobile-bottom-nav button{
+  overflow:visible;
+}
+.mobile-bottom-nav button.active{
+  border:1px solid #d3a84b55!important;
+  background:linear-gradient(180deg,#2c4056,#1a2b3d)!important;
+  box-shadow:inset 0 0 0 1px #f2d08318,0 0 14px #d8a94918;
+}
+.mobile-bottom-nav button.active .fantasy-ui-icon{
+  transform:translateY(-1px) scale(1.08);
+  filter:drop-shadow(0 0 7px #f0c96a88) drop-shadow(0 2px 4px #000b);
+}
+
+/* Desktop/tablet side tabs */
+.side-tabs button.fantasy-decorated,
+.side-actions button.fantasy-decorated{
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.side-tabs .tab-fantasy-icon{
+  width:22px;
+  height:22px;
+}
+.side-actions .action-fantasy-icon{
+  width:24px;
+  height:24px;
+}
+
+/* Mobile menu */
+.mobile-menu-grid button.fantasy-decorated{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:9px;
+  text-align:left;
+}
+.mobile-menu-grid .menu-fantasy-icon{
+  width:32px;
+  height:32px;
+}
+
+/* Dynamic in-world action buttons */
+.choice-btn .choice-icon.fantasy-choice-icon{
+  width:30px!important;
+  height:30px!important;
+  font-size:0!important;
+  background-image:url("../assets/ui/ui-nav-icons.webp?v=0.5.8-icons1");
+  background-repeat:no-repeat;
+  background-size:400% 200%;
+  filter:drop-shadow(0 2px 3px #000a);
+}
+.choice-btn:hover .choice-icon.fantasy-choice-icon,
+.choice-btn:active .choice-icon.fantasy-choice-icon{
+  filter:drop-shadow(0 0 6px #e9bd6570) drop-shadow(0 2px 3px #000a);
+}
+
+@media(max-width:1180px){
+  .side-tabs button.fantasy-decorated{
+    min-height:48px!important;
+    flex-direction:column;
+    gap:1px;
+    padding:4px 2px!important;
+  }
+  .side-tabs .tab-fantasy-icon{width:25px;height:25px}
+  .side-actions button.fantasy-decorated{justify-content:flex-start}
+}
+
+@media(max-width:430px){
+  .mobile-bottom-nav .mobile-nav-icon.fantasy-ui-icon{
+    width:33px!important;
+    height:33px!important;
+  }
+  .mobile-bottom-nav button{gap:0!important}
+  .mobile-menu-grid .menu-fantasy-icon{width:29px;height:29px}
+}
