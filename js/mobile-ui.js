@@ -67,14 +67,14 @@
     });
   }
   function fantasyChoiceClass(text){
-    if(/대장간|장비 제작|강화|제련/.test(text))return "icon-forge";
+    if(/대장간|장비 제작|강화|제련|무기 \/ 방어구 구매|방어구 구매|무기 구매/.test(text))return "icon-forge";
     if(/여관|숙박|식사|휴식|잠/.test(text))return "icon-inn";
     if(/모험가 길드|길드 등급|길드 등록/.test(text))return "icon-guild";
     if(/마법|리엔|주문|연금|마나/.test(text))return "icon-magic";
     if(/지도|주변 지역 이동|이동/.test(text))return "icon-map";
     if(/의뢰|정찰|보고|흔적 추적/.test(text))return "icon-quest";
     if(/인벤|가방/.test(text))return "icon-bag";
-    if(/캐릭터|칭호|숙련/.test(text))return "icon-character";
+    if(/장비 관리|캐릭터|칭호|숙련/.test(text))return "icon-character";
     return null;
   }
   function decorateFantasyActions(){
