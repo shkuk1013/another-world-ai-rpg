@@ -1,0 +1,145 @@
+/* v0.5.8 — HUD visibility pass
+   HP/MP/survival stats are deliberately larger and color-coded. */
+
+.hud-bars{
+  gap:10px;
+  min-width:360px;
+  max-width:560px;
+}
+
+.hud-bars .mini-stat{
+  min-width:68px;
+}
+
+.hud-bars .mini-stat label{
+  align-items:center;
+  gap:6px;
+  margin-bottom:4px;
+  font-size:12px;
+  line-height:1.2;
+  font-weight:800;
+  color:#e7edf5;
+  text-shadow:0 1px 2px #000;
+}
+
+.hud-bars .mini-stat label span{
+  font-weight:900;
+  letter-spacing:.01em;
+}
+
+.hud-bars .mini-stat label b{
+  color:#fff;
+  font-size:12px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+.hud-bars .mini-bar{
+  height:11px;
+  border:1px solid #ffffff20;
+  border-radius:999px;
+  background:#060b12;
+  box-shadow:inset 0 1px 3px #000b,0 1px 2px #0007;
+}
+
+.hud-bars .mini-bar i{
+  min-width:2px;
+  border-radius:999px;
+  transition:width .18s ease;
+}
+
+/* HP — red */
+.hud-bars .mini-stat:nth-child(1) label span{color:#ffb2b2}
+.hud-bars .mini-stat:nth-child(1) .mini-bar i{
+  background:linear-gradient(90deg,#b91f2b,#ef3d4c 55%,#ff6b73);
+  box-shadow:0 0 8px #ef3d4c66;
+}
+
+/* MP — blue/violet */
+.hud-bars .mini-stat:nth-child(2) label span{color:#bfc7ff}
+.hud-bars .mini-stat:nth-child(2) .mini-bar i,
+.hud-bars .mini-stat:nth-child(2) .mini-bar.mp i{
+  background:linear-gradient(90deg,#4355c8,#696fe8 55%,#9a8cff);
+  box-shadow:0 0 8px #696fe855;
+}
+
+/* Hunger — orange */
+.hud-bars .mini-stat:nth-child(3) label span{color:#ffd0a0}
+.hud-bars .mini-stat:nth-child(3) .mini-bar i,
+.hud-bars .mini-stat:nth-child(3) .mini-bar.fat i{
+  background:linear-gradient(90deg,#b85a1f,#df8433 55%,#f4ad57);
+}
+
+/* Hydration — cyan */
+.hud-bars .mini-stat:nth-child(4) label span{color:#a9e8ff}
+.hud-bars .mini-stat:nth-child(4) .mini-bar i{
+  background:linear-gradient(90deg,#187ab0,#30a8d8 55%,#6bd5ef);
+}
+
+/* Fatigue — amber */
+.hud-bars .mini-stat:nth-child(5) label span{color:#ffe3a4}
+.hud-bars .mini-stat:nth-child(5) .mini-bar i,
+.hud-bars .mini-stat:nth-child(5) .mini-bar.fat i{
+  background:linear-gradient(90deg,#9a6518,#d39a2a 55%,#efc85d);
+}
+
+/* Tablet */
+@media(max-width:1000px){
+  .hud-bars{
+    width:100%;
+    max-width:none;
+    min-width:0;
+    display:grid;
+    grid-template-columns:repeat(5,minmax(64px,1fr));
+    gap:8px;
+  }
+  .hud-bars .mini-stat{min-width:0}
+}
+
+/* Mobile: keep all five stats visible, readable, and touch-screen friendly. */
+@media(max-width:620px){
+  .hud{
+    overflow:visible!important;
+  }
+  .hud-bars{
+    min-width:100%!important;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:5px;
+  }
+  .hud-bars .mini-stat{
+    min-width:0!important;
+    padding:5px 4px;
+    border:1px solid #ffffff12;
+    border-radius:8px;
+    background:#0d1722;
+  }
+  .hud-bars .mini-stat label{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:1px;
+    margin-bottom:4px;
+    font-size:11px!important;
+    text-align:center;
+  }
+  .hud-bars .mini-stat label span,
+  .hud-bars .mini-stat label b{
+    display:block;
+    font-size:11px!important;
+    text-align:center;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .hud-bars .mini-bar{
+    height:10px;
+  }
+}
+
+/* Very narrow phones: values remain readable even if labels must tighten slightly. */
+@media(max-width:390px){
+  .hud-bars{gap:4px}
+  .hud-bars .mini-stat{padding:4px 2px}
+  .hud-bars .mini-stat label,
+  .hud-bars .mini-stat label span,
+  .hud-bars .mini-stat label b{font-size:10px!important}
+  .hud-bars .mini-bar{height:9px}
+}
