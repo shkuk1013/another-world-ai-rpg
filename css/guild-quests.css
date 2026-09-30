@@ -1,48 +1,81 @@
-/* v0.5.8 — F-rank guild board */
-.guild-quest-modal{width:min(880px,96vw)!important}
-.guild-quest-title{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.guild-quest-title h2{margin:0 0 5px}
+/* v0.5.8 — compact F-rank guild board */
+.guild-quest-modal{width:min(860px,96vw)!important}
+.guild-quest-title{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.guild-quest-title h2{margin:0 0 4px;font-size:21px}
 .guild-quest-title>button{flex:0 0 auto}
 .guild-board-meta,.guild-board-lock{
-  padding:10px 12px;border:1px solid #3b4d66;border-radius:10px;background:#0e1722;margin:8px 0 14px;
-  color:#dce7f5;font-size:12px
+  padding:8px 10px;border:1px solid #3b4d66;border-radius:9px;background:#0e1722;margin:7px 0 10px;
+  color:#dce7f5;font-size:11px
 }
 .guild-board-lock{border-color:#6a5531;background:#211b11;color:#f2d18e}
-#guildQuestActive,#guildQuestAvailable{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.guild-quest-card{padding:11px;border:1px solid #40526a;border-left:4px solid #6f8ba8;border-radius:11px;background:#101923}
-.guild-quest-card.easy{border-left-color:#69c590}.guild-quest-card.normal{border-left-color:#e2b75f}.guild-quest-card.risk{border-left-color:#e27777}
+
+.guild-board-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.guild-board-tabs button{padding:9px 10px;background:#172334;border-color:#354a62;font-size:12px}
+.guild-board-tabs button.active{background:#315d98;border-color:#5a84b9}
+.guild-board-tabs b{margin-left:4px;color:#f5d58d}
+.guild-board-panel{display:none}
+.guild-board-panel.active{display:block}
+#guildQuestActive,#guildQuestAvailable{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+
+.guild-quest-card{
+  padding:10px;border:1px solid #40526a;border-left:4px solid #6f8ba8;border-radius:11px;background:#101923
+}
+.guild-quest-card.easy{border-left-color:#69c590}
+.guild-quest-card.normal{border-left-color:#e2b75f}
+.guild-quest-card.risk{border-left-color:#e27777}
 .guild-quest-card.complete{box-shadow:0 0 0 1px #79d9a244 inset;background:#112018}
-.guild-quest-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:5px}
-.guild-quest-head>b{font-size:14px}.guild-quest-head>span{font-size:10px;padding:3px 7px;border-radius:999px;background:#26364b;color:#cfd9e4;white-space:nowrap}
-.guild-quest-objective,.guild-quest-reward{font-size:11px;margin-top:7px;color:#cbd7e4}
-.guild-quest-reward{color:#f2ce86}
-.guild-quest-buttons{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap}
-.guild-quest-buttons button{font-size:11px;padding:7px 9px}
-.guild-quest-abandon{background:#322129;border-color:#67414c}
-.guild-empty{padding:10px;border:1px dashed #3a4a61;border-radius:9px}
+
+.guild-quest-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.guild-quest-head>b{font-size:14px;line-height:1.35}
+.guild-quest-badges{display:flex;gap:4px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+.guild-quest-badges>span,.guild-quest-status{
+  font-size:9px;padding:3px 6px;border-radius:999px;background:#26364b;color:#cfd9e4;white-space:nowrap
+}
+.guild-quest-status.complete{background:#204c36;color:#9ce5b9}
+.guild-quest-status.active{background:#213b59;color:#9fc8ff}
+
+.guild-quest-place-link{
+  width:100%;margin-top:7px;padding:6px 8px;border-radius:8px;text-align:left;background:#0b1721;
+  border:1px solid #2f455d;color:#d9e8f6;font-size:10px;font-weight:650
+}
+.guild-quest-place-link b{color:#9fc8ff}
+.guild-quest-place-link span{float:right;color:#88a8c7}
+
+.guild-quest-objective{display:flex;justify-content:space-between;gap:10px;margin-top:7px;font-size:11px;color:#cbd7e4}
+.guild-quest-objective>b{color:#fff}
+.guild-quest-progress{height:5px;margin-top:5px;background:#08111a;border-radius:99px;overflow:hidden}
+.guild-quest-progress i{display:block;height:100%;background:linear-gradient(90deg,#4f86e7,#79d9a2)}
+.guild-quest-reward{font-size:10px;margin-top:7px;color:#f2ce86;line-height:1.45}
+
+.guild-quest-details{margin-top:6px;border-top:1px solid #2d3d52;padding-top:5px;color:#aebdcb;font-size:10px}
+.guild-quest-details summary{cursor:pointer;color:#91a8bf;font-weight:700}
+.guild-quest-details>div{margin-top:4px;line-height:1.45}
+
+.guild-quest-buttons{margin-top:8px;display:flex;gap:6px;align-items:center}
+.guild-quest-buttons button{font-size:11px;padding:8px 9px}
+.guild-quest-primary{flex:1}
+.guild-quest-travel{background:#294d3e;border-color:#497461}
+.guild-quest-text-btn{
+  flex:0 0 auto;background:transparent;border-color:transparent;color:#c18d98;padding:6px 4px!important;font-size:10px!important
+}
+.guild-quest-text-btn:hover{background:#2b1e24}
+.guild-empty{padding:12px;border:1px dashed #3a4a61;border-radius:9px;text-align:center}
+
 .guild-request-summary{border-top:1px solid #34465c;margin-top:9px;padding-top:9px}
 .guild-request-line{display:flex;justify-content:space-between;gap:8px;margin-top:5px;font-size:11px}
 .guild-request-line span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .guild-request-line b{color:#f0ce82}
-@media(max-width:700px){
-  .guild-quest-modal{width:96vw!important;padding:13px!important}
-  #guildQuestActive,#guildQuestAvailable{grid-template-columns:1fr}
-  .guild-quest-title h2{font-size:18px}
-  .guild-quest-card{padding:10px}
-  .guild-quest-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
-  .guild-quest-nav button{width:100%}
-}
+.guild-request-line.complete span,.guild-request-line.complete b{color:#80dca7}
 
-.guild-quest-place{
-  margin-top:8px;padding:7px 9px;border-radius:8px;background:#0b1721;border:1px solid #2f455d;
-  font-size:11px;color:#d9e8f6
+.guild-local-quest-banner{
+  grid-column:1/-1;padding:8px 10px;border:1px solid #51697f;border-left:3px solid #e4b75e;border-radius:9px;
+  background:#111b27;font-size:10px;color:#cbd7e3
 }
-.guild-quest-place b{color:#9fc8ff}
-.guild-quest-method{margin-top:5px;font-size:11px;color:#b8c7d6}
-.guild-quest-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-.guild-quest-nav button{font-size:11px;padding:7px 9px}
-.guild-quest-map{background:#1e3348;border-color:#476985}
-.guild-quest-travel{background:#294d3e;border-color:#497461}
+.guild-local-quest-banner>b{display:block;color:#f0d394;margin-bottom:4px}
+.guild-local-quest-banner>span{display:flex;justify-content:space-between;gap:8px;margin-top:3px}
+.guild-local-quest-banner>span.complete{color:#84dbaa}
+.guild-local-quest-banner strong{color:#fff}
+
 .map-place.guild-quest-map-target{
   outline:2px solid #e8bd67!important;
   box-shadow:0 0 0 3px #e8bd6722,0 0 22px #e8bd6730;
@@ -52,4 +85,18 @@
   content:"📜 의뢰 목적지";
   display:inline-block;margin-top:6px;padding:3px 7px;border-radius:999px;
   background:#654d1f;color:#ffe3a1;font-size:10px;font-weight:800
+}
+
+@media(max-width:700px){
+  .guild-quest-modal{width:96vw!important;padding:12px!important}
+  #guildQuestActive,#guildQuestAvailable{grid-template-columns:1fr}
+  .guild-quest-title h2{font-size:18px}
+  .guild-quest-title p{margin:2px 0}
+  .guild-board-meta{margin-bottom:8px}
+  .guild-board-tabs{position:sticky;top:-12px;z-index:3;padding:8px 0 6px;background:#121c29}
+  .guild-quest-card{padding:9px}
+  .guild-quest-head>b{font-size:13px}
+  .guild-quest-place-link{padding:7px 8px}
+  .guild-quest-buttons{display:grid;grid-template-columns:1fr auto}
+  .guild-quest-primary{width:100%}
 }
