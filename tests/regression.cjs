@@ -113,7 +113,7 @@ test('new monsters reuse matching existing atlas entries',()=>{
 test('Bren drop materials use the generated item atlas and inline UI markup',()=>{
  assert.equal(get("ITEM_ART['맑은 점액'].atlas"),'bren');assert.equal(get("ITEM_ART['박쥐 가죽'].index"),2);
  assert(get("itemInlineMarkup('맑은 점액')").includes('bren-materials-v1.webp'));
- assert(get("itemInlineMarkup('없는 재료')").includes('item-fallback-icon'));
+ assert(get("itemInlineMarkup('없는 재료')").includes('item-generic-image'));
 });
 test('drop log, codex and crafting requirements render item icons',()=>{
  resetCareer();exec("G.name='아이콘검사';G.rank='F급';G.guildRank='F급';G.discoveredMonsters.forest_slime=true;G.monsterKills.forest_slime=5;G.combat={type:'forest_slime'};victory('승리');openCodex();renderRecipes();renderTierForgeV047()");
@@ -274,9 +274,25 @@ test('mobile navigation uses generated fantasy icons instead of emoji-only butto
 test('fantasy icon stylesheet and refreshed mobile UI load after core styles',()=>{
  const html=fs.readFileSync(root+'/index.html','utf8');
  const hud=html.indexOf('css/hud-visibility.css');
- const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.8-icons1');
+ const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.9-icons2');
  assert(hud>=0&&icons>hud);
- assert(html.includes('js/mobile-ui.js?v=0.5.8-equip1'));
+ assert(html.includes('js/mobile-ui.js?v=0.5.9-bagicons1'));
+});
+
+test('inventory tabs and rows use visible image icons',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ const equip=fs.readFileSync(root+'/js/equipment-ui.js','utf8');
+ const css=fs.readFileSync(root+'/css/resource-feedback.css','utf8');
+ assert(html.includes('inventory-tab-icon icon-character'));
+ assert(html.includes('inventory-tab-icon icon-magic'));
+ assert(html.includes('inventory-tab-icon icon-bag'));
+ assert(html.includes('inventory-tab-icon icon-forge'));
+ assert(html.includes('itemInlineMarkup(k)'));
+ assert(html.includes('itemInlineMarkup("채집칼")'));
+ assert(equip.includes('window.itemInlineMarkup(it.name)'));
+ assert(css.includes('.item-generic-image'));
+ assert(css.includes('.loot-icon.item-generic-image'));
+ assert(css.includes('ui-nav-icons.webp?v=0.5.9-icons2'));
 });
 
 test('blacksmith sells four starter armors without replacing crafted tiers',()=>{
