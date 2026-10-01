@@ -10,9 +10,16 @@
     const x=cols>1?c/(cols-1)*100:0,y=rows>1?r/(rows-1)*100:0;
     return `background-image:url("${atlas.src}");background-size:${cols*100}% ${rows*100}%;background-position:${x}% ${y}%`;
   }
+  function genericItemIconClass(name){
+    if(/포션|회복약|마나약|해독제|물약|성수|맑은 물/.test(name))return "item-generic-magic";
+    if(/검|단검|활|지팡이|갑옷|조끼|여행복|방어구|채집칼|도끼|곡괭이|망치|장비/.test(name))return "item-generic-forge";
+    return "item-generic-bag";
+  }
   function itemArtMarkup(name,cls="loot-icon"){
     const entry=ITEM_ART[name],special=entry&&typeof entry==='object'&&entry.atlas!=='default'?` item-atlas-${entry.atlas}`:'';
-    return entry===undefined?`<span class="${cls} item-fallback-icon" aria-hidden="true">✦</span>`:`<span class="${cls} item-atlas-icon${special}" aria-hidden="true" style='${atlasStyle(entry)}'></span>`;
+    return entry===undefined
+      ?`<span class="${cls} item-generic-image ${genericItemIconClass(name)}" aria-hidden="true"></span>`
+      :`<span class="${cls} item-atlas-icon${special}" aria-hidden="true" style='${atlasStyle(entry)}'></span>`;
   }
   window.itemInlineMarkup=(name,cls='item-inline-icon')=>itemArtMarkup(name,cls);
   const RARITY_KO={common:"일반",rare:"희귀",epic:"영웅",legend:"전설"};

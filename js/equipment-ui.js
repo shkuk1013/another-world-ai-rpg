@@ -182,7 +182,7 @@
     if(box){
       box.innerHTML=G.equipmentInventory.length?G.equipmentInventory.map(it=>{
         const on=isEquipped(it);
-        return `<div class="inv-item equipment-inv-row"><div><b>${it.name}</b> ${it.enhance?`+${it.enhance}`:""} ${on?'<span class="equip-badge">✅ 장착 중</span>':""}<br><span class="small">${statText(it)}</span></div><button ${on?"disabled":""} onclick="equipInventoryItem('${it.uid}')">${on?"장착 중":"장착"}</button></div>`;
+        return `<div class="inv-item equipment-inv-row"><div>${typeof window.itemInlineMarkup==="function"?window.itemInlineMarkup(it.name):""}<b>${it.name}</b> ${it.enhance?`+${it.enhance}`:""} ${on?'<span class="equip-badge">✅ 장착 중</span>':""}<br><span class="small">${statText(it)}</span></div><button ${on?"disabled":""} onclick="equipInventoryItem('${it.uid}')">${on?"장착 중":"장착"}</button></div>`;
       }).join(""):"보유 장비가 없다.";
     }
     const equipBox=document.getElementById("equip");

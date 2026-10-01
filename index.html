@@ -139,13 +139,13 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 }
 </style>
 <link rel="stylesheet" href="css/playability.css?v=0.5.2">
-<link rel="stylesheet" href="css/resource-feedback.css?v=0.5.7-audit1">
+<link rel="stylesheet" href="css/resource-feedback.css?v=0.5.9-bagicons1">
 <link rel="stylesheet" href="css/mobile-ui.css?v=0.5.5">
   <link rel="stylesheet" href="css/monster-art.css?v=0.5.7-goblin-hotfix2">
 <link rel="stylesheet" href="css/career-system.css?v=0.5.6">
 <link rel="stylesheet" href="css/guild-quests.css?v=0.5.8-ui2">
 <link rel="stylesheet" href="css/hud-visibility.css?v=0.5.8-hud1">
-<link rel="stylesheet" href="css/fantasy-ui-icons.css?v=0.5.8-icons1">
+<link rel="stylesheet" href="css/fantasy-ui-icons.css?v=0.5.9-icons2">
 <link rel="stylesheet" href="css/equipment-ui.css?v=0.5.8-equip1">
 <link rel="stylesheet" href="css/ui-polish.css?v=0.5.9-toggle2">
 </head>
@@ -213,10 +213,10 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 
         <div id="paneInventory" class="side-pane">
           <div class="inventory-tabs" role="tablist" aria-label="가방 분류">
-            <button class="active" data-inventory-tab="equipment" onclick="switchInventoryTab('equipment')">🛡️ 장비</button>
-            <button data-inventory-tab="consumables" onclick="switchInventoryTab('consumables')">🧪 소모품</button>
-            <button data-inventory-tab="materials" onclick="switchInventoryTab('materials')">🪨 재료</button>
-            <button data-inventory-tab="tools" onclick="switchInventoryTab('tools')">🪓 도구</button>
+            <button class="active" data-inventory-tab="equipment" onclick="switchInventoryTab('equipment')"><span class="fantasy-ui-icon inventory-tab-icon icon-character" aria-hidden="true"></span><span>장비</span></button>
+            <button data-inventory-tab="consumables" onclick="switchInventoryTab('consumables')"><span class="fantasy-ui-icon inventory-tab-icon icon-magic" aria-hidden="true"></span><span>소모품</span></button>
+            <button data-inventory-tab="materials" onclick="switchInventoryTab('materials')"><span class="fantasy-ui-icon inventory-tab-icon icon-bag" aria-hidden="true"></span><span>재료</span></button>
+            <button data-inventory-tab="tools" onclick="switchInventoryTab('tools')"><span class="fantasy-ui-icon inventory-tab-icon icon-forge" aria-hidden="true"></span><span>도구</span></button>
           </div>
           <section class="inventory-section active" data-inventory-panel="equipment">
             <div class="side-title">현재 / 보유 장비</div><div id="equipmentInvBox" class="small"></div>
@@ -502,8 +502,8 @@ function render(){
  spells.innerHTML=G.spells.map(s=>`<div class="spell"><b>${s.name}</b> · ${s.element}<br><span class="small">위력 ${s.power} · MP ${s.cost} · ${s.status||"효과 없음"}</span></div>`).join("");
  relations.innerHTML=Object.entries(G.relations).map(([k,v])=>`<b>${k}</b> 신뢰 ${v.aff}<br>${v.note}`).join("<br><br>")||"아직 특별한 인연이 없다.";
  gathering.textContent=G.gathering;logging.textContent=G.logging;mining.textContent=G.mining;alchemy.textContent=G.alchemy;
- toolsBox.innerHTML=`<span class="tool-pill">${G.tools.gatherKnife?"✅":"❌"} 채집칼</span><span class="tool-pill">${G.tools.axe?"✅":"❌"} 벌목도끼</span><span class="tool-pill">${G.tools.pickaxe?"✅":"❌"} 곡괭이</span>`;
- let mats=Object.entries(G.materials).filter(([k,v])=>v>0).map(([k,v])=>`<div class="material"><span>${k}</span><b>${v}</b></div>`).join("");
+ toolsBox.innerHTML=`<span class="tool-pill">${typeof itemInlineMarkup==="function"?itemInlineMarkup("채집칼"):""}${G.tools.gatherKnife?"✅":"❌"} 채집칼</span><span class="tool-pill">${typeof itemInlineMarkup==="function"?itemInlineMarkup("벌목도끼"):""}${G.tools.axe?"✅":"❌"} 벌목도끼</span><span class="tool-pill">${typeof itemInlineMarkup==="function"?itemInlineMarkup("곡괭이"):""}${G.tools.pickaxe?"✅":"❌"} 곡괭이</span>`;
+ let mats=Object.entries(G.materials).filter(([k,v])=>v>0).map(([k,v])=>`<div class="material"><span>${typeof itemInlineMarkup==="function"?itemInlineMarkup(k):""}${k}</span><b>${v}</b></div>`).join("");
  materialsBox.innerHTML=mats||"아직 모은 재료가 없다.";
  let cons=Object.entries(G.consumables).filter(([k,v])=>v>0).map(([k,v])=>`<div class="inv-item"><b>${k}</b> × ${v} <button onclick="useConsumable('${k}')">사용</button></div>`).join("");
  consumablesBox.innerHTML=cons||"보유한 포션이 없다.";
@@ -2178,8 +2178,8 @@ function v05Render(){
  equip.innerHTML=`<div class="slot">주무기 <b>${G.equipment.weapon?.name||"없음"}</b></div><div class="slot">방어구 <b>${v05EquipName(G.equipment.armor)}</b></div>`;
  spells.innerHTML=(G.spells||[]).map(s=>`<div class="spell"><b>${s.name}</b> · ${s.element}<br><span class="small">위력 ${s.power} · MP ${s.cost}</span></div>`).join("")||'<span class="small">배운 마법이 없다.</span>';
  relations.innerHTML=Object.entries(G.relations||{}).map(([k,v])=>`<div class="journal-entry"><b>${k}</b> · 신뢰 ${v.aff}<br><span class="small">${v.note||""}</span></div>`).join("")||"아직 특별한 인연이 없다.";
- toolsBox.innerHTML=`<span class="tool-pill">${G.tools.gatherKnife?"✅":"❌"} 채집칼</span><span class="tool-pill">${G.tools.axe?"✅":"❌"} 벌목도끼</span><span class="tool-pill">${G.tools.pickaxe?"✅":"❌"} 곡괭이</span>`;
- materialsBox.innerHTML=Object.entries(G.materials||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="material"><span>${k}</span><b>${v}/999</b></div>`).join("")||"모은 재료가 없다.";
+ toolsBox.innerHTML=`<span class="tool-pill">${typeof itemInlineMarkup==="function"?itemInlineMarkup("채집칼"):""}${G.tools.gatherKnife?"✅":"❌"} 채집칼</span><span class="tool-pill">${typeof itemInlineMarkup==="function"?itemInlineMarkup("벌목도끼"):""}${G.tools.axe?"✅":"❌"} 벌목도끼</span><span class="tool-pill">${typeof itemInlineMarkup==="function"?itemInlineMarkup("곡괭이"):""}${G.tools.pickaxe?"✅":"❌"} 곡괭이</span>`;
+ materialsBox.innerHTML=Object.entries(G.materials||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="material"><span>${typeof itemInlineMarkup==="function"?itemInlineMarkup(k):""}${k}</span><b>${v}/999</b></div>`).join("")||"모은 재료가 없다.";
  consumablesBox.innerHTML=Object.entries(G.consumables||{}).filter(([,v])=>v>0).map(([k,v])=>`<div class="inv-item">${typeof itemInlineMarkup==="function"?itemInlineMarkup(k):""}<b>${k}</b> × ${v}<br><button onclick="useConsumable('${k}')">사용</button></div>`).join("")||"보유한 소모품이 없다.";
  equipmentInvBox.innerHTML=(G.equipmentInventory||[]).length?G.equipmentInventory.map((it,i)=>`<div class="inv-item">${typeof itemInlineMarkup==="function"?itemInlineMarkup(it.name):""}<b>${it.name}</b> ${it.enhance?`+${it.enhance}`:""}<br><span class="small">공격 ${it.atk||0} · 방어 ${it.def||0}${it.magic?` · 마법 ${it.magic}`:""}</span><br><button onclick="equipCrafted(${i})">장착</button></div>`).join(""):"보유 장비가 없다.";
  if(G.companion){
@@ -2413,13 +2413,13 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 </script>
 <script src="js/playability.js?v=0.5.5-hotfix1"></script>
 <script src="js/scene-overrides.js?v=0.5.7-portrait-hotfix2"></script>
-<script src="js/resource-feedback.js?v=0.5.8-balance1"></script>
-<script src="js/mobile-ui.js?v=0.5.9-toggle2"></script>
+<script src="js/resource-feedback.js?v=0.5.9-bagicons1"></script>
+<script src="js/mobile-ui.js?v=0.5.9-bagicons1"></script>
 <script src="js/monster-art.js?v=0.5.7-goblin-hotfix2"></script>
 <script src="js/bren-monsters.js?v=0.5.7"></script>
 <script src="js/career-system.js?v=0.5.7-audit1"></script>
 <script src="js/guild-quests.js?v=0.5.8-balance1"></script>
-<script src="js/equipment-ui.js?v=0.5.8-equip1"></script>
+<script src="js/equipment-ui.js?v=0.5.9-bagicons1"></script>
 <script src="js/ui-polish.js?v=0.5.9-ui1"></script>
 </body>
 </html>
