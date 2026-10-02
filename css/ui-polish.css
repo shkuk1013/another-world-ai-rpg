@@ -239,3 +239,26 @@
     transform:translateY(-1px);
   }
 }
+
+
+/* ---------- v0.5.10 map safety zones ---------- */
+.map-zone-legend{display:flex;gap:7px;flex-wrap:wrap;margin:7px 0 10px;padding:7px 9px;border:1px solid #31445a;border-radius:9px;background:#0b141f}
+.map-zone-legend span{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#cbd6e1}
+.map-zone-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #0005}
+.legend-safe{background:#45c879}.legend-field{background:#d5a746}.legend-danger{background:#e45555}.legend-boss{background:#9b59e6}
+.map-place{border-left-width:5px!important}
+.map-place.map-zone-safe{border-left-color:#45c879!important;background:linear-gradient(90deg,#173026,#111925 35%)!important}
+.map-place.map-zone-field{border-left-color:#d5a746!important;background:linear-gradient(90deg,#302817,#111925 35%)!important}
+.map-place.map-zone-danger{border-left-color:#e45555!important;background:linear-gradient(90deg,#351b1d,#111925 35%)!important}
+.map-place.map-zone-boss{border-left-color:#9b59e6!important;background:linear-gradient(90deg,#2c1c3a,#111925 35%)!important}
+.map-place-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.map-safety-badge{padding:2px 7px;border-radius:999px;font-size:9px;font-weight:850;white-space:nowrap}
+.map-safety-badge.map-zone-safe{color:#a8f3c2;background:#1f6b3a55;border:1px solid #45c87988}
+.map-safety-badge.map-zone-field{color:#f3d58e;background:#745a1d55;border:1px solid #d5a74688}
+.map-safety-badge.map-zone-danger{color:#ffb0b0;background:#812c3155;border:1px solid #e4555588}
+.map-safety-badge.map-zone-boss{color:#d9b5ff;background:#592b7a66;border:1px solid #9b59e688}
+.map-zone-node{position:absolute;z-index:4;width:11px;height:11px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #f7f7f7cc;box-shadow:0 2px 7px #000c}
+.map-zone-node.map-zone-safe{background:#45c879}.map-zone-node.map-zone-field{background:#d5a746}.map-zone-node.map-zone-danger{background:#e45555}.map-zone-node.map-zone-boss{background:#9b59e6}
+.map-zone-node.current-zone{width:17px;height:17px;box-shadow:0 0 0 5px #ffe27d44,0 2px 9px #000}
+.current-marker{z-index:5}
+@media(max-width:620px){.map-zone-legend{gap:5px;padding:6px}.map-zone-legend span{font-size:9px}.map-zone-node{width:10px;height:10px}.map-zone-node.current-zone{width:15px;height:15px}}

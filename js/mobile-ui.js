@@ -7,11 +7,11 @@
   nav.className="mobile-bottom-nav";
   nav.setAttribute("aria-label","모바일 게임 메뉴");
   nav.innerHTML=`
-    <button data-tab="quest"><span class="mobile-nav-icon fantasy-ui-icon icon-quest" aria-hidden="true"></span><span>퀘스트</span></button>
-    <button data-tab="inventory"><span class="mobile-nav-icon fantasy-ui-icon icon-bag" aria-hidden="true"></span><span>가방</span></button>
-    <button data-action="map"><span class="mobile-nav-icon fantasy-ui-icon icon-map" aria-hidden="true"></span><span>지도</span></button>
-    <button data-tab="character"><span class="mobile-nav-icon fantasy-ui-icon icon-character" aria-hidden="true"></span><span>캐릭터</span></button>
-    <button data-action="menu"><span class="mobile-nav-icon fantasy-ui-icon icon-magic" aria-hidden="true"></span><span>메뉴</span></button>`;
+    <button data-tab="quest"><img class="mobile-nav-icon fantasy-ui-icon" src="assets/ui/icons/quest-v1.svg" alt=""><span>퀘스트</span></button>
+    <button data-tab="inventory"><img class="mobile-nav-icon fantasy-ui-icon" src="assets/ui/icons/bag-v1.svg" alt=""><span>가방</span></button>
+    <button data-action="map"><img class="mobile-nav-icon fantasy-ui-icon" src="assets/ui/icons/map-v1.svg" alt=""><span>지도</span></button>
+    <button data-tab="character"><img class="mobile-nav-icon fantasy-ui-icon" src="assets/ui/icons/character-v1.svg" alt=""><span>캐릭터</span></button>
+    <button data-action="menu"><img class="mobile-nav-icon fantasy-ui-icon" src="assets/ui/icons/menu-v1.svg" alt=""><span>메뉴</span></button>`;
   document.body.appendChild(nav);
 
   const close=document.createElement("button");
@@ -25,10 +25,10 @@
   menu.innerHTML=`<section class="mobile-menu-card" role="dialog" aria-modal="true" aria-label="게임 메뉴">
     <div class="mobile-menu-head"><h3>게임 메뉴</h3><button type="button" class="mobile-menu-home" aria-label="게임 화면으로 돌아가기">⌂</button><button type="button" class="mobile-menu-x" aria-label="메뉴 닫기">✕</button></div>
     <div class="mobile-menu-grid">
-      <button class="fantasy-decorated" data-menu="social"><span class="fantasy-ui-icon menu-fantasy-icon icon-guild" aria-hidden="true"></span><span>동료 / 관계</span></button>
-      <button class="fantasy-decorated" data-menu="codex"><span class="fantasy-ui-icon menu-fantasy-icon icon-magic" aria-hidden="true"></span><span>몬스터 도감</span></button>
-      <button class="fantasy-decorated" data-menu="collection"><span class="fantasy-ui-icon menu-fantasy-icon icon-quest" aria-hidden="true"></span><span>수집 도감</span></button>
-      <button class="fantasy-decorated" data-menu="titles"><span class="fantasy-ui-icon menu-fantasy-icon icon-character" aria-hidden="true"></span><span>칭호</span></button>
+      <button class="fantasy-decorated" data-menu="social"><img class="fantasy-ui-icon menu-fantasy-icon" src="assets/ui/icons/guild-v1.svg" alt=""><span>동료 / 관계</span></button>
+      <button class="fantasy-decorated" data-menu="codex"><img class="fantasy-ui-icon menu-fantasy-icon" src="assets/ui/icons/magic-v1.svg" alt=""><span>몬스터 도감</span></button>
+      <button class="fantasy-decorated" data-menu="collection"><img class="fantasy-ui-icon menu-fantasy-icon" src="assets/ui/icons/quest-v1.svg" alt=""><span>수집 도감</span></button>
+      <button class="fantasy-decorated" data-menu="titles"><img class="fantasy-ui-icon menu-fantasy-icon" src="assets/ui/icons/character-v1.svg" alt=""><span>칭호</span></button>
       <button data-menu="save">💾 저장</button>
       <button data-menu="load">↩ 불러오기</button>
     </div>
@@ -36,9 +36,12 @@
   </section>`;
   document.body.appendChild(menu);
 
+  const FANTASY_ICON_SRC={"icon-quest":"assets/ui/icons/quest-v1.svg","icon-bag":"assets/ui/icons/bag-v1.svg","icon-map":"assets/ui/icons/map-v1.svg","icon-character":"assets/ui/icons/character-v1.svg","icon-guild":"assets/ui/icons/guild-v1.svg","icon-forge":"assets/ui/icons/forge-v1.svg","icon-inn":"assets/ui/icons/inn-v1.svg","icon-magic":"assets/ui/icons/magic-v1.svg","icon-menu-rune":"assets/ui/icons/menu-v1.svg"};
   function makeFantasyIcon(iconClass,sizeClass){
-    const icon=document.createElement("span");
-    icon.className=`fantasy-ui-icon ${sizeClass||""} ${iconClass}`;
+    const icon=document.createElement("img");
+    icon.className=`fantasy-ui-icon ${sizeClass||""}`;
+    icon.src=FANTASY_ICON_SRC[iconClass]||FANTASY_ICON_SRC["icon-bag"];
+    icon.alt="";
     icon.setAttribute("aria-hidden","true");
     return icon;
   }
@@ -84,7 +87,12 @@
       const icon=button.querySelector(".choice-icon");
       if(!icon)return;
       icon.textContent="";
-      icon.className="choice-icon fantasy-choice-icon "+iconClass;
+      icon.className="choice-icon fantasy-choice-icon";
+      const img=document.createElement("img");
+      img.className="fantasy-action-icon";
+      img.src=FANTASY_ICON_SRC[iconClass]||FANTASY_ICON_SRC["icon-bag"];
+      img.alt="";
+      icon.appendChild(img);
     });
   }
 

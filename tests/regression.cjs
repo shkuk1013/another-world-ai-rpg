@@ -256,16 +256,16 @@ test('HUD visibility stylesheet loads after the guild UI styles',()=>{
 
 test('fantasy icon atlas is wired to all eight generated UI roles',()=>{
  const css=fs.readFileSync(root+'/css/fantasy-ui-icons.css','utf8');
- assert(fs.existsSync(root+'/assets/ui/ui-nav-icons.webp'));
- for(const name of ['quest','bag','map','character','guild','forge','inn','magic'])assert(css.includes('.icon-'+name));
+ assert(fs.existsSync(root+'/assets/ui/icons/bag-v1.svg'));
+ for(const name of ['quest','bag','map','character','guild','forge','inn','magic'])assert(fs.existsSync(root+`/assets/ui/icons/${name}-v1.svg`));
 });
 test('mobile navigation uses generated fantasy icons instead of emoji-only buttons',()=>{
  const js=fs.readFileSync(root+'/js/mobile-ui.js','utf8');
- assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-quest'));
- assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-bag'));
- assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-map'));
- assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-character'));
- assert(js.includes('mobile-nav-icon fantasy-ui-icon icon-magic'));
+ assert(js.includes('assets/ui/icons/quest-v1.svg'));
+ assert(js.includes('assets/ui/icons/bag-v1.svg'));
+ assert(js.includes('assets/ui/icons/map-v1.svg'));
+ assert(js.includes('assets/ui/icons/character-v1.svg'));
+ assert(js.includes('assets/ui/icons/menu-v1.svg'));
  assert(js.includes('decorateFantasyActions'));
  assert(js.includes('icon-forge'));
  assert(js.includes('icon-inn'));
@@ -274,9 +274,9 @@ test('mobile navigation uses generated fantasy icons instead of emoji-only butto
 test('fantasy icon stylesheet and refreshed mobile UI load after core styles',()=>{
  const html=fs.readFileSync(root+'/index.html','utf8');
  const hud=html.indexOf('css/hud-visibility.css');
- const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.9-icons2');
+ const icons=html.indexOf('css/fantasy-ui-icons.css?v=0.5.10-direct1');
  assert(hud>=0&&icons>hud);
- assert(html.includes('js/mobile-ui.js?v=0.5.9-bagicons1'));
+ assert(html.includes('js/mobile-ui.js?v=0.5.10-direct1'));
 });
 
 test('inventory tabs and rows use visible image icons',()=>{
@@ -392,5 +392,13 @@ test('bottom map and menu buttons toggle their own open layers',()=>{
 test('bottom navigation toggle script uses a fresh cache key',()=>{
  const html=fs.readFileSync(root+'/index.html','utf8');
  assert(html.includes('js/mobile-ui.js?v=0.5.9-toggle2'));
+});
+test('map distinguishes safe field danger and boss zones',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
+ assert(html.includes('function mapZoneClass(p)'));
+ assert(html.includes('map-zone-legend'));
+ assert(html.includes('map-zone-node'));
+ for(const cls of ['map-zone-safe','map-zone-field','map-zone-danger','map-zone-boss'])assert(css.includes('.'+cls));
 });
 console.log(`${tests} regression checks passed.`);
