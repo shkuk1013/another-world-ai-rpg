@@ -262,3 +262,18 @@
 .map-zone-node.current-zone{width:17px;height:17px;box-shadow:0 0 0 5px #ffe27d44,0 2px 9px #000}
 .current-marker{z-index:5}
 @media(max-width:620px){.map-zone-legend{gap:5px;padding:6px}.map-zone-legend span{font-size:9px}.map-zone-node{width:10px;height:10px}.map-zone-node.current-zone{width:15px;height:15px}}
+
+
+/* ---------- v0.5.11 guild onboarding ---------- */
+.guild-recommended{
+  position:relative!important;
+  border-color:#e7c35f!important;
+  background:linear-gradient(180deg,#58451f,#2f2818)!important;
+  color:#fff3bf!important;
+  box-shadow:0 0 0 1px #ffe58a22 inset,0 0 16px #d6ad3d22!important;
+}
+.guild-recommended:after{
+  content:"NEW";position:absolute;right:7px;top:6px;padding:1px 5px;border-radius:999px;
+  background:#d85142;color:#fff;font-size:8px;font-weight:900;letter-spacing:.05em;
+}
+.npc-tip-talk{border-color:#536f92!important}

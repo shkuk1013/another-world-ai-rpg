@@ -20,6 +20,7 @@ exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
 exec(fs.readFileSync(root+'/js/guild-quests.js','utf8'));
 exec(fs.readFileSync(root+'/js/equipment-ui.js','utf8'));
 exec(fs.readFileSync(root+'/js/ui-polish.js','utf8'));
+exec(fs.readFileSync(root+'/js/npc-dialogues.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
@@ -27,7 +28,29 @@ test('boot renders without exceptions',()=>assert.equal(get('G.schemaVersion'),'
 test('registration and first quest available',()=>{exec("G.name='테스터';goVillage();move('모험가 길드');register();acceptQuest()");assert.equal(get('G.guildRank'),'F급');assert.equal(get('G.scoutQuest.status'),'accepted');assert(context.actions.children.some(b=>b.innerHTML.includes('서쪽 숲으로 출발')))});
 test('safe scouting and exactly one guild reward',()=>{const before=get('G.gold');exec("move('서쪽 숲');scoutForest()");assert.equal(get('G.scoutQuest.status'),'scouted');assert.equal(get('G.gold'),before);exec("move('모험가 길드');reportScoutQuest();reportScoutQuest();acceptQuest()");assert.equal(get('G.gold'),before+30);assert.equal(get('G.scoutQuest.status'),'completed');assert.equal(get('G.guildPoints'),20)});
 test('town keeps all choices including west forest',()=>{exec("move('브렌 마을')");assert(context.actions.children.length>5);assert(context.actions.children.some(b=>b.innerHTML.includes('서쪽 숲으로 간다')))});
-test('dialogue varies and terminates without affection farming',()=>{exec("move('모험가 길드');talkMira()");const a=get('G.log.at(-1).text'),aff=get("G.relations['미라'].aff");exec('talkMira()');assert.notEqual(get('G.log.at(-1).text'),a);exec('talkMira();talkMira();talkMira()');assert.equal(get("G.relations['미라'].aff"),aff);assert.equal(get("dialogueExhausted('미라')"),true);exec('G.day++;talkMira()');assert.equal(get("dialogueExhausted('미라')"),false)});
+test('dialogue varies and terminates without affection farming',()=>{exec("move('모험가 길드');talkMira()");const a=get('G.log.at(-1).text'),aff=get("G.relations['미라'].aff");exec('talkMira()');assert.notEqual(get('G.log.at(-1).text'),a);exec("for(var i=2;i<NPC_DIALOGUE_LIBRARY.post['미라'].length;i++)talkMira()");assert.equal(get("G.relations['미라'].aff"),aff);assert.equal(get("dialogueExhausted('미라')"),true);exec('G.day++;talkMira()');assert.equal(get("dialogueExhausted('미라')"),false)});
+test('every major NPC has at least twenty post-registration lines',()=>{
+ const names=['미라','에밀리아','브람','리엔','상인','세나','도란','리리아','카르딘'];
+ assert.deepEqual(Array.from(get('Object.keys(NPC_DIALOGUE_LIBRARY.post).sort()')),names.sort());
+ assert(get('Object.values(NPC_DIALOGUE_LIBRARY.post).every(lines=>lines.length>=20)'));
+ assert(get('Object.values(NPC_DIALOGUE_LIBRARY.pre).every(lines=>lines.length>=5)'));
+});
+test('pre-registration dialogue directs player to the guild',()=>{
+ resetCareer?.();exec("G.rank='미등록';G.guildRank='미등록';G.dialogueState={};G.location='황금사슴 여관';npcTalk('에밀리아')");
+ assert(get("G.log.at(-1).text.includes('길드')"));
+});
+test('registration grants starter support once and points to first scout',()=>{
+ exec("G=migrateState(JSON.parse(JSON.stringify(INITIAL_STATE)));G.name='새내기';G.location='모험가 길드';G.flags.guildStarterPack=false;var g=G.gold;register();var after=G.gold;register()");
+ assert.equal(get('after-g'),30);assert.equal(get('G.gold'),get('after'));assert.equal(get("G.consumables['하급 회복 포션']"),2);assert(get('G.flags.guildCrystalAnomaly'));
+});
+test('town highlights the adventurer guild before registration',()=>{
+ exec("G.rank='미등록';G.guildRank='미등록';G.location='브렌 마을';render()");
+ assert(context.actions.children.some(b=>b.classes.has('guild-recommended')&&(b.innerHTML||'').includes('추천')));
+});
+test('market and capital gate expose dialogue buttons',()=>{
+ exec("G.rank='F급';G.guildRank='F급';G.location='브렌 시장';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('상인과 대화')));
+ exec("G.location='왕도 관문';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('카르딘과 대화')));
+});
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
 test('legacy migration preserves inventory and active scout objective',()=>{exec("var legacy=JSON.parse(JSON.stringify(G));delete legacy.scoutQuest;delete legacy.dialogueState;legacy.quest={type:'goblin'};legacy.hour=25;var upgraded=migrateState(legacy)");assert.equal(get('upgraded.scoutQuest.status'),'accepted');assert.equal(get('upgraded.hour'),1);assert.equal(get('upgraded.equipmentInventory.length'),get('G.equipmentInventory.length'))});
