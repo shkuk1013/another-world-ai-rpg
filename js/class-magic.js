@@ -137,10 +137,10 @@
     const s=G.spells[i],a=s?.abilityId?ABILITIES[s.abilityId]:null;
     if(!a)return baseCastSpell(i);
     const c=G.combat;if(!c||G.mp<s.cost||!careerUseOk(a)||!weaponOk(a))return;
+    if(a.school==="mage")return baseCastSpell(i);
     closeCombatMagic();G.mp-=s.cost;growClassSkill(a);
     const stat=classSkillStat(a),w=G.equipment?.weapon||{},base=(a.power||0)+(w.atk||0)*.72+stat*.62;
     let d=0,text="";
-    if(a.school==="mage")return baseCastSpell(i);
     if(a.effect==="guard"){
       c.guard=true;G.fatigue=Math.max(0,G.fatigue-2);return playerDone(`<b>${a.name}</b> · 마력을 둘러 다음 공격에 대비한다.`);
     }

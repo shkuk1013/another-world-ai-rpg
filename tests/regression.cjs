@@ -60,6 +60,10 @@ test('advanced mage magic is career locked',()=>{
  resetCareer();exec("G.level=12;G.gold=999;G.career='swordsman'");assert.equal(get("learnAbility('fireball')"),false);
  exec("G.career='mage';G.unlockedCareers.push('mage')");assert.equal(get("learnAbility('fireball')"),true);assert(get("G.spells.some(s=>s.abilityId==='fireball')"));
 });
+test('advanced mage magic spends MP exactly once',()=>{
+ resetCareer();exec("G.level=12;G.gold=999;G.career='mage';G.unlockedCareers.push('mage');learnAbility('fireball');G.combat={type:'goblin',name:'시험적',hp:200,maxHp:200,atk:1,def:0,intent:'방어 자세',turn:1,burn:0,chill:0,shock:0,guard:false,enemyGuard:false};G.mp=G.maxMp;var i=G.spells.findIndex(s=>s.abilityId==='fireball');var before=G.mp;var cost=G.spells[i].cost;castSpell(i)");
+ assert.equal(get('before-G.mp'),get('cost'));
+});
 test('rogue art requires rogue career and dagger in combat',()=>{
  resetCareer();exec("G.level=8;G.gold=999;G.career='scout';G.unlockedCareers.push('scout');learnAbility('shadow_stab');G.equipment.weapon={name:'시험단검',type:'sword',atk:8};G.combat={type:'goblin',name:'시험적',hp:99,maxHp:99,atk:1,def:0,intent:'방어 자세',turn:1,burn:0,chill:0,shock:0,guard:false,enemyGuard:false};var i=G.spells.findIndex(s=>s.abilityId==='shadow_stab');var mp=G.mp;castSpell(i)");
  assert.equal(get('G.mp'),get('mp'));exec("G.equipment.weapon={name:'시험단검',type:'dagger',atk:6};castSpell(i)");assert(get('G.mp')<get('mp'));
