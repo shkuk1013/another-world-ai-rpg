@@ -36,7 +36,7 @@ test('every major NPC has at least twenty post-registration lines',()=>{
  assert(get('Object.values(NPC_DIALOGUE_LIBRARY.pre).every(lines=>lines.length>=5)'));
 });
 test('pre-registration dialogue directs player to the guild',()=>{
- resetCareer?.();exec("G.rank='미등록';G.guildRank='미등록';G.dialogueState={};G.location='황금사슴 여관';npcTalk('에밀리아')");
+ exec("G.rank='미등록';G.guildRank='미등록';G.dialogueState={};G.location='황금사슴 여관';npcTalk('에밀리아')");
  assert(get("G.log.at(-1).text.includes('길드')"));
 });
 test('registration grants starter support once and points to first scout',()=>{
