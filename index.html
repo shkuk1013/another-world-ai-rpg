@@ -322,7 +322,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 </div>
 <div class="combat-actions">
  <button class="primary" onclick="weaponAttack()"><span>⚔️</span><b>공격</b></button>
- <button class="magic" onclick="openCombatMagic()"><span>✨</span><b>마법</b></button>
+ <button class="magic" onclick="openCombatMagic()"><span>✨</span><b>마법/기술</b></button>
  <button class="good" onclick="defend()"><span>🛡️</span><b>방어</b></button>
  <button class="warn" onclick="specialSkill()"><span>🎯</span><b>전술</b></button>
  <button onclick="openCombatItems()"><span>🧪</span><b>아이템</b></button>
@@ -332,7 +332,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 </div></div>
 
 <div id="combatMagicModal" class="modal hidden"><div>
-<h2>마법 선택</h2><div id="combatMagicList"></div><button onclick="closeCombatMagic()">취소</button>
+<h2>마법 / 직업 기술 선택</h2><div id="combatMagicList"></div><button onclick="closeCombatMagic()">취소</button>
 </div></div>
 
 <div id="combatItemModal" class="modal hidden"><div>
@@ -2447,5 +2447,6 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 <script src="js/equipment-ui.js?v=0.5.9-bagicons1"></script>
 <script src="js/ui-polish.js?v=0.5.9-ui1"></script>
 <script src="js/npc-dialogues.js?v=0.5.11-dialogue1"></script>
+<script src="js/class-magic.js?v=0.5.12-classmagic1"></script>
 </body>
 </html>

@@ -21,6 +21,7 @@ exec(fs.readFileSync(root+'/js/guild-quests.js','utf8'));
 exec(fs.readFileSync(root+'/js/equipment-ui.js','utf8'));
 exec(fs.readFileSync(root+'/js/ui-polish.js','utf8'));
 exec(fs.readFileSync(root+'/js/npc-dialogues.js','utf8'));
+exec(fs.readFileSync(root+'/js/class-magic.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
@@ -50,6 +51,26 @@ test('town highlights the adventurer guild before registration',()=>{
 test('market and capital gate expose dialogue buttons',()=>{
  exec("G.rank='F급';G.guildRank='F급';G.location='브렌 시장';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('상인과 대화')));
  exec("G.location='왕도 관문';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('카르딘과 대화')));
+});
+test('class abilities share MP without adding SP',()=>{
+ resetCareer();exec("G.name='검사검사';G.level=10;G.gold=999;G.sword=20;checkCareerUnlocks(G,{notify:false});G.unlockedCareers.push('swordsman');G.career='swordsman';learnAbility('mana_slash');G.equipment.weapon={name:'시험검',type:'sword',atk:8};G.combat={type:'goblin',name:'시험적',hp:99,maxHp:99,atk:1,def:0,intent:'방어 자세',turn:1,burn:0,chill:0,shock:0,guard:false,enemyGuard:false};var mpBefore=G.mp;var idx=G.spells.findIndex(s=>s.abilityId==='mana_slash');castSpell(idx)");
+ assert(get('G.mp')<get('mpBefore'));assert.equal(get('typeof G.sp'),'undefined');assert(get('G.combat.hp')<99);
+});
+test('advanced mage magic is career locked',()=>{
+ resetCareer();exec("G.level=12;G.gold=999;G.career='swordsman'");assert.equal(get("learnAbility('fireball')"),false);
+ exec("G.career='mage';G.unlockedCareers.push('mage')");assert.equal(get("learnAbility('fireball')"),true);assert(get("G.spells.some(s=>s.abilityId==='fireball')"));
+});
+test('rogue art requires rogue career and dagger in combat',()=>{
+ resetCareer();exec("G.level=8;G.gold=999;G.career='scout';G.unlockedCareers.push('scout');learnAbility('shadow_stab');G.equipment.weapon={name:'시험단검',type:'sword',atk:8};G.combat={type:'goblin',name:'시험적',hp:99,maxHp:99,atk:1,def:0,intent:'방어 자세',turn:1,burn:0,chill:0,shock:0,guard:false,enemyGuard:false};var i=G.spells.findIndex(s=>s.abilityId==='shadow_stab');var mp=G.mp;castSpell(i)");
+ assert.equal(get('G.mp'),get('mp'));exec("G.equipment.weapon={name:'시험단검',type:'dagger',atk:6};castSpell(i)");assert(get('G.mp')<get('mp'));
+});
+test('universal basic magic ignores career but respects level',()=>{
+ resetCareer();exec("G.gold=999;G.level=1;G.career=null");assert.equal(get("learnAbility('frost_basic')"),false);
+ exec("G.level=4");assert.equal(get("learnAbility('frost_basic')"),true);assert.equal(get("learnAbility('lightning_basic')"),true);
+});
+test('guild and magic shop expose separate training curricula',()=>{
+ resetCareer();exec("G.rank='F급';G.guildRank='F급';G.location='모험가 길드';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('직업 전투술 배우기')));
+ exec("G.location='마법 상점';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('마법 / 직업술 배우기')));
 });
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
