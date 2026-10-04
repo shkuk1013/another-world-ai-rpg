@@ -76,6 +76,28 @@ test('guild and magic shop expose separate training curricula',()=>{
  resetCareer();exec("G.rank='F급';G.guildRank='F급';G.location='모험가 길드';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('직업 전투술 배우기')));
  exec("G.location='마법 상점';render()");assert(context.actions.children.some(b=>(b.innerHTML||'').includes('마법 / 직업술 배우기')));
 });
+test('staged mage trees require previous spell',()=>{
+ resetCareer();exec("G.level=20;G.gold=9999;G.career='mage';G.unlockedCareers.push('mage')");
+ assert.equal(get("learnAbility('flame_spear')"),false);
+ assert.equal(get("learnAbility('fireball')"),true);assert.equal(get("learnAbility('flame_spear')"),true);assert.equal(get("learnAbility('fire_storm')"),true);assert.equal(get("learnAbility('inferno')"),true);
+});
+test('mage elements apply different combat statuses',()=>{
+ resetCareer();exec("G.level=20;G.gold=9999;G.career='mage';G.unlockedCareers.push('mage');learnAbility('fireball');learnAbility('ice_lance');learnAbility('thunderbolt');G.combat={type:'goblin',name:'시험적',hp:500,maxHp:500,atk:5,def:0,intent:'방어 자세',turn:1,guard:false,enemyGuard:false};G.mp=G.maxMp=99;var fi=G.spells.findIndex(s=>s.abilityId==='fireball');var ii=G.spells.findIndex(s=>s.abilityId==='ice_lance');var ti=G.spells.findIndex(s=>s.abilityId==='thunderbolt');castSpell(fi)");
+ assert(get('G.combat.fireStacks>=1'));exec('G.combat={type:"goblin",name:"시험적",hp:500,maxHp:500,atk:5,def:0,intent:"방어 자세",turn:1,guard:false,enemyGuard:false};G.mp=99;castSpell(ii)');assert(get('G.combat.frostStacks>=1'));
+ exec('G.combat={type:"goblin",name:"시험적",hp:500,maxHp:500,atk:5,def:0,intent:"방어 자세",turn:1,guard:false,enemyGuard:false};G.mp=99;castSpell(ti)');assert(get('G.combat.shockStacks>=1'));
+});
+test('three frost stacks freeze and three shock stacks guarantee interrupt',()=>{
+ resetCareer();exec("G.level=20;G.gold=9999;G.career='mage';G.unlockedCareers.push('mage');learnAbility('ice_lance');learnAbility('frost_prison');learnAbility('blizzard');learnAbility('absolute_zero');learnAbility('thunderbolt');learnAbility('chain_lightning');learnAbility('thunder_spear');learnAbility('heaven_thunder');G.combat={type:'goblin',name:'시험적',hp:999,maxHp:999,atk:5,def:0,intent:'강한 공격',turn:1,guard:false,enemyGuard:false};G.mp=999;var ice=G.spells.findIndex(s=>s.abilityId==='absolute_zero');castSpell(ice)");
+ assert.equal(get('G.combat.frozen'),1);
+ exec("G.combat={type:'goblin',name:'시험적',hp:999,maxHp:999,atk:5,def:0,intent:'강한 공격',turn:1,guard:false,enemyGuard:false};G.mp=999;var th=G.spells.findIndex(s=>s.abilityId==='heaven_thunder');castSpell(th)");
+ assert.equal(get('G.combat.shockStacks'),3);
+});
+test('physical class arts can apply bleed poison and armor break',()=>{
+ resetCareer();exec("G.level=14;G.gold=9999;G.career='swordsman';G.unlockedCareers.push('swordsman');G.equipment.weapon={name:'검',type:'sword',atk:8};learnAbility('mana_slash');learnAbility('crescent_slash');G.combat={type:'goblin',name:'시험적',hp:500,maxHp:500,atk:5,def:8,intent:'방어 자세',turn:1,guard:false,enemyGuard:false};G.mp=99;var a=G.spells.findIndex(s=>s.abilityId==='mana_slash');castSpell(a)");
+ assert(get('G.combat.bleedStacks>=1'));
+ exec("G.mp=99;var b=G.spells.findIndex(s=>s.abilityId==='crescent_slash');castSpell(b)");assert(get('G.combat.armorBreakTurns>0'));
+ exec("G.career='skirmisher';G.unlockedCareers.push('skirmisher');G.equipment.weapon={name:'단검',type:'dagger',atk:6};G.mp=99;learnAbility('poison_fang');var p=G.spells.findIndex(s=>s.abilityId==='poison_fang');castSpell(p)");assert(get('G.combat.poison>0'));
+});
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
 test('legacy migration preserves inventory and active scout objective',()=>{exec("var legacy=JSON.parse(JSON.stringify(G));delete legacy.scoutQuest;delete legacy.dialogueState;legacy.quest={type:'goblin'};legacy.hour=25;var upgraded=migrateState(legacy)");assert.equal(get('upgraded.scoutQuest.status'),'accepted');assert.equal(get('upgraded.hour'),1);assert.equal(get('upgraded.equipmentInventory.length'),get('G.equipmentInventory.length'))});

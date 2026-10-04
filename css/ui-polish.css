@@ -291,3 +291,10 @@
 .ability-school{font-size:9px;font-weight:850;padding:2px 6px;border:1px solid #806d38;border-radius:999px;color:#f1d582;background:#3b321d}
 .spell-pick.career-art{border-left:4px solid #d6ad4b!important}
 @media(max-width:620px){.ability-learn-card{grid-template-columns:1fr}.ability-learn-card button{width:100%}.ability-training-head{gap:6px}}
+
+
+/* ---------- v0.5.13 status legend ---------- */
+.ability-training-summary .small{display:inline-block;margin-top:5px;line-height:1.55;color:#b9c9d8}
+.ability-group>h3{display:flex;align-items:center;gap:7px}
+.ability-learn-card .ability-school{min-width:36px;text-align:center}
+#combatStatus .status{margin:2px 3px 2px 0}
