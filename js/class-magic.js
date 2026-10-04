@@ -1,9 +1,9 @@
 /* v0.5.13 — staged magic schools and combat status effects */
 (()=>{
   const ABILITIES={
-    starter_fire:{name:"작은 불꽃",group:"공용 기초마법",stage:"기초",school:"basic",level:1,cost:2,gold:0,element:"화염",power:3,status:"화상",trainer:null,statusEffect:"burn",statusAmount:1,desc:"누구나 사용할 수 있는 가장 기초적인 화염 마법."},
-    frost_basic:{name:"서리창",group:"공용 기초마법",stage:"기초",school:"basic",level:2,cost:4,gold:18,element:"냉기",power:6,status:"냉기",trainer:"magic",statusEffect:"frost",statusAmount:1,desc:"누구나 배울 수 있는 냉기 기초마법. 냉기 중첩은 적의 공격력을 낮춘다."},
-    lightning_basic:{name:"전격",group:"공용 기초마법",stage:"기초",school:"basic",level:4,cost:5,gold:22,element:"번개",power:7,status:"감전",trainer:"magic",statusEffect:"shock",statusAmount:1,desc:"누구나 배울 수 있는 번개 기초마법. 감전은 적의 행동을 끊을 수 있다."},
+    starter_fire:{name:"작은 불꽃",group:"공용 기초마법",stage:"기초",school:"basic",level:1,cost:2,gold:0,element:"화염",power:3,status:"화상 35%",trainer:null,statusEffect:"burn",statusAmount:1,statusChance:.35,desc:"누구나 사용할 수 있는 가장 기초적인 화염 마법. 화상은 낮은 확률로 발생한다."},
+    frost_basic:{name:"서리창",group:"공용 기초마법",stage:"기초",school:"basic",level:2,cost:4,gold:18,element:"냉기",power:6,status:"냉기 65%",trainer:"magic",statusEffect:"frost",statusAmount:1,statusChance:.65,desc:"누구나 배울 수 있는 냉기 기초마법. 냉기 중첩은 확률적으로 발생해 적의 공격력을 낮춘다."},
+    lightning_basic:{name:"전격",group:"공용 기초마법",stage:"기초",school:"basic",level:4,cost:5,gold:22,element:"번개",power:7,status:"감전 55%",trainer:"magic",statusEffect:"shock",statusAmount:1,statusChance:.55,desc:"누구나 배울 수 있는 번개 기초마법. 감전은 확률적으로 발생해 적의 행동을 끊을 수 있다."},
 
     fireball:{name:"화염구",group:"마법사 · 화염",stage:"초급",school:"mage",level:8,cost:6,gold:42,element:"화염",power:13,status:"화상 1~2중첩",trainer:"magic",careers:["mage"],statusEffect:"burn",statusAmount:1,desc:"폭발과 함께 화상을 남기는 화염계 입문 상위주문."},
     flame_spear:{name:"폭염창",group:"마법사 · 화염",stage:"중급",school:"mage",level:12,cost:8,gold:62,element:"화염",power:17,status:"화상 2중첩",trainer:"magic",careers:["mage"],requires:"fireball",statusEffect:"burn",statusAmount:2,desc:"고열을 한 점에 압축해 관통시키고 강한 화상을 남긴다."},
@@ -127,6 +127,7 @@
   function applyStatus(a,c,overrideElement=null){
     const effect=a.statusEffect||(overrideElement==="화염"?"burn":overrideElement==="냉기"?"frost":overrideElement==="번개"?"shock":null);
     let amount=overrideElement?1:statusAdjustedAmount(a,c);if(!effect||amount<=0)return "";
+    if(a.statusChance!==undefined&&Math.random()>a.statusChance)return "";
     const resistanceCheck=typeof monsterStatusRoll==="function"?monsterStatusRoll(c.type,effect):{applied:true,resistance:0};
     if(!resistanceCheck.applied)return `⛔ ${STATUS_INFO[effect]||effect} 저항`;
     if(effect==="burn"){c.fireStacks=Math.min(3,(c.fireStacks||0)+amount);c.fireTurns=3;return `🔥 화상 ${c.fireStacks}중첩`;}

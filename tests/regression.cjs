@@ -164,6 +164,16 @@ test('combat feedback css contains hit flash damage popup and hp animation',()=>
  const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
  for(const token of ['combat-hit-heavy','combat-impact-flash','combat-float','combat-smooth-bar','combat-strike-fx'])assert(css.includes(token));
 });
+test('basic magic has lower status reliability than advanced magic',()=>{
+ assert.equal(get("CLASS_MAGIC_ABILITIES.starter_fire.statusChance"),.35);
+ assert.equal(get("CLASS_MAGIC_ABILITIES.frost_basic.statusChance"),.65);
+ assert.equal(get("CLASS_MAGIC_ABILITIES.lightning_basic.statusChance"),.55);
+ assert.equal(get("CLASS_MAGIC_ABILITIES.fireball.statusChance"),undefined);
+});
+test('starter fire does not guarantee burn on every cast',()=>{
+ resetCareer();exec("G.level=1;G.combat={type:'goblin',name:'고블린',hp:99,maxHp:99,atk:1,def:0,intent:'방어 자세',turn:1,guard:false,enemyGuard:false};G.mp=99;var i=G.spells.findIndex(s=>s.name==='작은 불꽃');castSpell(i)");
+ assert.equal(get('G.combat.fireStacks||0'),0);
+});
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
 test('legacy migration preserves inventory and active scout objective',()=>{exec("var legacy=JSON.parse(JSON.stringify(G));delete legacy.scoutQuest;delete legacy.dialogueState;legacy.quest={type:'goblin'};legacy.hour=25;var upgraded=migrateState(legacy)");assert.equal(get('upgraded.scoutQuest.status'),'accepted');assert.equal(get('upgraded.hour'),1);assert.equal(get('upgraded.equipmentInventory.length'),get('G.equipmentInventory.length'))});
