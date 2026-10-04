@@ -1321,7 +1321,7 @@ function travelTo(name){
  if(name==="동쪽 벌목지")setTimeout(()=>maybeEvent("logging"),60);
 }
 const MONSTERS={
- goblin:{name:"고블린 정찰병",rank:"F",hp:[30,38],atk:[5,8],def:1,weak:"화염",resist:"없음",region:"서쪽 숲",drops:[{name:"고블린 송곳니",chance:1,qty:[1,2],rarity:"common"},{name:"질긴 가죽",chance:.45,qty:[1,1],rarity:"common"},{name:"낡은 단검",chance:.08,qty:[1,1],rarity:"rare"}]},
+ goblin:{name:"고블린 정찰병",rank:"F",hp:[26,32],atk:[4,6],def:0,weak:"화염",resist:"없음",region:"서쪽 숲",drops:[{name:"고블린 송곳니",chance:1,qty:[1,2],rarity:"common"},{name:"질긴 가죽",chance:.45,qty:[1,1],rarity:"common"},{name:"낡은 단검",chance:.08,qty:[1,1],rarity:"rare"}]},
  mana_goblin:{name:"마력에 물든 고블린",rank:"E+",hp:[48,58],atk:[8,11],def:2,weak:"번개",resist:"화염 약간",region:"서쪽 숲 깊은 곳",drops:[{name:"고블린 송곳니",chance:1,qty:[1,3],rarity:"common"},{name:"마력 찌꺼기",chance:.75,qty:[1,2],rarity:"common"},{name:"마정석",chance:.22,qty:[1,1],rarity:"rare"},{name:"푸른 마력 단검",chance:.05,qty:[1,1],rarity:"epic"}]},
  goblin_chief:{name:"고블린 족장",rank:"D",hp:[90,110],atk:[13,18],def:5,weak:"냉기",resist:"출혈 저항",region:"고블린 야영지",drops:[{name:"고블린 송곳니",chance:1,qty:[2,4],rarity:"common"},{name:"족장 금속 조각",chance:.55,qty:[1,2],rarity:"rare"},{name:"족장 목걸이",chance:.12,qty:[1,1],rarity:"rare"},{name:"고블린 왕의 톱니검",chance:.08,qty:[1,1],rarity:"epic"}]},
  frost_wolf:{name:"서리늑대 우두머리",rank:"C",hp:[150,180],atk:[20,25],def:7,weak:"화염",resist:"냉기",region:"북부 설원",drops:[{name:"서리 송곳니",chance:1,qty:[1,2],rarity:"common"},{name:"빙결 가죽",chance:.6,qty:[1,2],rarity:"rare"},{name:"서리송곳니 단검",chance:.07,qty:[1,1],rarity:"epic"}]},
@@ -2444,7 +2444,7 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 // refresh entry facility on initial render/load
 // Runtime initializes after all asset and state helpers are loaded.
 </script>
-<script src="js/playability.js?v=0.5.14-affinity1"></script>
+<script src="js/playability.js?v=0.5.16-goblin1"></script>
 <script src="js/scene-overrides.js?v=0.5.7-portrait-hotfix2"></script>
 <script src="js/resource-feedback.js?v=0.5.9-bagicons1"></script>
 <script src="js/mobile-ui.js?v=0.5.10-direct1"></script>

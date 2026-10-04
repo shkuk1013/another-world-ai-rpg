@@ -139,6 +139,17 @@ test('unemployed start keeps zero aptitude bonus',()=>{
  resetCareer();exec("document.getElementById('traitInput').value='none';var s=G.sword,d=G.dagger,m=G.manaControl;startGame()");
  assert.equal(get('G.sword'),get('s'));assert.equal(get('G.dagger'),get('d'));assert.equal(get('G.manaControl'),get('m'));assert.equal(get('G.startingPath'),'none');
 });
+test('starter goblin is beatable unarmed but weapons are clearly stronger',()=>{
+ resetCareer();exec("G.level=1;G.hp=G.maxHp=34;G.equipment.weapon=null;G.combat={type:'goblin',name:'고블린 정찰병',hp:29,maxHp:29,atk:5,def:0,intent:'빠른 찌르기',turn:1,guard:false,enemyGuard:false};var unarmed=attackDamage(4+skillForWeapon()*.55)");
+ assert(get('unarmed>=4'));
+ exec("G.equipment.weapon={...WEAPONS.sword};var armed=attackDamage(G.equipment.weapon.atk+skillForWeapon()*.55)");
+ assert(get('armed>unarmed'));
+ assert.equal(get("MONSTERS.goblin.def"),0);assert(get("MONSTERS.goblin.hp[1]<=32"));assert(get("MONSTERS.goblin.atk[1]<=6"));
+});
+test('starter goblin opens with a survivable beginner intent',()=>{
+ resetCareer();exec("G.level=1;G.name='초보';G.rank='F급';G.guildRank='F급';startCombat('goblin')");
+ assert(['빠른 찌르기','방어 자세'].includes(get('G.combat.intent')));
+});
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
 test('legacy migration preserves inventory and active scout objective',()=>{exec("var legacy=JSON.parse(JSON.stringify(G));delete legacy.scoutQuest;delete legacy.dialogueState;legacy.quest={type:'goblin'};legacy.hour=25;var upgraded=migrateState(legacy)");assert.equal(get('upgraded.scoutQuest.status'),'accepted');assert.equal(get('upgraded.hour'),1);assert.equal(get('upgraded.equipmentInventory.length'),get('G.equipmentInventory.length'))});

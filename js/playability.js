@@ -252,9 +252,13 @@ function attackDamage(power,magic=false,element=''){
  return Math.max(1,Math.floor(amount));
 }
 weaponAttack=function(){
- const c=G.combat;if(!c)return;const w=G.equipment.weapon;const d=attackDamage((w?.atk||2)+skillForWeapon()*.55);
+ const c=G.combat;if(!c)return;const w=G.equipment.weapon;
+ const unarmedPower=G.level<=3&&c.type==="goblin"?4:3;
+ const d=attackDamage((w?.atk||unarmedPower)+skillForWeapon()*.55);
  c.hp-=d;c.enemyGuard=false;if(w&&Number.isFinite(G[w.type]))G[w.type]++;G.fatigue=Math.min(100,G.fatigue+1);
- if(c.hp<=0)return victory(`${w?.name||'맨손'}으로 적을 물리쳤다.`);playerDone(`${w?.name||'맨손'}으로 <b>${d}</b> 피해.`);
+ if(c.hp<=0)return victory(`${w?.name||'맨손'}으로 적을 물리쳤다.`);
+ const hint=!w&&c.type==="goblin"?'<br><span class="small">맨손으로도 상대할 수 있지만 무기를 장착하면 훨씬 빠르게 제압할 수 있다.</span>':"";
+ playerDone(`${w?.name||'맨손'}으로 <b>${d}</b> 피해.${hint}`);
 };
 castSpell=function(i){
  const c=G.combat,s=G.spells[i];if(!c||!s||G.mp<s.cost)return;closeCombatMagic();G.mp-=s.cost;
@@ -293,7 +297,14 @@ enemyTurn=function(){
 const priorCombatUpdate=updateCombat;
 updateCombat=function(){priorCombatUpdate();if(G.companion&&G.combat)combatCompanionName.textContent=`${G.companion.name} · ${G.companion.tactic}`;};
 const priorCombatStart=startCombat;
-startCombat=function(type){if(G.combat)return;advanceTime(1);updateSurvival();priorCombatStart(type);};
+startCombat=function(type){
+ if(G.combat)return;advanceTime(1);updateSurvival();priorCombatStart(type);
+ if(G.combat&&type==="goblin"&&G.level<=3){
+   G.combat.intent=Math.random()<.65?"빠른 찌르기":"방어 자세";
+   combatLog.innerHTML+='<br><span class="small">초급 F급 몬스터다. 맨손으로도 상대할 수 있지만, 무기가 있으면 훨씬 안전하다.</span>';
+   updateCombat();
+ }
+};
 const priorFlee=flee;
 flee=function(){if(!G.combat)return;priorFlee();if(!G.combat){closeCombatMagic();closeCombatItems();}};
 render();
