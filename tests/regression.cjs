@@ -98,6 +98,10 @@ test('physical class arts can apply bleed poison and armor break',()=>{
  exec("G.mp=99;var b=G.spells.findIndex(s=>s.abilityId==='crescent_slash');castSpell(b)");assert(get('G.combat.armorBreakTurns>0'));
  exec("G.career='skirmisher';G.unlockedCareers.push('skirmisher');G.equipment.weapon={name:'단검',type:'dagger',atk:6};G.mp=99;learnAbility('poison_fang');var p=G.spells.findIndex(s=>s.abilityId==='poison_fang');castSpell(p)");assert(get('G.combat.poison>0'));
 });
+test('legacy ice prison ability id migrates',()=>{
+ const migration=fs.readFileSync(root+'/js/class-magic.js','utf8');
+ assert(migration.includes('legacyIdMap={ice_prison:"ice_lance"}'));
+});
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
 test('legacy migration preserves inventory and active scout objective',()=>{exec("var legacy=JSON.parse(JSON.stringify(G));delete legacy.scoutQuest;delete legacy.dialogueState;legacy.quest={type:'goblin'};legacy.hour=25;var upgraded=migrateState(legacy)");assert.equal(get('upgraded.scoutQuest.status'),'accepted');assert.equal(get('upgraded.hour'),1);assert.equal(get('upgraded.equipmentInventory.length'),get('G.equipmentInventory.length'))});

@@ -261,7 +261,11 @@
 
   // Existing saves migrate into the staged tree without losing learned spells.
   const legacyNameMap={"작은 불꽃":"starter_fire","서리창":"frost_basic","전격":"lightning_basic","화염구":"fireball","빙결창":"ice_lance","연쇄 번개":"chain_lightning","홍련 폭발":"inferno"};
-  for(const spell of G.spells||[]){if(!spell.abilityId&&legacyNameMap[spell.name])spell.abilityId=legacyNameMap[spell.name]}
+  const legacyIdMap={ice_prison:"ice_lance"};
+  for(const spell of G.spells||[]){
+    if(legacyIdMap[spell.abilityId])spell.abilityId=legacyIdMap[spell.abilityId];
+    if(!spell.abilityId&&legacyNameMap[spell.name])spell.abilityId=legacyNameMap[spell.name];
+  }
   if(G.flags?.iceLearned&&!learned("frost_basic")){const old=G.spells.find(s=>s.name==="서리창");if(old)old.abilityId="frost_basic"}
   if(G.flags?.lightningLearned&&!learned("lightning_basic")){const old=G.spells.find(s=>s.name==="전격");if(old)old.abilityId="lightning_basic"}
 
