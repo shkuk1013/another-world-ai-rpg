@@ -21,3 +21,27 @@
 .career-missing{color:#efc16a}
 @media(max-width:620px){.career-list{grid-template-columns:1fr}.career-card{padding:10px}}
 @media(min-width:700px) and (max-width:1180px){.career-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* ---------- v0.5.15 start path icon selection ---------- */
+.start-life-card{width:min(720px,96vw)!important}
+.start-path-title{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:2px 0 9px}
+.start-path-title span{font-size:10px;color:#98a8b8}
+.start-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.start-path-card{position:relative;display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto auto;column-gap:10px;text-align:left;padding:10px!important;min-height:112px!important;border:1px solid #40516a!important;background:linear-gradient(145deg,#162130,#101822)!important}
+.start-path-card img{grid-row:1/4;width:72px;height:72px;align-self:center;object-fit:contain;filter:drop-shadow(0 5px 8px #0008)}
+.start-path-card b{font-size:17px;color:#f1e4c7;align-self:end}
+.start-path-card span{font-size:10px;color:#b6c4d2;line-height:1.45}
+.start-path-card em{font-size:9px;color:#d9bb65;font-style:normal;font-weight:800;align-self:start}
+.start-path-card.selected{border-color:#e0b750!important;background:linear-gradient(145deg,#3b311b,#172130)!important;box-shadow:0 0 0 2px #e0b75033 inset,0 0 18px #c4932c2c}
+.start-path-card.selected:after{content:"선택";position:absolute;right:7px;top:7px;border-radius:999px;padding:2px 7px;background:#d5aa45;color:#211b0e;font-size:9px;font-weight:900}
+.start-path-hint{margin:10px 0;padding:9px 11px;border:1px solid #42546a;border-radius:9px;background:#0e1722;color:#bfcbd6;font-size:11px;line-height:1.6}
+.start-path-hint b{color:#f0ce75}
+.start-modal-actions{display:flex;gap:7px;margin-top:9px}.start-modal-actions button{flex:1}
+@media(max-width:560px){
+ .start-path-grid{grid-template-columns:1fr 1fr;gap:6px}
+ .start-path-card{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;text-align:center;padding:8px!important;min-height:156px!important}
+ .start-path-card img{grid-row:auto;width:64px;height:64px;margin:auto}
+ .start-path-card b{font-size:15px;align-self:auto}.start-path-card span{font-size:9px}.start-path-card em{font-size:8px}
+ .start-path-title{align-items:start;flex-direction:column;gap:2px}
+}

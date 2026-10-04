@@ -1,10 +1,10 @@
 /* v0.5.6: action-driven aptitude and career progression. */
 const APTITUDES={
-  none:{name:"특별한 소질 없음",start:"특별한 경험은 없다",desc:"추가 보너스 없이 완전히 자유롭게 성장합니다.",bonus:{}},
-  sword:{name:"검술 소질",start:"검을 다뤄본 적이 있다",desc:"검 숙련 +2. 진로를 고정하지 않습니다.",bonus:{sword:2}},
-  mana:{name:"마나 소질",start:"마나를 쉽게 느낀다",desc:"마나 제어 +1, 최대 MP +2. 마법사 직업은 실제 숙련으로 해금합니다.",bonus:{manaControl:1,maxMp:2}},
-  outdoors:{name:"야외생활 소질",start:"야외 생활에 익숙하다",desc:"궁술 +1, 채집 +1. 사냥과 탐색의 초반 적응을 돕습니다.",bonus:{bow:1,gathering:1}},
-  dexterity:{name:"손재주 소질",start:"손재주가 좋다",desc:"단검술 +2. 도구와 민첩한 행동의 초반 적응을 돕습니다.",bonus:{dagger:2}}
+  none:{name:"무직",start:"아직 아무것도 정하지 않는다",desc:"추가 보너스 없이 완전히 자유롭게 성장합니다.",bonus:{},intro:"아직은 아무것도 정하지 않았다. 이 세계에서 무엇이 될지는 앞으로의 선택에 달려 있다."},
+  sword:{name:"검술 성향",start:"검을 잡아본다",desc:"검술 숙련 +2. 검사 직업으로 고정되지는 않습니다.",bonus:{sword:2},intro:"손에 검을 쥐는 상상을 하자, 이상하게 익숙한 감각이 손끝을 스친다."},
+  mana:{name:"마법 성향",start:"마나의 흐름을 느껴본다",desc:"마나 제어 +1, 최대 MP +2. 마법사 직업은 이후 실제 숙련으로 해금합니다.",bonus:{manaControl:1,maxMp:2},intro:"손끝 주변의 공기가 아주 미세하게 떨린다. 아직 주문은 모르지만 마나의 존재만큼은 느껴진다."},
+  outdoors:{name:"야외생활 소질",start:"야외 생활에 익숙하다",desc:"궁술 +1, 채집 +1. 기존 저장 호환용 초기 소질입니다.",bonus:{bow:1,gathering:1},intro:"야외에서 움직이는 감각이 몸에 남아 있다."},
+  dexterity:{name:"도적 성향",start:"그림자와 빈틈을 살핀다",desc:"단검술 +2. 도적 계열로 고정되지는 않습니다.",bonus:{dagger:2},intro:"발걸음을 옮기자 몸이 먼저 소리를 죽인다. 주변의 빈틈이 유난히 잘 보인다."}
 };
 
 const CAREERS={
@@ -112,11 +112,23 @@ migrateState=function(state){return normalizeCareerState(previousMigrateState(st
 G=normalizeCareerState(G,G);
 G.aptitudeApplied=false;
 
+const START_PATH_LABELS={none:"무직",sword:"검술",mana:"마법",dexterity:"도적"};
+window.selectStartingPath=function(key){
+  if(!["none","sword","mana","dexterity"].includes(key))key="none";
+  const input=document.getElementById("traitInput");if(input)input.value=key;
+  document.querySelectorAll(".start-path-card").forEach(card=>{
+    const on=card.dataset.path===key;card.classList.toggle("selected",on);card.setAttribute("aria-checked",String(on));
+  });
+  const a=APTITUDES[key]||APTITUDES.none,hint=document.getElementById("aptitudeHint");
+  if(hint)hint.innerHTML=`<b>${START_PATH_LABELS[key]}</b> · ${a.desc}`;
+};
 const previousStartGame=startGame;
 startGame=function(){
   const selected=document.getElementById("traitInput")?.value||"none";
   previousStartGame();
   applyAptitude(selected);
+  G.startingPath=selected;
+  add("system",`<b>${START_PATH_LABELS[selected]||"무직"} 성향</b><br>${APTITUDES[selected]?.intro||APTITUDES.none.intro}<br><span class="small">이 선택은 최종 직업이 아닙니다. 행동과 숙련에 따라 다른 직업으로도 성장할 수 있습니다.</span>`);
   checkCareerUnlocks(G,{notify:false});
   render();
 };
@@ -130,9 +142,6 @@ render=function(){
   return result;
 };
 
-document.getElementById("traitInput")?.addEventListener("change",event=>{
-  const aptitude=APTITUDES[event.target.value]||APTITUDES.none;
-  const hint=document.getElementById("aptitudeHint");if(hint)hint.textContent=aptitude.desc;
-});
+selectStartingPath(document.getElementById("traitInput")?.value||"none");
 document.getElementById("careerModal")?.addEventListener("pointerdown",event=>{if(event.target.id==="careerModal")closeCareerMenu();});
 render();

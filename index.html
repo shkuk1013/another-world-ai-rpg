@@ -142,7 +142,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <link rel="stylesheet" href="css/resource-feedback.css?v=0.5.10-direct1">
 <link rel="stylesheet" href="css/mobile-ui.css?v=0.5.5">
   <link rel="stylesheet" href="css/monster-art.css?v=0.5.7-goblin-hotfix2">
-<link rel="stylesheet" href="css/career-system.css?v=0.5.6">
+<link rel="stylesheet" href="css/career-system.css?v=0.5.15-startpath1">
 <link rel="stylesheet" href="css/guild-quests.css?v=0.5.8-ui2">
 <link rel="stylesheet" href="css/hud-visibility.css?v=0.5.8-hud1">
 <link rel="stylesheet" href="css/fantasy-ui-icons.css?v=0.5.10-direct1">
@@ -280,20 +280,28 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
   </section>
 </div>
 
-<div id="startModal" class="modal"><div>
+<div id="startModal" class="modal"><div class="start-life-card">
 <h2>새로운 삶을 시작합니다</h2>
-<p class="small">영웅으로 소환된 것이 아니다. 오늘 먹을 것과 잘 곳부터 스스로 해결해야 한다.</p>
-<label>이름</label><input id="nameInput" value="쿠노모스" style="width:100%;padding:9px;margin:6px 0 12px;background:#0d141d;border:1px solid #3a4a61;border-radius:8px;color:white">
-<label for="traitInput">처음부터 잘하는 것이 있습니까?</label>
-<select id="traitInput" style="width:100%;padding:9px;margin:6px 0 12px;background:#0d141d;border:1px solid #3a4a61;border-radius:8px;color:white">
-<option value="none">특별한 경험은 없다</option>
-<option value="sword">검을 다뤄본 적이 있다</option>
-<option value="mana">마나를 쉽게 느낀다</option>
-<option value="outdoors">야외 생활에 익숙하다</option>
-<option value="dexterity">손재주가 좋다</option>
-</select>
-<p id="aptitudeHint" class="small">진로를 정하는 선택이 아닙니다. 작은 시작 보너스만 받으며, 모든 직업으로 성장할 수 있습니다.</p>
-<button id="startGameBtn" type="button" class="primary" onclick="startGame()">새 모험 시작</button> <button onclick="loadGame()">저장한 모험 이어하기</button>
+<p class="small">영웅으로 소환된 것이 아니다. 이 세계에서 어떤 방식으로 첫발을 내디딜지만 정해보자.</p>
+<label>이름</label><input id="nameInput" value="쿠노모스" style="width:100%;padding:9px;margin:6px 0 14px;background:#0d141d;border:1px solid #3a4a61;border-radius:8px;color:white">
+<div class="start-path-title"><b>처음 손이 가는 것은?</b><span>최종 직업을 고정하지 않습니다.</span></div>
+<input id="traitInput" type="hidden" value="none">
+<div id="startPathGrid" class="start-path-grid" role="radiogroup" aria-label="초기 성장 성향 선택">
+  <button type="button" class="start-path-card" data-path="sword" onclick="selectStartingPath('sword')" role="radio" aria-checked="false">
+    <img src="assets/ui/start/start-sword-v1.svg" alt=""><b>검술</b><span>검을 잡는 감각이 이상하리만큼 익숙하다.</span><em>검술 숙련 +2</em>
+  </button>
+  <button type="button" class="start-path-card" data-path="mana" onclick="selectStartingPath('mana')" role="radio" aria-checked="false">
+    <img src="assets/ui/start/start-magic-v1.svg" alt=""><b>마법</b><span>공기 속 마나의 흐름이 희미하게 느껴진다.</span><em>마나 제어 +1 · 최대 MP +2</em>
+  </button>
+  <button type="button" class="start-path-card" data-path="dexterity" onclick="selectStartingPath('dexterity')" role="radio" aria-checked="false">
+    <img src="assets/ui/start/start-rogue-v1.svg" alt=""><b>도적</b><span>소리 없이 움직이고 빈틈을 읽는 감각이 빠르다.</span><em>단검술 +2</em>
+  </button>
+  <button type="button" class="start-path-card selected" data-path="none" onclick="selectStartingPath('none')" role="radio" aria-checked="true">
+    <img src="assets/ui/start/start-unemployed-v1.svg" alt=""><b>무직</b><span>아직 아무것도 정하지 않는다. 이 세계에서 직접 길을 찾는다.</span><em>보너스 없음 · 완전 자유 성장</em>
+  </button>
+</div>
+<div id="aptitudeHint" class="start-path-hint"><b>무직</b> · 추가 보너스 없이 모든 방향으로 자유롭게 성장합니다.</div>
+<div class="start-modal-actions"><button id="startGameBtn" type="button" class="primary" onclick="startGame()">이 길로 시작한다</button><button onclick="loadGame()">저장한 모험 이어하기</button></div>
 </div></div>
 
 <div id="combatModal" class="modal hidden"><div class="combat-modal-card">
@@ -2443,7 +2451,7 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 <script src="js/monster-art.js?v=0.5.7-goblin-hotfix2"></script>
 <script src="js/bren-monsters.js?v=0.5.7"></script>
 <script src="js/monster-affinity.js?v=0.5.14-affinity1"></script>
-<script src="js/career-system.js?v=0.5.7-audit1"></script>
+<script src="js/career-system.js?v=0.5.15-startpath1"></script>
 <script src="js/guild-quests.js?v=0.5.8-balance1"></script>
 <script src="js/equipment-ui.js?v=0.5.9-bagicons1"></script>
 <script src="js/ui-polish.js?v=0.5.9-ui1"></script>

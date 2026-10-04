@@ -125,6 +125,20 @@ test('codex shows numeric affinity and status resistance after analysis level',(
  assert(context.codexList.innerHTML.includes('상태이상 저항'));
  assert(context.codexList.innerHTML.includes('면역 화염'));
 });
+test('start screen exposes four icon based paths',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ for(const path of ['sword','mana','dexterity','none'])assert(html.includes('data-path="'+path+'"'));
+ for(const file of ['start-sword-v1.svg','start-magic-v1.svg','start-rogue-v1.svg','start-unemployed-v1.svg'])assert(fs.existsSync(root+'/assets/ui/start/'+file));
+ assert(!html.includes('<select id="traitInput"'));
+});
+test('starting path is aptitude only and does not lock a career',()=>{
+ resetCareer();exec("document.getElementById('traitInput').value='dexterity';startGame()");
+ assert.equal(get('G.startingPath'),'dexterity');assert.equal(get('G.career'),null);assert.equal(get('G.dagger'),2);
+});
+test('unemployed start keeps zero aptitude bonus',()=>{
+ resetCareer();exec("document.getElementById('traitInput').value='none';var s=G.sword,d=G.dagger,m=G.manaControl;startGame()");
+ assert.equal(get('G.sword'),get('s'));assert.equal(get('G.dagger'),get('d'));assert.equal(get('G.manaControl'),get('m'));assert.equal(get('G.startingPath'),'none');
+});
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
 test('legacy migration preserves inventory and active scout objective',()=>{exec("var legacy=JSON.parse(JSON.stringify(G));delete legacy.scoutQuest;delete legacy.dialogueState;legacy.quest={type:'goblin'};legacy.hour=25;var upgraded=migrateState(legacy)");assert.equal(get('upgraded.scoutQuest.status'),'accepted');assert.equal(get('upgraded.hour'),1);assert.equal(get('upgraded.equipmentInventory.length'),get('G.equipmentInventory.length'))});
