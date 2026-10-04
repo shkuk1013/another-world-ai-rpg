@@ -305,7 +305,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 </div></div>
 
 <div id="combatModal" class="modal hidden"><div class="combat-modal-card">
-<div class="combat-title-row"><h2>⚔️ 전투</h2><span class="combat-turn-hint">적의 행동을 보고 선택하세요</span></div>
+<div class="combat-title-row"><h2>⚔️ 전투</h2><span class="combat-turn-hint">적의 행동을 보고 선택하세요</span><button id="combatHapticToggle" class="combat-haptic-toggle" type="button" onclick="toggleCombatHaptics()" aria-pressed="true">📳 진동 ON</button></div>
 <div class="dual combat-party-status">
 <div class="player-panel combat-status-card">
  <h3 id="combatPlayerName"></h3>
@@ -319,7 +319,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 </div>
 </div>
 <div class="combat-grid">
- <img id="enemyArt" class="enemy-art">
+ <div class="enemy-visual-wrap"><img id="enemyArt" class="enemy-art"><div class="combat-impact-vignette"></div></div>
  <div class="combat-enemy-info">
   <h3 id="enemyName"></h3>
   <div class="stat combat-stat enemy-stat"><span>🩸 적 HP</span><b id="enemyHp"></b></div><div class="bar combat-enemy-bar"><i id="enemyBar"></i></div>
@@ -2457,5 +2457,6 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 <script src="js/ui-polish.js?v=0.5.9-ui1"></script>
 <script src="js/npc-dialogues.js?v=0.5.11-dialogue1"></script>
 <script src="js/class-magic.js?v=0.5.14-affinity1"></script>
+<script src="js/combat-feedback.js?v=0.5.17-hit1"></script>
 </body>
 </html>

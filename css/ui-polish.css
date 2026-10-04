@@ -308,3 +308,43 @@
 .affinity-chip.immune{color:#ffaaa5;border-color:#8d4742;background:#371c1e}
 .affinity-chip.neutral{color:#b9c5d1}
 .monster-status-line{font-size:10px;color:#aebdcb;margin:2px 0 5px;line-height:1.5}
+
+
+/* ---------- v0.5.17 combat hit feedback ---------- */
+.enemy-visual-wrap{position:relative;overflow:hidden;border-radius:12px;isolation:isolate;min-height:160px}
+.enemy-visual-wrap .enemy-art{position:relative;z-index:1;height:100%;transition:filter .08s ease,transform .08s ease}
+.combat-impact-vignette{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;background:radial-gradient(circle,#fff8 0,#ff494933 34%,transparent 68%)}
+.enemy-visual-wrap.combat-impact-flash .combat-impact-vignette{animation:combatImpactFlash .28s ease-out}
+.enemy-art.combat-hit{animation:combatHit .28s cubic-bezier(.2,.85,.35,1)}
+.enemy-art.combat-hit-heavy{animation:combatHitHeavy .38s cubic-bezier(.16,.9,.25,1)}
+.player-panel.player-hit{animation:playerHit .3s ease-out}
+.combat-smooth-bar{transition:width .28s cubic-bezier(.2,.8,.3,1)!important}
+.combat-float{position:absolute;left:50%;top:35%;z-index:8;transform:translate(-50%,0);pointer-events:none;font-weight:950;text-shadow:0 3px 4px #000,0 0 8px #000;animation:combatFloat .82s ease-out forwards;white-space:nowrap}
+.combat-float.damage{font-size:28px;color:#fff1da}
+.combat-float.damage.critical{font-size:34px;color:#ffd15a;letter-spacing:.03em}
+.combat-float.effect{top:55%;font-size:15px;color:#d9ebff}
+.combat-float.player-damage{left:25%;top:14%;font-size:22px;color:#ff8585}
+.combat-strike-fx{position:absolute;z-index:7;left:50%;top:50%;width:74%;height:12px;transform:translate(-50%,-50%) rotate(-24deg);pointer-events:none;animation:strikeSlash .42s ease-out forwards}
+.combat-strike-fx.physical{background:linear-gradient(90deg,transparent,#fff 25%,#9edcff 50%,#fff 70%,transparent);box-shadow:0 0 14px #dff5ff,0 0 28px #65aee8;border-radius:100%}
+.combat-strike-fx.fire,.combat-strike-fx.ice,.combat-strike-fx.lightning,.combat-strike-fx.poison{width:auto;height:auto;background:none!important;box-shadow:none!important;font-size:58px;transform:translate(-50%,-50%) rotate(0)}
+.combat-strike-fx.fire{filter:drop-shadow(0 0 15px #ff6a2d)}
+.combat-strike-fx.ice{filter:drop-shadow(0 0 15px #6cd5ff)}
+.combat-strike-fx.lightning{filter:drop-shadow(0 0 18px #e6d06b)}
+.combat-strike-fx.poison{filter:drop-shadow(0 0 15px #9bd15c)}
+.combat-haptic-toggle{margin-left:auto!important;padding:5px 8px!important;min-height:0!important;font-size:9px!important;background:#1c3f35!important;border-color:#3d806a!important}
+.combat-haptic-toggle.off{background:#302e34!important;border-color:#55515d!important;color:#aaa!important}
+@keyframes combatHit{0%{transform:translateX(0);filter:brightness(1)}25%{transform:translateX(-9px) rotate(-1deg);filter:brightness(2.2) saturate(.4)}55%{transform:translateX(6px) rotate(1deg);filter:brightness(1.25)}100%{transform:translateX(0);filter:brightness(1)}}
+@keyframes combatHitHeavy{0%{transform:scale(1) translateX(0);filter:brightness(1)}20%{transform:scale(1.04) translateX(-15px) rotate(-2deg);filter:brightness(2.8) saturate(.2)}48%{transform:scale(.98) translateX(10px) rotate(1.5deg)}75%{transform:translateX(-4px)}100%{transform:scale(1) translateX(0);filter:brightness(1)}}
+@keyframes combatImpactFlash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+@keyframes playerHit{0%{transform:translateX(0);box-shadow:none}25%{transform:translateX(-5px);box-shadow:0 0 22px #ff454566 inset}55%{transform:translateX(4px)}100%{transform:translateX(0);box-shadow:none}}
+@keyframes combatFloat{0%{opacity:0;transform:translate(-50%,12px) scale(.65)}18%{opacity:1;transform:translate(-50%,-4px) scale(1.12)}70%{opacity:1;transform:translate(-50%,-35px) scale(1)}100%{opacity:0;transform:translate(-50%,-54px) scale(.9)}}
+@keyframes strikeSlash{0%{opacity:0;transform:translate(-50%,-50%) rotate(-24deg) scaleX(.1)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-24deg) scaleX(1.2)}}
+@media(max-width:700px){
+ .enemy-visual-wrap{min-height:150px}.enemy-visual-wrap .enemy-art{max-height:180px!important}
+ .combat-float.damage{font-size:25px}.combat-float.damage.critical{font-size:30px}
+ .combat-haptic-toggle{font-size:8px!important;padding:4px 6px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .enemy-art.combat-hit,.enemy-art.combat-hit-heavy,.player-panel.player-hit,.combat-float,.combat-strike-fx,.combat-impact-vignette{animation-duration:.01ms!important}
+ .combat-smooth-bar{transition:none!important}
+}

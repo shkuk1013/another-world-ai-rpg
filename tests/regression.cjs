@@ -23,6 +23,7 @@ exec(fs.readFileSync(root+'/js/equipment-ui.js','utf8'));
 exec(fs.readFileSync(root+'/js/ui-polish.js','utf8'));
 exec(fs.readFileSync(root+'/js/npc-dialogues.js','utf8'));
 exec(fs.readFileSync(root+'/js/class-magic.js','utf8'));
+exec(fs.readFileSync(root+'/js/combat-feedback.js','utf8'));
 context.Math.random=()=>.9;
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
 const get=s=>exec(s);
@@ -149,6 +150,19 @@ test('starter goblin is beatable unarmed but weapons are clearly stronger',()=>{
 test('starter goblin opens with a survivable beginner intent',()=>{
  resetCareer();exec("G.level=1;G.name='초보';G.rank='F급';G.guildRank='F급';startCombat('goblin')");
  assert(['빠른 찌르기','방어 자세'].includes(get('G.combat.intent')));
+});
+test('combat feedback layer is loaded after final combat logic',()=>{
+ const html=fs.readFileSync(root+'/index.html','utf8');
+ assert(html.indexOf('js/combat-feedback.js')>html.indexOf('js/class-magic.js'));
+ assert(html.includes('enemy-visual-wrap'));assert(html.includes('combatHapticToggle'));
+});
+test('combat feedback exposes haptic toggle without requiring vibration support',()=>{
+ assert.equal(get('typeof toggleCombatHaptics'),'function');
+ assert.equal(get('typeof combatFeedbackTest'),'function');
+});
+test('combat feedback css contains hit flash damage popup and hp animation',()=>{
+ const css=fs.readFileSync(root+'/css/ui-polish.css','utf8');
+ for(const token of ['combat-hit-heavy','combat-impact-flash','combat-float','combat-smooth-bar','combat-strike-fx'])assert(css.includes(token));
 });
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});
