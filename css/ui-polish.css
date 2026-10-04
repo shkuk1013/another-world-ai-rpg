@@ -298,3 +298,13 @@
 .ability-group>h3{display:flex;align-items:center;gap:7px}
 .ability-learn-card .ability-school{min-width:36px;text-align:center}
 #combatStatus .status{margin:2px 3px 2px 0}
+
+
+/* ---------- v0.5.14 monster affinity ---------- */
+.monster-affinity-line{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.affinity-chip{display:inline-block;padding:2px 6px;border-radius:999px;font-size:9px;font-weight:800;border:1px solid #4c5e73;background:#162131}
+.affinity-chip.weak{color:#ffd17b;border-color:#a77d32;background:#392d18}
+.affinity-chip.resist{color:#b9d7f4;border-color:#4a6d8d;background:#17283a}
+.affinity-chip.immune{color:#ffaaa5;border-color:#8d4742;background:#371c1e}
+.affinity-chip.neutral{color:#b9c5d1}
+.monster-status-line{font-size:10px;color:#aebdcb;margin:2px 0 5px;line-height:1.5}

@@ -127,6 +127,8 @@
   function applyStatus(a,c,overrideElement=null){
     const effect=a.statusEffect||(overrideElement==="화염"?"burn":overrideElement==="냉기"?"frost":overrideElement==="번개"?"shock":null);
     let amount=overrideElement?1:statusAdjustedAmount(a,c);if(!effect||amount<=0)return "";
+    const resistanceCheck=typeof monsterStatusRoll==="function"?monsterStatusRoll(c.type,effect):{applied:true,resistance:0};
+    if(!resistanceCheck.applied)return `⛔ ${STATUS_INFO[effect]||effect} 저항`;
     if(effect==="burn"){c.fireStacks=Math.min(3,(c.fireStacks||0)+amount);c.fireTurns=3;return `🔥 화상 ${c.fireStacks}중첩`;}
     if(effect==="frost"){c.frostStacks=Math.min(3,(c.frostStacks||0)+amount);c.frostTurns=3;if(c.frostStacks>=3){c.frozen=1;c.frostStacks=0;c.frostTurns=0;return "🧊 빙결!"}return `❄ 냉기 ${c.frostStacks}중첩`;}
     if(effect==="shock"){c.shockStacks=Math.min(3,(c.shockStacks||0)+amount);c.shockTurns=3;return `⚡ 감전 ${c.shockStacks}중첩`;}

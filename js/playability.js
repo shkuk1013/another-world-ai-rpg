@@ -245,7 +245,8 @@ for(const [name,required] of [['doGathering',null],['rareGathering',null],['doLo
 function conditionMultiplier(){return Math.max(.65,1-(G.fatigue>=80?.12:0)-(G.hunger>=80?.12:0)-(G.hydration<=20?.12:0));}
 function attackDamage(power,magic=false,element=''){
  const c=G.combat;if(!c)return 0;const monster=MONSTERS[c.type]||{};
- let affinity=element&&monster.weak===element?1.25:element&&String(monster.resist).includes(element)?.8:1;
+ let affinity=element?(typeof monsterAffinityMultiplier==="function"?monsterAffinityMultiplier(c.type,element):(monster.weak===element?1.25:String(monster.resist).includes(element)?.8:1)):1;
+ if(affinity===0)return 0;
  let amount=(power+(G.level-1)*.8+Math.random()*4)*conditionMultiplier()*affinity;
  amount-=Math.max(0,c.def||0)*(magic?.35:.7);if(c.enemyGuard)amount*=magic?.7:.5;
  return Math.max(1,Math.floor(amount));

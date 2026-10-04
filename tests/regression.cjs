@@ -16,6 +16,7 @@ exec(fs.readFileSync(root+'/js/playability.js','utf8'));
 exec(fs.readFileSync(root+'/js/resource-feedback.js','utf8'));
 exec(fs.readFileSync(root+'/js/monster-art.js','utf8'));
 exec(fs.readFileSync(root+'/js/bren-monsters.js','utf8'));
+exec(fs.readFileSync(root+'/js/monster-affinity.js','utf8'));
 exec(fs.readFileSync(root+'/js/career-system.js','utf8'));
 exec(fs.readFileSync(root+'/js/guild-quests.js','utf8'));
 exec(fs.readFileSync(root+'/js/equipment-ui.js','utf8'));
@@ -101,6 +102,28 @@ test('physical class arts can apply bleed poison and armor break',()=>{
 test('legacy ice prison ability id migrates',()=>{
  const migration=fs.readFileSync(root+'/js/class-magic.js','utf8');
  assert(migration.includes('legacyIdMap={ice_prison:"ice_lance"}'));
+});
+test('element affinity uses numeric weakness resistance and immunity',()=>{
+ assert.equal(get("monsterAffinityMultiplier('fire_drake','화염')"),0);
+ assert(get("monsterAffinityMultiplier('fire_drake','냉기')")>1);
+ assert(get("monsterAffinityMultiplier('frost_wolf','냉기')")<1);
+ assert(get("monsterAffinityMultiplier('ancient_dragon','냉기')")>1);
+});
+test('monster status immunity and boss resistance are real combat data',()=>{
+ assert.equal(get("monsterStatusResistance('ancient_golem','bleed')"),1);
+ assert.equal(get("monsterStatusResistance('fire_drake','burn')"),1);
+ assert(get("monsterStatusResistance('ancient_dragon','shock')")>=.5);
+ assert(get("monsterStatusResistance('goblin','burn')")<.2);
+});
+test('elemental immunity can reduce elemental damage to zero',()=>{
+ resetCareer();exec("G.name='면역검사';G.level=20;G.combat={type:'fire_drake',hp:700,maxHp:700,atk:1,def:0,intent:'방어 자세',turn:1,guard:false,enemyGuard:false}");
+ assert.equal(get("attackDamage(100,true,'화염')"),0);
+ assert(get("attackDamage(100,true,'냉기')")>100);
+});
+test('codex shows numeric affinity and status resistance after analysis level',()=>{
+ resetCareer();exec("G.discoveredMonsters.fire_drake=true;G.monsterKills.fire_drake=10;openCodex()");
+ assert(context.codexList.innerHTML.includes('상태이상 저항'));
+ assert(context.codexList.innerHTML.includes('면역 화염'));
 });
 test('weapon duplicate purchase blocked and old weapon kept',()=>{exec('G.gold=200;buy(WEAPONS.sword)');const gold=get('G.gold');exec('buy(WEAPONS.sword)');assert.equal(get('G.gold'),gold);exec('buy(WEAPONS.bow)');assert(get("G.equipmentInventory.some(x=>x.name===WEAPONS.sword.name)"))});
 test('campfire escape route and companion story remain reachable',()=>{exec("G.location='숲속 야영지';G.flags.rienJoined=true;render()");assert(context.actions.children.some(b=>b.innerHTML.includes('모닥불')));assert(context.actions.children.some(b=>b.innerHTML.includes('브렌으로')))});

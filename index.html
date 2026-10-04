@@ -1439,7 +1439,7 @@ function victory(txt){let type=G.combat?.type;combatModal.classList.add("hidden"
  let rewardGold=Math.max(6,Math.round(rewardXP*.45));
  G.gold+=rewardGold;G.rep+=rewardXP>=75?2:1;gainXP(rewardXP);let drops=rollDrops(type);checkTitles();let dropText=drops.length?drops.map(d=>`<span class="drop-${d.rarity}">${typeof itemInlineMarkup==="function"?itemInlineMarkup(d.name):""}${d.name}${d.qty>1?` ×${d.qty}`:""}</span>`).join(", "):"특별한 전리품 없음";if(type==="mana_goblin"&&G.flags.rienJoined&&!G.flags.campfire){G.location="숲속 야영지";G.quest={title:"밤이 오기 전에",desc:"리엔과 야영하며 오늘 일을 정리하자."};add("리엔",`“저 마력... 평범한 고블린한테 생길 수 있는 게 아니에요.”<br>전리품: ${dropText}`);return}if(G.scoutQuest?.status==="accepted"&&["goblin","mana_goblin"].includes(type)){G.scoutQuest.status="scouted";}add("system",txt+`<br>전리품: ${dropText}`);}
 function codexLevel(k){return k>=30?5:k>=20?4:k>=10?3:k>=5?2:k>=1?1:0}
-function openCodex(){ensureProgress();codexList.innerHTML=Object.entries(MONSTERS).map(([id,m])=>{let seen=G.discoveredMonsters[id],kills=G.monsterKills[id]||0,l=codexLevel(kills);if(!seen)return`<div class="codex-entry codex-lock"><b>???</b><br>아직 발견하지 못한 몬스터</div>`;let drops=m.drops.map(d=>l>=2||d.rarity==="common"?`<span class="drop-${d.rarity}">${typeof itemInlineMarkup==="function"?itemInlineMarkup(d.name):""}${d.name}${l>=5?` (${Math.round(d.chance*100)}%)`:""}</span>`:`<span class="codex-lock">???</span>`).join(", ");return`<div class="codex-entry"><b>${m.name}</b> <span class="badge">${m.rank}급</span><br><span class="small">처치 ${kills}회 · 출현: ${l>=1?m.region:"???"}</span><br>${l>=2?`HP ${m.hp[0]}~${m.hp[1]} · 공격 ${m.atk[0]}~${m.atk[1]} · 방어 ${m.def}<br>`:""}${l>=3?`약점: ${m.weak} · 저항: ${m.resist}<br>`:""}${l>=2?`드랍: ${drops}`:"드랍: ???"}</div>`}).join("");codexModal.classList.remove("hidden")}
+function openCodex(){ensureProgress();codexList.innerHTML=Object.entries(MONSTERS).map(([id,m])=>{let seen=G.discoveredMonsters[id],kills=G.monsterKills[id]||0,l=codexLevel(kills);if(!seen)return`<div class="codex-entry codex-lock"><b>???</b><br>아직 발견하지 못한 몬스터</div>`;let drops=m.drops.map(d=>l>=2||d.rarity==="common"?`<span class="drop-${d.rarity}">${typeof itemInlineMarkup==="function"?itemInlineMarkup(d.name):""}${d.name}${l>=5?` (${Math.round(d.chance*100)}%)`:""}</span>`:`<span class="codex-lock">???</span>`).join(", ");return`<div class="codex-entry"><b>${m.name}</b> <span class="badge">${m.rank}급</span><br><span class="small">처치 ${kills}회 · 출현: ${l>=1?m.region:"???"}</span><br>${l>=2?`HP ${m.hp[0]}~${m.hp[1]} · 공격 ${m.atk[0]}~${m.atk[1]} · 방어 ${m.def}<br>`:""}${l>=3?`약점: ${m.weak} · 저항: ${m.resist}<br>${typeof monsterAffinityCodexHtml==="function"?monsterAffinityCodexHtml(id):""}`:""}${l>=2?`드랍: ${drops}`:"드랍: ???"}</div>`}).join("");codexModal.classList.remove("hidden")}
 function closeCodex(){codexModal.classList.add("hidden")}
 function openTitles(){ensureProgress();titleList.innerHTML=TITLE_RULES.map(t=>{let u=G.titles.includes(t.name),cur=G.monsterKills[t.monster]||0;return`<div class="codex-entry ${u?"":"codex-lock"}"><b>${u?t.name:"???"}</b><br><span class="small">${cur}/${t.kills} 처치${u?`<br>${t.effect}`:""}</span>${u?`<br><button onclick="equipTitle('${t.name}')">칭호 장착</button>`:""}</div>`}).join("");titleModal.classList.remove("hidden")}
 function closeTitles(){titleModal.classList.add("hidden")}
@@ -2436,17 +2436,18 @@ function openWorldMap(tab="world"){currentMapTab=tab;renderMapTab(tab);worldMapM
 // refresh entry facility on initial render/load
 // Runtime initializes after all asset and state helpers are loaded.
 </script>
-<script src="js/playability.js?v=0.5.5-hotfix1"></script>
+<script src="js/playability.js?v=0.5.14-affinity1"></script>
 <script src="js/scene-overrides.js?v=0.5.7-portrait-hotfix2"></script>
 <script src="js/resource-feedback.js?v=0.5.9-bagicons1"></script>
 <script src="js/mobile-ui.js?v=0.5.10-direct1"></script>
 <script src="js/monster-art.js?v=0.5.7-goblin-hotfix2"></script>
 <script src="js/bren-monsters.js?v=0.5.7"></script>
+<script src="js/monster-affinity.js?v=0.5.14-affinity1"></script>
 <script src="js/career-system.js?v=0.5.7-audit1"></script>
 <script src="js/guild-quests.js?v=0.5.8-balance1"></script>
 <script src="js/equipment-ui.js?v=0.5.9-bagicons1"></script>
 <script src="js/ui-polish.js?v=0.5.9-ui1"></script>
 <script src="js/npc-dialogues.js?v=0.5.11-dialogue1"></script>
-<script src="js/class-magic.js?v=0.5.13-status1"></script>
+<script src="js/class-magic.js?v=0.5.14-affinity1"></script>
 </body>
 </html>
